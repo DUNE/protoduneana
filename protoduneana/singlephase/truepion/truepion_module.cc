@@ -23,7 +23,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larsim/MCCheater/BackTrackerService.h"
@@ -124,7 +124,7 @@ private:
   std::string fGeneratorTag;
   bool fVerbose;
 
-  geo::GeometryCore const * fGeometry;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
   TTree *fPandoraBeam;
   //TTree *fPandoraCosmics;
@@ -443,7 +443,6 @@ void protoana::truepion::analyze(art::Event const & evt){
   Initialise();
 
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
-  fGeometry = &*(art::ServiceHandle<geo::Geometry>());
   // const sim::ParticleList& plist=pi_serv->ParticleList();
 
   int beamid=-9999;
@@ -536,7 +535,6 @@ void protoana::truepion::analyze(art::Event const & evt){
       art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
 
-      art::ServiceHandle<geo::Geometry> geom;
       simb::MCTrajectory truetraj=geantGoodParticle->Trajectory();
       auto thisTrajectoryProcessMap1 =  truetraj.TrajectoryProcesses();
       if (thisTrajectoryProcessMap1.size()){
@@ -591,7 +589,7 @@ void protoana::truepion::analyze(art::Event const & evt){
 	}
       }
 
-      geo::View_t view = geom->View(2);
+      geo::View_t view = fWireReadoutGeom.Plane({0, 0, 2}).View();
       auto simIDE_prim=bt_serv->TrackIdToSimIDEs_Ps(geantGoodParticle->TrackId(),view);
       std::map<double, sim::IDE> orderedSimIDE;
       for (auto& ide : simIDE_prim) orderedSimIDE[ide->z]= *ide;
@@ -871,7 +869,7 @@ void protoana::truepion::analyze(art::Event const & evt){
  double xyzEnd[3];
  unsigned int wireno=std::round(wire_no);
  geo::WireID wireid(0,TPCb[clt],2,wireno);
- fGeometry->WireEndPoints(wireid, xyzStart, xyzEnd);
+ fWireReadoutGeom.WireEndPoints(wireid, xyzStart, xyzEnd);
  std::cout<<"Z position of intersection = "<<xyzStart[2]<<" "<<xyzEnd[2]<<"  "<<wireno<<std::endl;
  Zintersection.push_back(xyzStart[2]);
  timeintersection.push_back(ticks_no);

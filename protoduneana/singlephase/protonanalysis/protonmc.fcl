@@ -43,7 +43,7 @@ outputs:
    fileName:    "mcproton.root"    #default file name, can override from command line with -o or --output
    dataTier: "reconstructed"
    fastCloning: false
- } 
+ }
 }
 
 physics:
@@ -52,7 +52,7 @@ physics:
 
   }
  #filters:  {
-    #f1: @local::standard_protodunebeamlinefilter_Proton_1GeV	
+    #f1: @local::standard_protodunebeamlinefilter_Proton_1GeV
  #}
  #fpath: [f1]
 
@@ -62,7 +62,7 @@ physics:
      module_type:             "protonmc"
      BeamModuleLabel:         "beamevent"
      #Warning!! The code will use CalorimetryTag to do sce correction
-     #CalorimetryTag:          "pandoracalo"	
+     #CalorimetryTag:          "pandoracalo"
      #CalorimetryTag:         "pandoracaloSCE"
      #CalorimetryTag:         "pandoracalo"
      #pandoracalo + electron lifetime correction (recommended)
@@ -79,8 +79,8 @@ physics:
      #hy:: for sce on, disable the comment of Prod2BeamCuts
      #BeamCuts:             @local::Prod2BeamCuts
 
-     #mcs angles	
-     #MuMCSInputTag:           "pandoraTrack" 
+     #mcs angles
+     #MuMCSInputTag:           "pandoraTrack"
      #TrajMCSFitter : {
       #pIdHypothesis: 2212
       #minNumSegments: 2
@@ -95,13 +95,13 @@ physics:
       #angResol: 3.0 #in mrad (uBoone angle resolution)
      #}
 
- 
+
    }
  }
- 
+
  ana:  [ protonmc ]
  stream1:  [ out1 ]
- end_paths:     [  ana ] 
+ end_paths:     [  ana ]
 }
 
 #physics.analyzers.protonmc.TrackModuleLabel:        "pmtrack"
@@ -120,6 +120,7 @@ physics.analyzers.protonmc.CalorimetryModuleLabel:  "pandoracali"
 #physics.analyzers.protonmc.HitsModuleLabel:  "linecluster"
 physics.analyzers.protonmc.HitsModuleLabel:  "hitpdune"
 physics.analyzers.protonmc.SaveTrackInfo: true
+services.AuxDetGeometry: @local::protodunev7_auxdet_geo
 services.Geometry: @local::protodunev7_geo
 
 #g4 reweight
@@ -144,14 +145,14 @@ physics.analyzers.protonmc.ParameterSet: [
     Cut: "reac"
     Name: "fReac"
     Range: [0.,  1200.]
-    Nominal: 1.0 
+    Nominal: 1.0
     Sigma: .2
   },
   {
     Cut: "elast"
     Name: "fElast"
     Range: [0.,  1200.]
-    Nominal: 1.0 
+    Nominal: 1.0
     Sigma: .0
   }
 ]

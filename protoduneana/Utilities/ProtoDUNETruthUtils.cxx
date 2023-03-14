@@ -3,6 +3,8 @@
 #include "protoduneana/Utilities/ProtoDUNETrackUtils.h"
 #include "protoduneana/Utilities/ProtoDUNEShowerUtils.h"
 
+#include "larcore/Geometry/WireReadout.h"
+#include "larcorealg/Geometry/WireReadoutGeom.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -961,7 +963,10 @@ int protoana::ProtoDUNETruthUtils::GetProcessKey(std::string process){
 }
 
 // Get estimated particle energy deposit. The G4 trackId must be provided
-double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt, geo::GeometryCore const * fGeom, int trackid, int whichview) const {
+double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt,
+                                                     geo::WireReadoutGeom const& wireReadout,
+                                                     int trackid,
+                                                     int whichview) const {
 
   double edep = 0.0;
 
@@ -970,7 +975,7 @@ double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt, geo:
     // Loop over sim channels
     for(auto const& simchannel : (*simchannelHandle)){
       // Only keep channels in the selected view
-      if(fGeom->View(simchannel.Channel()) != whichview) continue;
+      if(wireReadout.View(simchannel.Channel()) != whichview) continue;
       // Get all time slices
       auto const& alltimeslices = simchannel.TDCIDEMap();
       // Loop over time slices
@@ -1121,9 +1126,9 @@ protoana::ProtoDUNETruthUtils::GetSimIDEsBetweenPoints(const simb::MCParticle & 
                                                        const TLorentzVector &p2)
 {
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  art::ServiceHandle<geo::Geometry> geom;
+  auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
   std::vector<const sim::IDE *> ides =
-      bt_serv->TrackIdToSimIDEs_Ps(mcpart.TrackId(), geom->View(2));
+      bt_serv->TrackIdToSimIDEs_Ps(mcpart.TrackId(), wireReadout.Plane({0, 0, 2}).View());
 
   std::vector<const sim::IDE *> results;
   for (const sim::IDE * theIDE : ides) {

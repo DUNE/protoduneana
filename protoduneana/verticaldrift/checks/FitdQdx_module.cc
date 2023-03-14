@@ -25,7 +25,8 @@
 //LArSoft
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/ServicePack.h" 
+#include "lardata/DetectorInfoServices/ServicePack.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -112,16 +113,16 @@ private:
   bool     bTrackIsFieldDistortionCorrected;
   bool     bFieldDistortionCorrectionXSign;
 
-  // Detector properties 
+  // Detector properties
   unsigned int fNtpcs;
   unsigned int fNplanes;
-  float    fHeight; 
-  float    fXmin = 1e6; 
-  float    fXmax =-1e6; 
-  float    fYmin = 1e6; 
-  float    fYmax =-1e6; 
-  float    fZmin = 1e6; 
-  float    fZmax =-1e6; 
+  float    fHeight;
+  float    fXmin = 1e6;
+  float    fXmax =-1e6;
+  float    fYmin = 1e6;
+  float    fYmax =-1e6;
+  float    fZmin = 1e6;
+  float    fZmax =-1e6;
 
   vector<vector<vector<int> > > yxw;
   vector<vector<vector<int> > > zxw;
@@ -129,6 +130,7 @@ private:
 
   // detector geometry
   const geo::Geometry* fGeom;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
   // Stored objects
   TTree*                fTree;
@@ -143,7 +145,7 @@ private:
   vector<TCanvas*>      c_dqdx_z;
   vector<TF1*>          f_dqdx_z;
   vector<TGraphErrors*> g_dqdx_z;
- 
+
   // Track-wise information
   int   fEventNum;
   int   fTrackId;
@@ -199,11 +201,11 @@ private:
   geo::Point_t WireToTrajectoryPosition(const geo::Point_t& loc, const geo::TPCID& tpc);
   geo::Point_t TrajectoryToWirePosition(const geo::Point_t& loc, const geo::TPCID& tpc);
 };
- 
+
 
 pdvdana::FitdQdx::FitdQdx(fhicl::ParameterSet const& p)
   : EDAnalyzer{p},
-  fLogLevel(         		   p.get< int >("LogLevel")),
+  fLogLevel(                       p.get< int >("LogLevel")),
   fTrackModuleLabel(               p.get< std::string  >("TrackModuleLabel")),
   fTrackLenMin(                    p.get< float >("TrackLenMin")),
   fTrackLenMax(                    p.get< float >("TrackLenMax")),
@@ -218,10 +220,10 @@ pdvdana::FitdQdx::FitdQdx(fhicl::ParameterSet const& p)
   fDQdxMin(                        p.get< float >("DQdxMin") ),
   fDQdxMax(                        p.get< float >("DQdxMax") ),
   fDQdxFitMin(                     p.get< float >("DQdxFitMin") ),
-  fDQdxFitMax(       		   p.get< float >("DQdxFitMax") ),
+  fDQdxFitMax(                     p.get< float >("DQdxFitMax") ),
   bFieldDistortion(                p.get< bool  >("FieldDistortion")),
   bTrackIsFieldDistortionCorrected(p.get< bool  >("TrackIsFieldDistortionCorrected")),
-  bFieldDistortionCorrectionXSign( p.get< bool  >("FieldDistortionCorrectionXSign")) 
+  bFieldDistortionCorrectionXSign( p.get< bool  >("FieldDistortionCorrectionXSign"))
 {
   fGeom    = &*art::ServiceHandle<geo::Geometry>();
 }
@@ -229,7 +231,7 @@ pdvdana::FitdQdx::FitdQdx(fhicl::ParameterSet const& p)
 void pdvdana::FitdQdx::analyze(art::Event const& e)
 {
     fEventNum = e.id().event();
-    
+
     if( fLogLevel >= 2 ) std::cout << "Start analysing event " << fEventNum << " ..." << std::endl;
 
     // Get list of reconstructed tracks
@@ -237,10 +239,10 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
     art::FindManyP<recob::Hit, recob::TrackHitMeta> fmHits(Tracks, e, fTrackModuleLabel);
 
     if( fLogLevel >= 2 ) std::cout << "  #tracks:    " << Tracks->size()    << std::endl;
- 
+
     // Loop over tracks
     for (unsigned trk = 0; trk < Tracks->size(); ++trk) {
-      
+
       const recob::Track& track = Tracks->at(trk);
 
       // Initialize output vectors
@@ -286,7 +288,7 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
       // Remove tracks that end   outside the detector in the horizontal plane
       if(fTrackEndY < fYmin   || fTrackEndY > fYmax)   continue;
       if(fTrackEndZ < fZmin   || fTrackEndZ > fZmax)   continue;
-     
+
       // Remove tracks that are not crossing the anode/cathode planes
       // -> unknown drift time
       if(fabs(fTrackStartX - fTrackEndX) < 0.95*fHeight || fabs(fTrackStartX - fTrackEndX) > 1.05*fHeight) continue;
@@ -295,7 +297,7 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
       // for now, assume all reconstructed muons should be going downwards
       bool isRevert = false;
       if(fTrackEndX - fTrackStartX > 0) isRevert = true;
- 
+
       fTrackLength = track.Length();
       GetAngles(track,isRevert,fTrackTheta,fTrackPhi);
 
@@ -312,7 +314,7 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
 
       // Loop over planes
       for (unsigned plane_i = 0; plane_i < fNplanes; plane_i++){
-  
+
         if( fLogLevel >= 3 )
           std::cout << "    #hits in plane " << plane_i << ": " << hit_indices[plane_i].size() << std::endl;
 
@@ -344,13 +346,13 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
           if(!track.HasValidPoint(tms_index)){if( fLogLevel >= 4 ) std::cout << "        #1 nok" << std::endl;      continue;}
           if( fLogLevel >= 6 ) std::cout << "        #1 ok" << std::endl;
 
-          // Remove first and last valid point that are most probably 
+          // Remove first and last valid point that are most probably
           // starting/ending in the anode/cathode/field cage
           if(tms_index == track.FirstValidPoint()){if( fLogLevel >= 4 ) std::cout << "        #2 nok" << std::endl; continue;}
           if( fLogLevel >= 6 ) std::cout << "        #2 ok" << std::endl;
           if(tms_index == track.LastValidPoint()){ if( fLogLevel >= 4 ) std::cout << "        #3 nok" << std::endl; continue;}
           if( fLogLevel >= 6 ) std::cout << "        #3 ok" << std::endl;
-          
+
           ////////////////
 
           float pitch  = GetPitch(track, Hits[hit_index], thms[hit_index]);
@@ -366,14 +368,14 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
           if(isRevert) fX = fHeight + fTrackStartX - fX;
           else         fX = fTrackStartX - fX;
 
-          if( fLogLevel >= 5 ) 
-            std::cout << "        -> ( " << fX << "," << fY << "," << fZ << ") - pitch: " << pitch << " - charge:" << charge << " - dQdx: " << charge/pitch << std::endl; 
+          if( fLogLevel >= 5 )
+            std::cout << "        -> ( " << fX << "," << fY << "," << fZ << ") - pitch: " << pitch << " - charge:" << charge << " - dQdx: " << charge/pitch << std::endl;
 
           // Store quantities of interest into vector -> output file
-          fNvalid[plane_i]++;         
-          fPosX[plane_i][hit_i]    = fX;    
-          fPosY[plane_i][hit_i]    = fY;    
-          fPosZ[plane_i][hit_i]    = fZ;    
+          fNvalid[plane_i]++;
+          fPosX[plane_i][hit_i]    = fX;
+          fPosY[plane_i][hit_i]    = fY;
+          fPosZ[plane_i][hit_i]    = fZ;
           fTrackQ[plane_i]        += charge;
           fQ[plane_i][hit_i]       = charge;
           fDqdx[plane_i][hit_i]    = charge/pitch;
@@ -395,10 +397,10 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
 
           // Fill 2D histogram later used for drift time-wise fitting of dQ/dx distributions
           h2_dqdx_dt[plane_i]->Fill(fX/fDriftSpeed,charge/pitch);
-          
+
           // Not cut by any criteria (enters dQ/dx vs drift time fit)
           fCut[plane_i][hit_i]  = 0;
-          
+
         } // end of hit loop
       } // end of plane loop
 
@@ -459,7 +461,7 @@ bool pdvdana::FitdQdx::HitsInFiducialVolume(float fX, float fY, float fZ){
 void pdvdana::FitdQdx::beginJob()
 {
   fNtpcs   = fGeom->NTPC();
-  fNplanes = fGeom->Nplanes();
+  fNplanes = fWireReadoutGeom.Nplanes();
 
   if( fLogLevel >= 1 ){
     std::cout << "  #TPCs:       "  << fNtpcs   << std::endl;
@@ -467,7 +469,7 @@ void pdvdana::FitdQdx::beginJob()
     for(unsigned i=0;i<fNtpcs;i++){
       geo::TPCID tpcid{0, i};
       std::cout << "  TPC " << i << " center: ("<< fGeom->TPC(tpcid).GetCenter().X()      << "," << fGeom->TPC(tpcid).GetCenter().Y()      << ","<< fGeom->TPC(tpcid).GetCenter().Z() << ")"
-                                 << " box:  ["  << fGeom->TPC(tpcid).BoundingBox().MinX() << "," << fGeom->TPC(tpcid).BoundingBox().MaxX() << "]" 
+                                 << " box:  ["  << fGeom->TPC(tpcid).BoundingBox().MinX() << "," << fGeom->TPC(tpcid).BoundingBox().MaxX() << "]"
                                         << "["  << fGeom->TPC(tpcid).BoundingBox().MinY() << "," << fGeom->TPC(tpcid).BoundingBox().MaxY() << "]"
                                         << "["  << fGeom->TPC(tpcid).BoundingBox().MinZ() << "," << fGeom->TPC(tpcid).BoundingBox().MaxZ() << "]" << std::endl;
 
@@ -480,9 +482,9 @@ void pdvdana::FitdQdx::beginJob()
     }
     for(unsigned vw=0;vw<fNplanes;vw++){
       std::cout << "  pitch in view: " << vw << " ";
-      if(vw == 0)      std::cout << fGeom->WirePitch(geo::kU) << std::endl;
-      else if(vw == 1) std::cout << fGeom->WirePitch(geo::kV) << std::endl;
-      else if(vw == 2) std::cout << fGeom->WirePitch(geo::kZ) << std::endl;
+      if(vw == 0)      std::cout << fWireReadoutGeom.Plane({0, 0, geo::kU}).WirePitch() << std::endl;
+      else if(vw == 1) std::cout << fWireReadoutGeom.Plane({0, 0, geo::kV}).WirePitch() << std::endl;
+      else if(vw == 2) std::cout << fWireReadoutGeom.Plane({0, 0, geo::kZ}).WirePitch() << std::endl;
     }
   }
   fHeight = fXmax-fXmin;
@@ -506,13 +508,13 @@ void pdvdana::FitdQdx::beginJob()
   yxw.resize(fNplanes);
   zxw.resize(fNplanes);
   yzw.resize(fNplanes);
-  h_dqdx_cor.resize(fNplanes);  
-  h2_dqdx_yx.resize(fNplanes);  
-  h2_dqdx_zx.resize(fNplanes);  
-  h2_dqdx_yz.resize(fNplanes);  
-  h2_dqdx_dt.resize(fNplanes);  
-  h2_dqdx_t.resize(fNplanes);  
-  h2_dqdx_p.resize(fNplanes);  
+  h_dqdx_cor.resize(fNplanes);
+  h2_dqdx_yx.resize(fNplanes);
+  h2_dqdx_zx.resize(fNplanes);
+  h2_dqdx_yz.resize(fNplanes);
+  h2_dqdx_dt.resize(fNplanes);
+  h2_dqdx_t.resize(fNplanes);
+  h2_dqdx_p.resize(fNplanes);
   f_dqdx_z.resize(fNplanes);
   g_dqdx_z.resize(fNplanes);
   fTrackQ.resize(fNplanes);
@@ -571,7 +573,7 @@ void pdvdana::FitdQdx::beginJob()
 
 double langaufun(double *x, double *par) {
    //See reference: https://root.cern/doc/master/langaus_8C.html
- 
+
    //Fit parameters:
    //par[0]=Width (scale) parameter of Landau density
    //par[1]=Most Probable (MP, location) parameter of Landau density
@@ -582,11 +584,11 @@ double langaufun(double *x, double *par) {
    //the maximum is located at x=-0.22278298 with the location parameter=0.
    //This shift is corrected within this function, so that the actual
    //maximum is identical to the MP parameter.
- 
-   // Numeric constants                                                    
+
+   // Numeric constants
    double invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
    double mpshift  = -0.22278298;       // Landau maximum location
- 
+
    // Control constants
    double np = 100.0;      // number of convolution steps
    double sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
@@ -620,7 +622,7 @@ double langaufun(double *x, double *par) {
       fland = TMath::Landau(xx,mpc,par[0]) / par[0];
       sum += fland * TMath::Gaus(x[0],xx,par[3]);
    }
-   
+
    double baseline = par[4]*(1-ROOT::Math::normal_cdf(double(x[0]),double(par[3]),double(par[1])));
 
    return (par[2] * step * sum * invsq2pi / par[3] + baseline);
@@ -654,7 +656,7 @@ void pdvdana::FitdQdx::endJob()
 
   // Setup TF1 and TGraph to be stored in the output file
   art::ServiceHandle<art::TFileService> tfs;
-  for (unsigned plane_i = 0; plane_i < fNplanes; plane_i++){ 
+  for (unsigned plane_i = 0; plane_i < fNplanes; plane_i++){
     c_dqdx_z[plane_i] = tfs->make<TCanvas>(Form("c_dqdx_z_%d",plane_i),Form("dQdx versus dist to anode - plane %d",plane_i),700,500);
     c_dqdx[plane_i]   = tfs->make<TCanvas>(Form("c_dqdx_%d",plane_i),  Form("dQdx distribution - plane %d",plane_i),700,500);
     f_dqdx_z[plane_i] = tfs->make<TF1>(Form("f_dqdx_z_%d",plane_i),"[0]*TMath::Exp(-x*[1])",fDtFitMin,fDtFitMax);
@@ -663,8 +665,8 @@ void pdvdana::FitdQdx::endJob()
     g_dqdx_z[plane_i]->SetMarkerStyle(24);
   }
 
-  vector<float> tau(fNplanes,0); 
-  vector<float> dtau(fNplanes,0); 
+  vector<float> tau(fNplanes,0);
+  vector<float> dtau(fNplanes,0);
 
   for (unsigned plane_i = 0; plane_i < fNplanes; plane_i++){
     // TF1 for fitting dQ/dx in each individual TH2 bin
@@ -676,7 +678,7 @@ void pdvdana::FitdQdx::endJob()
       TH1F* hFit = (TH1F*)h2_dqdx_dt[plane_i]->ProjectionY("",bin,bin+1);
 
       if(hFit->GetEntries() < 10){
-        if( fLogLevel >= 1 ) std::cout << "  WARNING: Not enough entries in bin " << bin << ". Skipped." << std::endl;   
+        if( fLogLevel >= 1 ) std::cout << "  WARNING: Not enough entries in bin " << bin << ". Skipped." << std::endl;
         continue;
       }
 
@@ -685,7 +687,7 @@ void pdvdana::FitdQdx::endJob()
 
       // Remove points with unexpectedly too small or too large uncertainty from the final fit
       if(f_dqdx->GetParError(1)/f_dqdx->GetParameter(1) < 0.05/100. || f_dqdx->GetParError(1)/f_dqdx->GetParameter(1) > 5./100.) continue;
-      
+
       // Store individual dQ/dx mean values into a TGraph
       g_dqdx_z[plane_i]->SetPoint(g_dqdx_z[plane_i]->GetN(),h2_dqdx_dt[fNplanes-1]->GetXaxis()->GetBinCenter(bin),f_dqdx->GetParameter(1));
       g_dqdx_z[plane_i]->SetPointError(g_dqdx_z[plane_i]->GetN()-1,0,f_dqdx->GetParError(1));
@@ -701,7 +703,7 @@ void pdvdana::FitdQdx::endJob()
       f_dqdx_z[plane_i]->SetParLimits(0,fDQdxFitMin,fDQdxFitMax);
       f_dqdx_z[plane_i]->SetParLimits(1,1e-4,1e-2);
       g_dqdx_z[plane_i]->Fit(f_dqdx_z[plane_i],"R");
- 
+
       tau[plane_i]  = 1./(f_dqdx_z[plane_i]->GetParameter(1));
       dtau[plane_i] = f_dqdx_z[plane_i]->GetParError(1)/pow(f_dqdx_z[plane_i]->GetParameter(1),2);
 
@@ -720,21 +722,21 @@ void pdvdana::FitdQdx::endJob()
     bool isTrkAlongStrip = SetPhiFlag(fTrackPhi);
 
     for(unsigned int plane_i = 0;plane_i<fNplanes;plane_i++){
-	for(unsigned int hit_i = 0; hit_i < fCut[plane_i].size(); hit_i++){
+        for(unsigned int hit_i = 0; hit_i < fCut[plane_i].size(); hit_i++){
 
           if(fCut[plane_i][hit_i] < 0) continue;
 
           // Correct bare dQ/dx for e- lifetime
           float dqdx = fDqdx[plane_i][hit_i] * TMath::Exp(fPosX[plane_i][hit_i]/(tau[plane_i]*fDriftSpeed));
 
-	  if(fCut[plane_i][hit_i] == 0){ 
+          if(fCut[plane_i][hit_i] == 0){
             // Fill 1D dQ/dx distributions
-	    h_dqdx_cor[plane_i]->Fill(dqdx);
+            h_dqdx_cor[plane_i]->Fill(dqdx);
             // Fill angular dependance 2D histograms
             h2_dqdx_t[plane_i] ->Fill(fTrackTheta,dqdx);
             h2_dqdx_p[plane_i] ->Fill(fTrackPhi,  dqdx);
           }
- 
+
           // Fill 2D histograms used for position dependent checks
           // -> remove tracks along one of the strips to avoid <dQ/dx> overshoot
           if(!isTrkAlongStrip && fCut[plane_i][hit_i] <= 1){
@@ -748,7 +750,7 @@ void pdvdana::FitdQdx::endJob()
               zxw[plane_i][h2_dqdx_zx[plane_i]->GetXaxis()->FindBin(fPosZ[plane_i][hit_i])-1][h2_dqdx_zx[plane_i]->GetYaxis()->FindBin(fPosX[plane_i][hit_i])-1]++;
               h2_dqdx_zx[plane_i]->Fill(fPosZ[plane_i][hit_i],fPosX[plane_i][hit_i],dqdx);
             }
-	    // YZ 2D map
+            // YZ 2D map
             if(HitsInYZVolume(fPosX[plane_i][hit_i],fPosY[plane_i][hit_i],fPosZ[plane_i][hit_i])){
               yzw[plane_i][h2_dqdx_yz[plane_i]->GetXaxis()->FindBin(fPosY[plane_i][hit_i])-1][h2_dqdx_yz[plane_i]->GetYaxis()->FindBin(fPosZ[plane_i][hit_i])-1]++;
               h2_dqdx_yz[plane_i]->Fill(fPosY[plane_i][hit_i],fPosZ[plane_i][hit_i],dqdx);
@@ -760,10 +762,10 @@ void pdvdana::FitdQdx::endJob()
 
   //////////////////////////////
 
-  vector<float> mDqdx(fNplanes,0); 
-  vector<float> dmDqdx(fNplanes,0); 
-  vector<float> wDqdx(fNplanes,0); 
-  vector<float> dwDqdx(fNplanes,0); 
+  vector<float> mDqdx(fNplanes,0);
+  vector<float> dmDqdx(fNplanes,0);
+  vector<float> wDqdx(fNplanes,0);
+  vector<float> dwDqdx(fNplanes,0);
 
   // Perform gaus convolved landau + step fit of the global dQ/dx distribution
   for(unsigned int plane_i = 0;plane_i<fNplanes;plane_i++){
@@ -774,8 +776,8 @@ void pdvdana::FitdQdx::endJob()
     wDqdx[plane_i]   = f_dqdx->GetParameter(0);
     dwDqdx[plane_i]  = f_dqdx->GetParError(0);
 
-    if( fLogLevel >= 1 ){ 
-      std::cout << "  Plane " << plane_i << ":" << std::endl; 
+    if( fLogLevel >= 1 ){
+      std::cout << "  Plane " << plane_i << ":" << std::endl;
       std::cout << "    Mean dQ/dx = " << f_dqdx->GetParameter(1) << " +/- " << f_dqdx->GetParError(1) << " fC/cm" << std::endl;
       std::cout << "    Width      = " << f_dqdx->GetParameter(0) << " +/- " << f_dqdx->GetParError(0) << " fC/cm" << std::endl;
     }
@@ -794,11 +796,11 @@ void pdvdana::FitdQdx::endJob()
     c_dqdx[plane_i]->cd();
     h_dqdx_cor[plane_i]->GetXaxis()->SetNdivisions(409);
     h_dqdx_cor[plane_i]->GetYaxis()->SetNdivisions(409);
-    h_dqdx_cor[plane_i]->SetLineColor(kBlack); 
+    h_dqdx_cor[plane_i]->SetLineColor(kBlack);
     h_dqdx_cor[plane_i]->SetStats("e");
 
     c_dqdx[plane_i]->Update();
-    h_dqdx_cor[plane_i]->Draw("hist"); 
+    h_dqdx_cor[plane_i]->Draw("hist");
     c_dqdx[plane_i]->Update();
 
     st_1D[plane_i] = (TPaveStats*)h_dqdx_cor[plane_i]->GetListOfFunctions()->FindObject("stats");
@@ -838,11 +840,11 @@ void pdvdana::FitdQdx::endJob()
     c_dqdx_z[plane_i]->Update();
 
     g_dqdx_z[plane_i]->Draw("P same");
-     
+
     st[plane_i] = (TPaveStats*)h2_dqdx_dt[plane_i]->GetListOfFunctions()->FindObject("stats");
     st[plane_i]->SetOptStat(000000100);
     st[plane_i]->SetOptFit(1);
-    gPad->Modified(); gPad->Update(); 
+    gPad->Modified(); gPad->Update();
     st[plane_i]->SetX1NDC(0.45);
     st[plane_i]->SetX2NDC(0.89);
     st[plane_i]->SetY1NDC(0.7);
@@ -852,7 +854,7 @@ void pdvdana::FitdQdx::endJob()
 
     c_dqdx_z[plane_i]->Update();
     h2_dqdx_dt[plane_i]->SetStats(0);
-    gPad->Modified(); gPad->Update(); 
+    gPad->Modified(); gPad->Update();
     c_dqdx_z[plane_i]->Update();
 
     list[plane_i] = st[plane_i]->GetListOfLines();
@@ -864,35 +866,35 @@ void pdvdana::FitdQdx::endJob()
       list[plane_i]->Add(lpars[plane_i][par]);
     }
     gPad->Modified(); gPad->Update();
-  } 
+  }
 
   // Write objects to output files
   for(unsigned plane_i = 0;plane_i<fNplanes;plane_i++){
-    // Bin-wise normalize dQ/dx 2D YX maps 
+    // Bin-wise normalize dQ/dx 2D YX maps
     for(int y_i = 0; y_i < h2_dqdx_yx[plane_i]->GetNbinsX(); y_i++)
       for(int x_i = 0; x_i < h2_dqdx_yx[plane_i]->GetNbinsY(); x_i++){
         if(yxw[plane_i][y_i][x_i] == 0) continue;
-        h2_dqdx_yx[plane_i]->SetBinContent(y_i+1,x_i+1,h2_dqdx_yx[plane_i]->GetBinContent(y_i+1,x_i+1)/yxw[plane_i][y_i][x_i]);        
+        h2_dqdx_yx[plane_i]->SetBinContent(y_i+1,x_i+1,h2_dqdx_yx[plane_i]->GetBinContent(y_i+1,x_i+1)/yxw[plane_i][y_i][x_i]);
       }
     h2_dqdx_yx[plane_i]->SetStats(0);
     h2_dqdx_yx[plane_i]->SetMinimum(0);
     h2_dqdx_yx[plane_i]->SetMaximum(20);
 
-    // Bin-wise normalize dQ/dx 2D YX maps 
+    // Bin-wise normalize dQ/dx 2D YX maps
     for(int z_i = 0; z_i < h2_dqdx_zx[plane_i]->GetNbinsX(); z_i++)
       for(int x_i = 0; x_i < h2_dqdx_zx[plane_i]->GetNbinsY(); x_i++){
         if(zxw[plane_i][z_i][x_i] == 0) continue;
-        h2_dqdx_zx[plane_i]->SetBinContent(z_i+1,x_i+1,h2_dqdx_zx[plane_i]->GetBinContent(z_i+1,x_i+1)/zxw[plane_i][z_i][x_i]);        
+        h2_dqdx_zx[plane_i]->SetBinContent(z_i+1,x_i+1,h2_dqdx_zx[plane_i]->GetBinContent(z_i+1,x_i+1)/zxw[plane_i][z_i][x_i]);
       }
     h2_dqdx_zx[plane_i]->SetStats(0);
     h2_dqdx_zx[plane_i]->SetMinimum(0);
     h2_dqdx_zx[plane_i]->SetMaximum(20);
 
-    // Bin-wise normalize dQ/dx 2D YX maps 
+    // Bin-wise normalize dQ/dx 2D YX maps
     for(int y_i = 0; y_i < h2_dqdx_yz[plane_i]->GetNbinsX(); y_i++)
       for(int z_i = 0; z_i < h2_dqdx_yz[plane_i]->GetNbinsY(); z_i++){
         if(yzw[plane_i][y_i][z_i] == 0) continue;
-        h2_dqdx_yz[plane_i]->SetBinContent(y_i+1,z_i+1,h2_dqdx_yz[plane_i]->GetBinContent(y_i+1,z_i+1)/yzw[plane_i][y_i][z_i]);        
+        h2_dqdx_yz[plane_i]->SetBinContent(y_i+1,z_i+1,h2_dqdx_yz[plane_i]->GetBinContent(y_i+1,z_i+1)/yzw[plane_i][y_i][z_i]);
       }
 
     // Set histogram rendering
@@ -915,11 +917,10 @@ float pdvdana::FitdQdx::GetPitch(const recob::Track& track,
                                   const art::Ptr<recob::Hit> hit,
                                   const recob::TrackHitMeta* meta)
 {
-  art::ServiceHandle<geo::Geometry const> geom;
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
 
   float angleToVert =
-    geom->WireAngleToVertical(hit->View(), hit->WireID().asPlaneID()) - 0.5 * ::util::pi<>();
+    fWireReadoutGeom.WireAngleToVertical(hit->View(), hit->WireID().asPlaneID()) - 0.5 * ::util::pi<>();
 
   geo::Vector_t dir;
 
@@ -932,8 +933,8 @@ float pdvdana::FitdQdx::GetPitch(const recob::Track& track,
 
     // compute the dir of the track trajectory
     geo::Vector_t track_dir = track.DirectionAtPoint(meta->Index());
-    geo::Point_t loc_mdx = loc - track_dir * (geom->WirePitch(hit->View()) / 2.);
-    geo::Point_t loc_pdx = loc + track_dir * (geom->WirePitch(hit->View()) / 2.);
+    geo::Point_t loc_mdx = loc - track_dir * (fWireReadoutGeom.Plane({0, 0, hit->View()}).WirePitch() / 2.);
+    geo::Point_t loc_pdx = loc + track_dir * (fWireReadoutGeom.Plane({0, 0, hit->View()}).WirePitch() / 2.);
 
     loc_mdx = TrajectoryToWirePosition(loc_mdx, hit->WireID());
     loc_pdx = TrajectoryToWirePosition(loc_pdx, hit->WireID());
@@ -949,7 +950,7 @@ float pdvdana::FitdQdx::GetPitch(const recob::Track& track,
 
   float cosgamma = std::abs(std::sin(angleToVert) * dir.Y() + std::cos(angleToVert) * dir.Z());
   float pitch;
-  if (cosgamma) { pitch = geom->WirePitch(hit->View()) / cosgamma; }
+  if (cosgamma) { pitch = fWireReadoutGeom.Plane({0, 0, hit->View()}).WirePitch() / cosgamma; }
   else {
     pitch = 0.;
   }
@@ -983,7 +984,7 @@ void pdvdana::FitdQdx::GetAngles(const recob::Track& track, bool isRevert, float
   else if(y_len < 0  && z_len < 0) phi = (-TMath::Pi()+phi) / degTOrad;
   else if(y_len < 0  && z_len > 0) phi =              -phi  / degTOrad;
 
-  
+
   theta = (TMath::Pi()/2. - atan((x_len)/sqrt(pow(y_len,2)+pow(z_len,2))))/ degTOrad;
 }
 
@@ -992,13 +993,12 @@ geo::Point_t pdvdana::FitdQdx::TrajectoryToWirePosition(const geo::Point_t& loc,
 {
   // See Gnocchi calorimetry module for reference
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
-  art::ServiceHandle<geo::Geometry const> geom;
 
   geo::Point_t ret = loc;
 
   if (sce->EnableCalSpatialSCE() && bFieldDistortion) {
     // Returned X is the drift -- multiply by the drift direction to undo this
-    int corr = geom->TPC(tpc).DriftDir().X();
+    int corr = fGeom->TPC(tpc).DriftDir().X();
 
     geo::Vector_t offset = sce->GetPosOffsets(ret);
 
@@ -1077,7 +1077,7 @@ std::vector<std::vector<unsigned>> pdvdana::FitdQdx::OrganizeHitsSnippets(
   };
 
   nhits.resize(nplanes,0);
-  
+
   std::vector<std::vector<unsigned>> ret(nplanes);
   std::vector<std::vector<HitIdentifier>> hit_idents(nplanes);
   for (unsigned i = 0; i < hits.size(); i++) {

@@ -27,6 +27,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -152,8 +153,7 @@ class protoana::protonmc : public art::EDAnalyzer {
 
 		//geometry
 		geo::GeometryCore const * fGeometry;
-  		art::ServiceHandle < geo::Geometry > fGeometryService_rw;
-
+                geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
 		double MCTruthT0, TickT0;
 		int nT0s;   
@@ -986,7 +986,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 				std::cout<<"Got particle with PDG="<<RW_PDG<<std::endl;
 				G4ReweightTraj theTraj(true_beam_ID, true_beam_PDG, 0, fevent, {0,0});
 				bool created = CreateRWTraj(*geantGoodParticle, pi_serv->ParticleList(),
-						fGeometryService_rw, fevent, &theTraj);
+						*fGeometry, fevent, &theTraj);
 				if (created && theTraj.GetNSteps()) {
 
 					g4rw_primary_singular_weight = MultiRW.GetWeightFromNominal(theTraj);
@@ -1316,14 +1316,13 @@ void protoana::protonmc::analyze(art::Event const & evt){
 						tmp_primtrk_hity.push_back(primtrk_pos.Y());
 						tmp_primtrk_hitz.push_back(primtrk_pos.Z());
 
-						art::ServiceHandle<geo::Geometry> geomm;
-                                                geo::TPCID tpc = geomm->FindTPCAtPosition(primtrk_pos);
+                                                geo::TPCID tpc = fGeometry->FindTPCAtPosition(primtrk_pos);
 						if(tpc.isValid){
 							int tpc_no=tpc.TPC;
 							geo::PlaneID planeID = geo::PlaneID(0, tpc_no, 2);
 							geo::WireID wireID;
 							try{
-                                                                wireID = geomm->NearestWireID(primtrk_pos, planeID);
+                                                                wireID = fWireReadoutGeom.Plane(planeID).NearestWireID(primtrk_pos);
 							}
 							catch(geo::InvalidWireError const& e) {
 								wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -1334,8 +1333,8 @@ void protoana::protonmc::analyze(art::Event const & evt){
 							tmp_primtrk_wid.push_back(-9999);
 						}
 
-						//geo::WireID WireID_reco=geomm->NearestWireID(pos_reco, 2); //2 for collection plane
-						//if (!WireID_reco) WireID_reco = geomm->Plane(2).ClosestWireID(WireID_reco);
+						//geo::WireID WireID_reco=fWireReadoutGeom.NearestWireID(pos_reco, 2); //2 for collection plane
+						//if (!WireID_reco) WireID_reco = fWireReadoutGeom.Plane(2).ClosestWireID(WireID_reco);
 						//tmp_primtrk_wid.push_back(WireID_reco.Wire);
 						//std::cout<<"(x,y,z)_reco:("<<primtrk_pos.X()<<","<<primtrk_pos.Y()<<","<<primtrk_pos.Z()<<") wid:"<<WireID_reco.Wire<<std::endl;
 						//std::cout<<"dqdx="<<calo.dQdx()[ihit]<<"; resrange="<<calo.ResidualRange()[ihit]<<std::endl;
@@ -1379,7 +1378,6 @@ void protoana::protonmc::analyze(art::Event const & evt){
 				double ke_true=ke_ff;	//ke_true at ff
 
 				art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-				art::ServiceHandle<geo::Geometry> geom;
 				simb::MCTrajectory truetraj=geantGoodParticle1->Trajectory();
 				auto thisTrajectoryProcessMap1 =  truetraj.TrajectoryProcesses();
 				std::string int_label="";
@@ -1427,26 +1425,26 @@ void protoana::protonmc::analyze(art::Event const & evt){
 
                                                 geo::TPCID const tpcID{0, tpcno};
 						//convert the position of the interaction vertex to (wireID, peak time)
-                                                interaction_wid_c.push_back(fGeometry->WireCoordinate(pos, geo::PlaneID{tpcID, 2}));
-                                                interaction_wid_v.push_back(fGeometry->WireCoordinate(pos, geo::PlaneID{tpcID, 1}));
-                                                interaction_wid_u.push_back(fGeometry->WireCoordinate(pos, geo::PlaneID{tpcID, 0}));
+                                                interaction_wid_c.push_back(fWireReadoutGeom.Plane(geo::PlaneID{tpcID, 2}).WireCoordinate(pos));
+                                                interaction_wid_v.push_back(fWireReadoutGeom.Plane(geo::PlaneID{tpcID, 1}).WireCoordinate(pos));
+                                                interaction_wid_u.push_back(fWireReadoutGeom.Plane(geo::PlaneID{tpcID, 0}).WireCoordinate(pos));
 
                                                 interaction_tt_c.push_back(detProp.ConvertXToTicks(pos.X(), geo::PlaneID{tpcID, 2}));
                                                 interaction_tt_v.push_back(detProp.ConvertXToTicks(pos.X(), geo::PlaneID{tpcID, 1}));
                                                 interaction_tt_u.push_back(detProp.ConvertXToTicks(pos.X(), geo::PlaneID{tpcID, 0}));
 
                                                 //interactionT.push_back(detProp.ConvertXToTicks(xval, 2, tpcno, 0));
-						//interactionU.push_back(fGeometry->WireCoordinate(((truetraj.at(couple1.first)).first).Y(), ((truetraj.at(couple1.first)).first).Z(),0, tpcno, 0));
-						//interactionV.push_back(fGeometry->WireCoordinate(((truetraj.at(couple1.first)).first).Y(), ((truetraj.at(couple1.first)).first).Z(),1, tpcno, 0));
-						//interactionW.push_back(fGeometry->WireCoordinate(((truetraj.at(couple1.first)).first).Y(), ((truetraj.at(couple1.first)).first).Z(),2, tpcno, 0));
+						//interactionU.push_back(fWireReadoutGeom.WireCoordinate(((truetraj.at(couple1.first)).first).Y(), ((truetraj.at(couple1.first)).first).Z(),0, tpcno, 0));
+						//interactionV.push_back(fWireReadoutGeom.WireCoordinate(((truetraj.at(couple1.first)).first).Y(), ((truetraj.at(couple1.first)).first).Z(),1, tpcno, 0));
+						//interactionW.push_back(fWireReadoutGeom.WireCoordinate(((truetraj.at(couple1.first)).first).Y(), ((truetraj.at(couple1.first)).first).Z(),2, tpcno, 0));
 
 						//convert(x,y,z) to (wireid ,time ticks)
 						//geo::PlaneID collection_plane = geom->PlaneIDs(2);
 						//std::cout<<"fprimaryT0:"<<fprimaryT0<<std::endl;
 						//std::cout<<"\nint_vtx x/y/z:"<<((truetraj.at(couple1.first)).first).X()<<"/"<<((truetraj.at(couple1.first)).first).Y()<<"/"<<((truetraj.at(couple1.first)).first).Z()<<std::endl;
-                                                //std::cout<<"(wid,tt)_c:"<<"("<<fGeometry->WireCoordinate(yval, zval, 2, tpcno, 0)<<","<<detProp.ConvertXToTicks(xval, 2, tpcno, 0)<<")"<<std::endl;
-                                                //std::cout<<"(wid,tt)_v:"<<"("<<fGeometry->WireCoordinate(yval, zval, 1, tpcno, 0)<<","<<detProp.ConvertXToTicks(xval, 1, tpcno, 0)<<")"<<std::endl;
-                                                //std::cout<<"(wid,tt)_u:"<<"("<<fGeometry->WireCoordinate(yval, zval, 0, tpcno, 0)<<","<<detProp.ConvertXToTicks(xval, 0, tpcno, 0)<<")"<<std::endl;
+                                                //std::cout<<"(wid,tt)_c:"<<"("<<fWireReadoutGeom.WireCoordinate(yval, zval, 2, tpcno, 0)<<","<<detProp.ConvertXToTicks(xval, 2, tpcno, 0)<<")"<<std::endl;
+                                                //std::cout<<"(wid,tt)_v:"<<"("<<fWireReadoutGeom.WireCoordinate(yval, zval, 1, tpcno, 0)<<","<<detProp.ConvertXToTicks(xval, 1, tpcno, 0)<<")"<<std::endl;
+                                                //std::cout<<"(wid,tt)_u:"<<"("<<fWireReadoutGeom.WireCoordinate(yval, zval, 0, tpcno, 0)<<","<<detProp.ConvertXToTicks(xval, 0, tpcno, 0)<<")"<<std::endl;
 
 
 						//not interested of CoulombScat	
@@ -1528,7 +1526,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 				} //loop over all the hits in this mc traj
 
 				//use backtracker to find the associtated true info
-				geo::View_t view = geom->View(2);
+                                geo::View_t view = fWireReadoutGeom.Plane({0, 0, 2}).View();
 				auto simIDE_prim=bt_serv->TrackIdToSimIDEs_Ps(geantGoodParticle1->TrackId(),view);
 				std::map<double, sim::IDE> orderedSimIDE; //id & e
 				for (auto& ide : simIDE_prim) orderedSimIDE[ide->z]= *ide; //order in z-direction
@@ -1644,13 +1642,13 @@ void protoana::protonmc::analyze(art::Event const & evt){
 							tmp_primtrk_true_edept.push_back(currentIde2.energy);
 
                                                         geo::Point_t const pos_true{currentIde2.x, currentIde2.y, currentIde2.z};
-							geo::TPCID tpc = geom->FindTPCAtPosition(pos_true);
+							geo::TPCID tpc = fGeometry->FindTPCAtPosition(pos_true);
 							if(tpc.isValid){
 								int tpc_no=tpc.TPC;
 								geo::PlaneID planeID = geo::PlaneID(0, tpc_no, 2);
 								geo::WireID wireID;
 								try{
-									wireID = geom->NearestWireID(pos_true, planeID);
+                                                                        wireID = fWireReadoutGeom.Plane(planeID).NearestWireID(pos_true);
 								}
 								catch(geo::InvalidWireError const& e) {
 									wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -1662,13 +1660,13 @@ void protoana::protonmc::analyze(art::Event const & evt){
 							}
 
 
-							//geo::WireID WireID_true=geom->NearestWireID(pos_true, 2); //2 for collection plane
-							//if (!WireID_true) WireID_true = geom->Plane(2).ClosestWireID(WireID_true);
+							//geo::WireID WireID_true=fWireReadoutGeom.NearestWireID(pos_true, 2); //2 for collection plane
+							//if (!WireID_true) WireID_true = fWireReadoutGeom.Plane(2).ClosestWireID(WireID_true);
 
-							//geo::PlaneID Plane_true(geom->FindTPCAtPosition(pos_true),geo::kZ);
-							//WireID_true=geom->NearestWireID(pos_true, Plane_true);
-							//geo::WireID wireID = geom->NearestWireID(point, planeID);
-							//if (!wireID) wireID = geom->Plane(planeID).ClosestWireID(wireID);
+							//geo::PlaneID Plane_true(fWireReadoutGeom.FindTPCAtPosition(pos_true),geo::kZ);
+							//WireID_true=fWireReadoutGeom.NearestWireID(pos_true, Plane_true);
+							//geo::WireID wireID = fWireReadoutGeom.NearestWireID(point, planeID);
+							//if (!wireID) wireID = fWireReadoutGeom.Plane(planeID).ClosestWireID(wireID);
 
 							//tmp_primtrk_true_wid.push_back(WireID_true.Wire);
 							//tmp_primtrk_true_tpc.push_back(WireID_true.TPC);
@@ -1832,7 +1830,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								//std::cout<<"(x_c/y_c/z_c): ("<<xpos<<","<<ypos<<","<<zpos<<")"<<std::endl;
 
 								//convert the position of the interaction to (wireID, peak time)
-                                                                wid_c.push_back(fGeometry->WireCoordinate(loc, planeID));
+                                                                wid_c.push_back(fWireReadoutGeom.Plane(planeID).WireCoordinate(loc));
                                                                 tt_c.push_back(detProp.ConvertXToTicks(xpos, planeID));
 
 								//save ch number
@@ -1847,11 +1845,11 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								double xyzStart[3];
 								double xyzEnd[3];
 								unsigned int wireno=vhit[ii]->WireID().Wire;
-                                                                fGeometry->WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,2,wireno), xyzStart, xyzEnd);
+                                                                fWireReadoutGeom.WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,2,wireno), xyzStart, xyzEnd);
 								wirez_c.push_back(xyzStart[2]);
 
 
-                                                                //std::cout<<"(w,t):("<<fGeometry->WireCoordinate(ypos, zpos, planenum, tpc_no, 0)<<","<<detProp.ConvertXToTicks(xpos, planenum, tpc_no, 0)<<")|"<<
+                                                                //std::cout<<"(w,t):("<<fWireReadoutGeom.WireCoordinate(ypos, zpos, planenum, tpc_no, 0)<<","<<detProp.ConvertXToTicks(xpos, planenum, tpc_no, 0)<<")|"<<
 								//"[inel,el,non]:["<<cnn_out[hitResults.getIndex("inel")]<<","<<cnn_out[hitResults.getIndex("el")]<<","<<cnn_out[hitResults.getIndex("none")]<<"]"<<std::endl;
 								// std::cout<<"peaktime "<<vhit[ii]->PeakTime()<<std::endl;	
 
@@ -1874,7 +1872,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								//hitz_1.push_back(zpos);
 
 								//convert the position of the interaction to (wireID, peak time)
-                                                                wid_v.push_back(fGeometry->WireCoordinate(loc, planeID));
+                                                                wid_v.push_back(fWireReadoutGeom.Plane(planeID).WireCoordinate(loc));
                                                                 tt_v.push_back(detProp.ConvertXToTicks(xpos, planeID));
 
 								//save ch number
@@ -1889,7 +1887,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								double xyzStart[3];
 								double xyzEnd[3];
 								unsigned int wireno=vhit[ii]->WireID().Wire;
-                                                                fGeometry->WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,1,wireno), xyzStart, xyzEnd);
+                                                                fWireReadoutGeom.WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,1,wireno), xyzStart, xyzEnd);
 								wirez_v.push_back(xyzStart[2]);
 							}//planenum 1
 							if(planenum==0){
@@ -1897,7 +1895,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								//hitz_0.push_back(zpos);
 
 								//convert the position of the interaction to (wireID, peak time)
-                                                                wid_u.push_back(fGeometry->WireCoordinate(loc, planeID));
+                                                                wid_u.push_back(fWireReadoutGeom.Plane(planeID).WireCoordinate(loc));
                                                                 tt_u.push_back(detProp.ConvertXToTicks(xpos, planeID));
 
 								//save ch number
@@ -1912,7 +1910,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								double xyzStart[3];
 								double xyzEnd[3];
 								unsigned int wireno=vhit[ii]->WireID().Wire;
-                                                                fGeometry->WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,0,wireno), xyzStart, xyzEnd);
+                                                                fWireReadoutGeom.WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,0,wireno), xyzStart, xyzEnd);
 								wirez_u.push_back(xyzStart[2]);
 							}//planenum 0
 
@@ -1974,7 +1972,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 								double xyzEnd[3];
 								unsigned int wireno=std::round(wire_no);
 								geo::WireID wireid(0,TPCb[clt],2,wireno);
-                                                                fGeometry->WireEndPoints(wireid, xyzStart, xyzEnd);
+                                                                fWireReadoutGeom.WireEndPoints(wireid, xyzStart, xyzEnd);
 								std::cout<<"Z position of intersection = "<<xyzStart[2]<<" "<<xyzEnd[2]<<"  "<<wireno<<std::endl;
 								Zintersection.push_back(xyzStart[2]);
 								Yintersection.push_back(xyzStart[1]);

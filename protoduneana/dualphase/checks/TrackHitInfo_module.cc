@@ -28,7 +28,7 @@
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/ArtDataHelper/TrackUtils.h" 
 
@@ -81,9 +81,7 @@ private:
   protoana::ProtoDUNETrackUtils trackUtil;
 
   // detector geometry
-  const geo::Geometry* fGeom;
-  // detector properties
-  //const detinfo::DetectorProperties* fDetprop;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 };
 
 
@@ -91,11 +89,7 @@ pddpana::TrackHitInfo::TrackHitInfo(fhicl::ParameterSet const& p)
   : EDAnalyzer{p} ,
   fLogLevel( p.get< int >("LogLevel") ),
   fTrackModuleLabel( p.get< std::string  >("TrackModuleLabel") )
-  {
-    fGeom    = &*art::ServiceHandle<geo::Geometry>();
-    //fDetprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
-  }
+  {}
 
 //
 void pddpana::TrackHitInfo::analyze(art::Event const& e)
@@ -131,10 +125,10 @@ void pddpana::TrackHitInfo::analyze(art::Event const& e)
 	  << " ; " << track.End().Z()<<" )"<<endl;
     }
 
-    vector<unsigned> hitsTpcId( fGeom->Nplanes() );
+    vector<unsigned> hitsTpcId( fWireReadoutGeom.Nplanes() );
 
     // loop over the planes 
-    for(size_t i_plane = 0; i_plane<fGeom->Nplanes(); i_plane++) {
+    for(size_t i_plane = 0; i_plane<fWireReadoutGeom.Nplanes(); i_plane++) {
       
       // get hits in this plane
       auto hits = trackUtil.GetRecoTrackHitsFromPlane( track, e, fTrackModuleLabel, i_plane );

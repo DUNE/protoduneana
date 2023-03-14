@@ -18,6 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -183,6 +184,7 @@ private:
   //bool fVerbose;
 
   geo::GeometryCore const * fGeometry;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
   TTree *fPandoraBeam;
   //TTree *fPandoraCosmics;
@@ -705,16 +707,13 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
     Initialise();
 
     art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
-    fGeometry = &*(art::ServiceHandle<geo::Geometry>());
-    art::ServiceHandle < geo::Geometry > fGeometryService_rw;
+    fGeometry = art::ServiceHandle<geo::Geometry>().get();
     // const sim::ParticleList& plist=pi_serv->ParticleList();
 
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
     // anab::MVAReader<recob::Hit,3> hitResults(evt, fNNetModuleLabel);
     anab::MVAReader<recob::Hit,4> hitResults(evt, "emtrkmichelid:emtrkmichel");
-    art::ServiceHandle<geo::Geometry> geom;
-
 
     int beamid=-9999;
     int truthid=-999;
@@ -811,7 +810,7 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 
 	std::cout << "Doing reweight" << std::endl;
 	if (true_beam_PDG == RW_PDG) { //if PDG=RW_PDG
-	  std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(*geantGoodParticle, pi_serv->ParticleList(),fGeometryService_rw, fevent, "LAr", true);
+	  std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(*geantGoodParticle, pi_serv->ParticleList(),*fGeometry, fevent, "LAr", true);
 	  //G4ReweightTraj theTraj(true_beam_ID, true_beam_PDG, 0, fevent, {0,0});
 	  int n_rw_array=200;
 	  double react_st=0.0;
@@ -866,8 +865,8 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 
 
 	  /*	if(geantGoodParticle->Position(i_s).Z()>=0 && geantGoodParticle->Position(i_s).Z()<=230){
-		geo::WireID wireID = geom->NearestWireID(pos_true, 2);
-		if (!wireID) wireID = geom->Plane(2).ClosestWireID(wireID);
+		geo::WireID wireID = fWireReadoutGeom.NearestWireID(pos_true, 2);
+		if (!wireID) wireID = fWireReadoutGeom.Plane(2).ClosestWireID(wireID);
 		beamtrk_z_wire.push_back(wireID.Wire);
 		beamtrk_z_tpc.push_back(wireID.TPC);
 		}
@@ -876,14 +875,14 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 		beamtrk_z_tpc.push_back(-99999);
 
 		}*/
-	  geo::TPCID tpc = geom->FindTPCAtPosition(pos_true);
+	  geo::TPCID tpc = fGeometry->FindTPCAtPosition(pos_true);
 	  if(tpc.isValid){
 	    int tpc_no=tpc.TPC;
 	    geo::PlaneID planeID = geo::PlaneID(0, tpc_no, 2);
 	    geo::WireID wireID;
-	    //	geo::WireID wireID = geom->NearestWireID(pos_true, planeID);
+	    //	geo::WireID wireID = fWireReadoutGeom.NearestWireID(pos_true, planeID);
 	    try{
-	      wireID = geom->NearestWireID(pos_true, planeID);
+              wireID = fWireReadoutGeom.Plane(planeID).NearestWireID(pos_true);
 	    }
 	    catch(geo::InvalidWireError const& e) {
 	      wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -901,7 +900,7 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	
 
 
-	  /*	geo::PlaneGeo const& plane = geom->Plane(2);
+	  /*	geo::PlaneGeo const& plane = fWireReadoutGeom.Plane(2);
 		geo::WireID wireID;
 		try {
 		wireID = plane.NearestWireID(pos_true);
@@ -973,9 +972,9 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
             auto const pos = geo::vect::toPoint(truetraj.at(couple1.first).first.Vect());
             geo::TPCID const tpcID{0, tpcno};
             interactionT.push_back(detProp.ConvertXToTicks(pos.X(), geo::PlaneID{tpcID, 2}));
-            interactionU.push_back(fGeometry->WireCoordinate(pos, geo::PlaneID{tpcID, 0}));
-            interactionV.push_back(fGeometry->WireCoordinate(pos, geo::PlaneID{tpcID, 1}));
-            interactionW.push_back(fGeometry->WireCoordinate(pos, geo::PlaneID{tpcID, 2}));
+            interactionU.push_back(fWireReadoutGeom.Plane(geo::PlaneID{tpcID, 0}).WireCoordinate(pos));
+            interactionV.push_back(fWireReadoutGeom.Plane(geo::PlaneID{tpcID, 1}).WireCoordinate(pos));
+            interactionW.push_back(fWireReadoutGeom.Plane(geo::PlaneID{tpcID, 2}).WireCoordinate(pos));
 	    interactionProcesslist.push_back(truetraj.KeyToProcess(couple1.second));
 	    std::cout<<"number of interactions "<<thisTrajectoryProcessMap1.size()<<std::endl;
             std::cout<<"int X, Y, Z and process "<<pos.X()<<" "<<pos.Y()<<" "<<pos.Z()<<" "<<truetraj.KeyToProcess(couple1.second)<<std::endl;
@@ -1005,18 +1004,18 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
               geo::PlaneID const plane_0{tpc_0_1, 0};
               geo::PlaneID const plane_1{tpc_0_1, 1};
               using geo::vect::toPoint;
-              double u0=0.4669*fGeometry->WireCoordinate(toPoint(prevInteractionPos3D),plane_0);
-              double v0=0.4669*fGeometry->WireCoordinate(toPoint(prevInteractionPos3D),plane_1);
+              double u0=0.4669*fWireReadoutGeom.Plane(plane_0).WireCoordinate(toPoint(prevInteractionPos3D));
+              double v0=0.4669*fWireReadoutGeom.Plane(plane_1).WireCoordinate(toPoint(prevInteractionPos3D));
 	      double z0=0.4792*prevInteractionPos3D.Z();
 	      double x0=prevInteractionPos3D.X();
 
-              double u1=0.4669*fGeometry->WireCoordinate(toPoint(interactionPos3D),plane_0);
-              double v1=0.4669*fGeometry->WireCoordinate(toPoint(interactionPos3D),plane_1);
+              double u1=0.4669*fWireReadoutGeom.Plane(plane_0).WireCoordinate(toPoint(interactionPos3D));
+              double v1=0.4669*fWireReadoutGeom.Plane(plane_1).WireCoordinate(toPoint(interactionPos3D));
 	      double z1=0.4792*interactionPos3D.Z();
 	      double x1=interactionPos3D.Z();
 
-              double u2=0.4669*fGeometry->WireCoordinate(toPoint(nextInteractionPos3D),plane_0);
-              double v2=0.4669*fGeometry->WireCoordinate(toPoint(nextInteractionPos3D),plane_1);
+              double u2=0.4669*fWireReadoutGeom.Plane(plane_0).WireCoordinate(toPoint(nextInteractionPos3D));
+              double v2=0.4669*fWireReadoutGeom.Plane(plane_1).WireCoordinate(toPoint(nextInteractionPos3D));
 	      double z2=0.4792*nextInteractionPos3D.Z();
 	      double x2=nextInteractionPos3D.Z();
 
@@ -1034,7 +1033,7 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	  }
 	}
 
-	geo::View_t view = geom->View(2);
+        geo::View_t view = fWireReadoutGeom.Plane({0, 0, 2}).View();
 	auto simIDE_prim=bt_serv->TrackIdToSimIDEs_Ps(geantGoodParticle->TrackId(),view);
 	std::map<double, sim::IDE> orderedSimIDE;
 	for (auto& ide : simIDE_prim) orderedSimIDE[ide->z]= *ide;
@@ -1056,8 +1055,8 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	  tmp_primtrk_truth_trkide.push_back(currentIde.trackID);
           geo::Point_t const pos_true{currentIde.x,currentIde.y,currentIde.z};
 	  /*if(currentIde.z>=0 && currentIde.z<=230){
-	    geo::WireID wireID = geom->NearestWireID(pos_true, 2);
-	    if (!wireID) wireID = geom->Plane(2).ClosestWireID(wireID);
+	    geo::WireID wireID = fWireReadoutGeom.NearestWireID(pos_true, 2);
+	    if (!wireID) wireID = fWireReadoutGeom.Plane(2).ClosestWireID(wireID);
 	    tmp_wire.push_back(wireID.Wire);
 	    tmp_tpc.push_back(wireID.TPC);
 	    }
@@ -1065,14 +1064,14 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	    tmp_wire.push_back(-99999);
 	    tmp_tpc.push_back(-99999);
 	    }*/
-	  geo::TPCID tpc1 = geom->FindTPCAtPosition(pos_true);
+	  geo::TPCID tpc1 = fGeometry->FindTPCAtPosition(pos_true);
 	  if(tpc1.isValid){
 	    int tpc_no=tpc1.TPC;
 	    geo::PlaneID planeID = geo::PlaneID(0, tpc_no, 2);
-	    //	geo::WireID wireID = geom->NearestWireID(pos_true, planeID);
+	    //	geo::WireID wireID = fWireReadoutGeom.NearestWireID(pos_true, planeID);
 	    geo::WireID wireID;
 	    try{
-	      wireID = geom->NearestWireID(pos_true, planeID);
+              wireID = fWireReadoutGeom.Plane(planeID).NearestWireID(pos_true);
 	    }
 	    catch(geo::InvalidWireError const& e) {
 	      wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -1494,8 +1493,8 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	      tmp_primtrk_hitz.push_back(primtrk_pos.Z());
 
 	      /* if(primtrk_pos.Z()>=0 && primtrk_pos.Z()<=230){
-		 geo::WireID wireID = geom->NearestWireID(pos_true, 2);
-		 if (!wireID) wireID = geom->Plane(2).ClosestWireID(wireID);
+		 geo::WireID wireID = fWireReadoutGeom.NearestWireID(pos_true, 2);
+		 if (!wireID) wireID = fWireReadoutGeom.Plane(2).ClosestWireID(wireID);
 		 tmp_zwire.push_back(wireID.Wire);
 		 tmp_ztpc.push_back(wireID.TPC);
 		 }
@@ -1504,14 +1503,14 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 		 tmp_ztpc.push_back(-99999);
 		 }
 	      */
-              geo::TPCID tpc2 = geom->FindTPCAtPosition(primtrk_pos);
+              geo::TPCID tpc2 = fGeometry->FindTPCAtPosition(primtrk_pos);
 	      if(tpc2.isValid){
 		int tpc_no=tpc2.TPC;
 		geo::PlaneID planeID = geo::PlaneID(0, tpc_no, 2);
 		geo::WireID wireID;
-		//geo::WireID wireID = geom->NearestWireID(pos_true, planeID);
+		//geo::WireID wireID = fWireReadoutGeom.NearestWireID(pos_true, planeID);
 		try{
-                  wireID = geom->NearestWireID(primtrk_pos, planeID);
+                  wireID = fWireReadoutGeom.Plane(planeID).NearestWireID(primtrk_pos);
 		}
 		catch(geo::InvalidWireError const& e) {
 		  wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -1739,7 +1738,7 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	      unsigned int wireno=std::round(wire_no);
 	      // geo::WireID wireid(0,TPCb[clt],2,wireno);
 	      if(wireno>=0 && wireno<=479){
-                fGeometry->WireEndPoints(geo::WireID(0,TPCb[clt],2,wireno), xyzStart, xyzEnd);
+                fWireReadoutGeom.WireEndPoints(geo::WireID(0,TPCb[clt],2,wireno), xyzStart, xyzEnd);
 		Zintersection.push_back(xyzStart[2]);
 		timeintersection.push_back(ticks_no);
 		// std::cout<<"intersecting "<<xyzStart[2]<<std::endl;
@@ -1816,14 +1815,14 @@ protoana::mcsXsection::mcsXsection(fhicl::ParameterSet const & p)
 	      double xyzStart1[3];
 	      double xyzEnd1[3];
 
-	      /* fGeometry->WireEndPoints(0,2,2,10, xyzStart1, xyzEnd1);//will remove this line
+	      /* fWireReadoutGeom.WireEndPoints(0,2,2,10, xyzStart1, xyzEnd1);//will remove this line
 		 stdd::cout<<"Wire start X in the postive direction "<<xyzStart1[0]<<std::endl;
-		 fGeometry->WireEndPoints(0,1,2,10, xyzStart1, xyzEnd1);//will remove this line
+		 fWireReadoutGeom.WireEndPoints(0,1,2,10, xyzStart1, xyzEnd1);//will remove this line
 		 std::cout<<"Wire start X in the negative direction "<<xyzStart1[0]<<std::endl;*/
 
 	      if(((Stw[clt]-5<ans[0] && Endw[clt]+5>ans[0])||(Stw[clt]+5>ans[0] && Endw[clt]<ans[0]-5))&&((Stt[clt]-50<ans[1] && Endt[clt]+50>ans[1])||(Stt[clt]+50>ans[1] && Endt[clt]-50<ans[1])) && ((Stwires[cl1]-5<ans[0] && Endwires[cl1]+5>ans[0])||(Stwires[cl1]+5>ans[0] && Endwires[cl1]-5<ans[0])) && ((Stticks[cl1]-50<ans[1] && Endticks[cl1]+50>ans[1])||(Stticks[cl1]+50>ans[1] && Endticks[cl1]-50<ans[1]))){
 		if(wir>=0 && wir<=479){
-                  fGeometry->WireEndPoints(geo::WireID(0,TPCb[clt],2,wir), xyzStart1, xyzEnd1);
+                  fWireReadoutGeom.WireEndPoints(geo::WireID(0,TPCb[clt],2,wir), xyzStart1, xyzEnd1);
 		  Zintersection1.push_back(xyzStart1[2]);
 		  timeintersection1.push_back(ans[1]);
 		  std::cout<<"wire X position is here  "<<xyzStart1[0]<<std::endl;

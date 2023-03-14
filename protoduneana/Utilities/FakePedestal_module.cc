@@ -19,7 +19,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 
@@ -61,8 +61,8 @@ pdune::FakePedestal::FakePedestal(fhicl::ParameterSet const & p)
 void pdune::FakePedestal::analyze(art::Event const & e)
 {
   std::ofstream outfile("pdune_fakeped.txt");
-  auto const* geom = lar::providerFrom<geo::Geometry>();
-  for (size_t chan = 0; chan < geom->Nchannels(); ++chan){
+  auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+  for (size_t chan = 0; chan < wireReadout.Nchannels(); ++chan){
     float ped_mean    = m_PedestalProvider.PedMean(chan);
     float ped_rms     = m_PedestalProvider.PedRms(chan);
     float ped_meanerr = m_PedestalProvider.PedMeanErr(chan);

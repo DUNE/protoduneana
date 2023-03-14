@@ -21,7 +21,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/raw.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/Simulation/SimChannel.h"
 
@@ -96,29 +96,29 @@ void pdsp::WireChgAna::analyze(art::Event const& e)
 
   auto hitListHandle = e.getHandle<std::vector<recob::Hit> >("gaushit");
 
-  auto const* geo = lar::providerFrom<geo::Geometry>();
+  auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
 
   if (rawListHandle) {
     for (raw::RawDigit const& digit : *rawListHandle) {
-      const auto & wireid = geo->ChannelToWire(digit.Channel());
-    if (wireid[0].TPC != 1) continue;
-    //if (wireid[0].Plane != 2) continue;
-    int wire = wireid[0].Wire;
-    int plane = wireid[0].Plane;
-    double this_charge = 0;
-    std::vector<short> rawadc(6000);
+      const auto & wireid = wireReadout.ChannelToWire(digit.Channel());
+      if (wireid[0].TPC != 1) continue;
+      //if (wireid[0].Plane != 2) continue;
+      int wire = wireid[0].Wire;
+      int plane = wireid[0].Plane;
+      double this_charge = 0;
+      std::vector<short> rawadc(6000);
       raw::Uncompress(digit.ADCs(), rawadc, digit.GetPedestal(), digit.Compression());
-    for (size_t itck = 0; itck < rawadc.size(); ++itck){
+      for (size_t itck = 0; itck < rawadc.size(); ++itck){
         this_charge += rawadc[itck] - digit.GetPedestal();
         rawwf[plane][wire]->SetBinContent(itck, rawadc[itck] - digit.GetPedestal());
+      }
+      charge[plane][wire] = this_charge;
     }
-    charge[plane][wire] = this_charge;
-  }
   }
 
   auto const& simChannels = e.getProduct<std::vector<sim::SimChannel>>("tpcrawdecoder:simpleSC");
   for ( auto const& channel : simChannels ){
-    const auto & wireid = geo->ChannelToWire(channel.Channel());
+    const auto & wireid = wireReadout.ChannelToWire(channel.Channel());
     if (wireid[0].TPC != 1) continue;
     //if (wireid[0].Plane != 2) continue;
     int wire = wireid[0].Wire;
@@ -136,16 +136,16 @@ void pdsp::WireChgAna::analyze(art::Event const& e)
 
   if (wireListHandle) {
     for (recob::Wire const& wire : *wireListHandle) {
-      const auto & wireid = geo->ChannelToWire(wire.Channel());
-    if (wireid[0].TPC != 1) continue;
-    //if (wireid[0].Plane != 2) continue;
+      const auto & wireid = wireReadout.ChannelToWire(wire.Channel());
+      if (wireid[0].TPC != 1) continue;
+      //if (wireid[0].Plane != 2) continue;
       int wire_num = wireid[0].Wire;
-    int plane = wireid[0].Plane;
-    double this_charge = 0;
+      int plane = wireid[0].Plane;
+      double this_charge = 0;
       const auto & signal = wire.Signal();
 
-    for (size_t itck = 0; itck < signal.size(); ++itck){
-      this_charge += signal[itck];
+      for (size_t itck = 0; itck < signal.size(); ++itck){
+        this_charge += signal[itck];
         deconwf[plane][wire_num]->SetBinContent(itck, signal[itck]);
       }
       deconchg[plane][wire_num] = this_charge;
