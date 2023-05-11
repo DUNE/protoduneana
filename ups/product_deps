@@ -72,10 +72,10 @@ end_product_list
 # Make a table by adding columns before "notes".
 # e15  - with gcc 6.4.0 and -std=c++14
 qualifier	duneprototypes          geant4reweight          notes
-c7:debug	c7:debug                c7:debug:s117            -nq-
-c7:prof		c7:prof                 c7:prof:s117             -nq-
-e20:debug	e20:debug               debug:e20:s117           -nq-
-e20:prof	e20:prof                e20:prof:s117            -nq-
+c7:debug	c7:debug                c7:debug:s120            -nq-
+c7:prof		c7:prof                 c7:prof:s120             -nq-
+e20:debug	e20:debug               debug:e20:s120           -nq-
+e20:prof	e20:prof                e20:prof:s120            -nq-
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
