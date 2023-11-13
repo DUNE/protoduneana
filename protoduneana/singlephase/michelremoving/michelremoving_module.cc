@@ -303,21 +303,21 @@ namespace dune{
     for(size_t i=0; i<NTracks;++i){
       art::Ptr<recob::Track> ptrack(trackListHandle, i);
       if(fTrackModuleLabel=="pandoraTrack"){
-	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(i);
-	if(!pfps.size()) continue;
-	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
-	if(!t0s.size()) continue;
-	//auto t0 = t0s.at(0);
-	// double t_zero=t0->Time();
+        std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(i);
+        if(!pfps.size()) continue;
+        std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
+        if(!t0s.size()) continue;
+        //auto t0 = t0s.at(0);
+        // double t_zero=t0->Time();
       }
       
       
        
        
       if(fTrackModuleLabel=="pmtrack"){
-	std::vector<art::Ptr<anab::T0>> T0s=fmT0.at(i);
-	if(T0s.size()==0)
-	  continue;
+        std::vector<art::Ptr<anab::T0>> T0s=fmT0.at(i);
+        if(T0s.size()==0)
+          continue;
       }
       all_trks++;
       std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);
@@ -351,8 +351,8 @@ namespace dune{
       std::vector<art::Ptr<recob::Hit>> allHits=fmtht.at(i); //storing hits for ith track
       std::vector<float> hitpeakT;
       for(size_t h1=0;h1<allHits.size();h1++){
-	hitpeakT.push_back(allHits[h1]->PeakTime());
-	//	if(allHits[h1]->WireID().Plane==2 && allHits[h1]->PeakTime()>420 && allHits[h1]->PeakTime()<530 && allHits[h1]->WireID().TPC==9 && allHits[h1]->WireID().Wire>60 && allHits[h1]->WireID().Wire<80) cout<<"wire id and peak time from allHits this is from track hit association "<<allHits[h1]->WireID().Wire<<"  "<<allHits[h1]->PeakTime()<<endl;
+        hitpeakT.push_back(allHits[h1]->PeakTime());
+        //        if(allHits[h1]->WireID().Plane==2 && allHits[h1]->PeakTime()>420 && allHits[h1]->PeakTime()<530 && allHits[h1]->WireID().TPC==9 && allHits[h1]->WireID().Wire>60 && allHits[h1]->WireID().Wire<80) cout<<"wire id and peak time from allHits this is from track hit association "<<allHits[h1]->WireID().Wire<<"  "<<allHits[h1]->PeakTime()<<endl;
       }
       float max=-999999;
       float min=-999999;
@@ -360,121 +360,132 @@ namespace dune{
       max=*max_element(hitpeakT.begin(),hitpeakT.end());
       hitpeakT.clear();
 
-	float dist0=99999;
-	float dist=99999;
-	float peaktime=-1;
-	int wireno=99999;
-	int counter1=99999;
-	int tpcno=-1;
+      float dist0=99999;
+      float dist=99999;
+      float peaktime=-1;
+      int wireno=99999;
+      int counter1=99999;
+      int tpcno=-1;
 
-      if(((std::abs(pos.X())>330 ||  pos.Y()<50 || pos.Y()>550 || pos.Z()<50 || pos.Z()>645) && !(std::abs(end.X())>330 ||  end.Y()<50 || end.Y()>550 || end.Z()<50 || end.Z()>645))||(!(std::abs(pos.X())>330 ||  pos.Y()<50 || pos.Y()>550 || pos.Z()<50 || pos.Z()>645) && (std::abs(end.X())>330 ||  end.Y()<50 || end.Y()>550 || end.Z()<50 || end.Z()>645))){
-	stopping_trks++; //these are total stopping tracks, could be broken as well
+      bool start_in_bounds = ((abs(startx) < 330.) && (starty > 50.) &&
+                              (startY < 550.) && (startz > 50.) &&
+                              (startz < 645.));
+      bool end_in_bounds = ((abs(endx) < 330.) && (endy > 50.) &&
+                            (endY < 550.) && (endz > 50.) &&
+                            (endz < 645.));
+      bool bool_a = (std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645);
+      bool bool_b = !(std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645);
+      bool bool_c = !(std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645);
+      bool bool_d = (std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645);
 
-	/**********************************broken tracks removal**************************************************************************************/
-	for(size_t k=0;k<NTracks;++k){
-	  art::Ptr<recob::Track> ptrack_k(trackListHandle, k);
-	  const recob::Track& track_k = *ptrack_k;
-	  // TVector3 pos_k, dir_pos_k, dir_end_k, end_k;
-	  auto pos_k = track_k.Vertex();
-	  auto dir_pos_k= track_k.VertexDirection();
-	  auto dir_end_k   = track_k.EndDirection();
-	  auto end_k = track_k.End();
-	  if(k==i) continue;
-	  if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<30||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<30)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.97||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.97||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.97||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.97)) break;
-	  if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<50||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<50)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.998||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.998||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.998||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.998)) break;
-	  count++;
-	}	 
+      if (((std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645) && !(std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645))||(!(std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645) && (std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645))){
+        stopping_trks++; //these are total stopping tracks, could be broken as well
+
+        /**********************************broken tracks removal**************************************************************************************/
+        for(size_t k=0;k<NTracks;++k){
+          art::Ptr<recob::Track> ptrack_k(trackListHandle, k);
+          const recob::Track& track_k = *ptrack_k;
+          // TVector3 pos_k, dir_pos_k, dir_end_k, end_k;
+          auto pos_k = track_k.Vertex();
+          auto dir_pos_k= track_k.VertexDirection();
+          auto dir_end_k   = track_k.EndDirection();
+          auto end_k = track_k.End();
+          if(k==i) continue;
+          if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<30||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<30)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.97||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.97||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.97||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.97)) break;
+          if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<50||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<50)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.998||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.998||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.998||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.998)) break;
+          count++;
+        }         
       
-	if(!(count==NTracks-1)|| tracklength<100) continue;
-	unbroken_trks++;
-	//*******************************new stuff*****************************//
+        if(!(count==NTracks-1)|| tracklength<100) continue;
+        unbroken_trks++;
+        //*******************************new stuff*****************************//
      
-	std::vector<int> wirenos;
-	std::vector<float> peakts;
+        std::vector<int> wirenos;
+        std::vector<float> peakts;
 
 
 
-	int planenum1=999;
-	float xpos=-9999;
-	float ypos=-9999;
-	float zpos=-9999;
-	if(fmthm.isValid()){
-	  auto vhit=fmthm.at(i);
-	  auto vmeta=fmthm.data(i);
-	  for (size_t ii = 0; ii<vhit.size(); ++ii){ //loop over all meta data hit
-	    bool fBadhit = false;
-	    if (vmeta[ii]->Index() == static_cast<unsigned int>(std::numeric_limits<int>::max())){
-	      fBadhit = true;
-	   
-	      continue;
-	    }
-	    if (vmeta[ii]->Index()>=tracklist[i]->NumberTrajectoryPoints()){
-	      throw cet::exception("Calorimetry_module.cc") << "Requested track trajectory index "<<vmeta[ii]->Index()<<" exceeds the total number of trajectory points "<<tracklist[i]->NumberTrajectoryPoints()<<" for track index "<<i<<". Something is wrong with the track reconstruction. Please contact tjyang@fnal.gov!!";
-	    }
-	    if (!tracklist[i]->HasValidPoint(vmeta[ii]->Index())){
-	      fBadhit = true;
-	      continue;
-	    }
-	    // TVector3 loc = tracklist[i]->LocationAtPoint(vmeta[ii]->Index());
-	     auto loc = tracklist[i]->LocationAtPoint(vmeta[ii]->Index());
+        int planenum1=999;
+        float xpos=-9999;
+        float ypos=-9999;
+        float zpos=-9999;
+        if(fmthm.isValid()){
+          auto vhit=fmthm.at(i);
+          auto vmeta=fmthm.data(i);
+          for (size_t ii = 0; ii<vhit.size(); ++ii){ //loop over all meta data hit
+            bool fBadhit = false;
+            if (vmeta[ii]->Index() == static_cast<unsigned int>(std::numeric_limits<int>::max())){
+              fBadhit = true;
+           
+              continue;
+            }
+            if (vmeta[ii]->Index()>=tracklist[i]->NumberTrajectoryPoints()){
+              throw cet::exception("Calorimetry_module.cc") << "Requested track trajectory index "<<vmeta[ii]->Index()<<" exceeds the total number of trajectory points "<<tracklist[i]->NumberTrajectoryPoints()<<" for track index "<<i<<". Something is wrong with the track reconstruction. Please contact tjyang@fnal.gov!!";
+            }
+            if (!tracklist[i]->HasValidPoint(vmeta[ii]->Index())){
+              fBadhit = true;
+              continue;
+            }
+            // TVector3 loc = tracklist[i]->LocationAtPoint(vmeta[ii]->Index());
+             auto loc = tracklist[i]->LocationAtPoint(vmeta[ii]->Index());
 
-	    xpos=loc.X();
-	    ypos=loc.Y();
-	    zpos=loc.Z();
-	    if (fBadhit) continue; //HY::If BAD hit, skip this hit and go next
-	    if (zpos<-100) continue; //hit not on track
-	    planenum1=vhit[ii]->WireID().Plane;
-	    if(planenum1==2){
-	      if(starty<endy) dist=sqrt(pow(xpos-startx,2)+pow(ypos-starty,2)+pow(zpos-startz,2));
-	      if(starty>endy) dist=sqrt(pow(xpos-endx,2)+pow(ypos-endy,2)+pow(zpos-endz,2));
-	      //if(vhit[ii]->WireID().Plane==2 && vhit[ii]->PeakTime()>420 && vhit[ii]->PeakTime()<530 && vhit[ii]->WireID().TPC==9 && vhit[ii]->WireID().Wire>60 && vhit[ii]->WireID().Wire<80){
-	      //cout<<"wire_no and peak time from metadata"<<vhit[ii]->WireID().Wire<<"  "<<vhit[ii]->PeakTime()<<endl;
+            xpos=loc.X();
+            ypos=loc.Y();
+            zpos=loc.Z();
+            if (fBadhit) continue; //HY::If BAD hit, skip this hit and go next
+            if (zpos<-100) continue; //hit not on track
+            planenum1=vhit[ii]->WireID().Plane;
+            if(planenum1==2){
+              if(starty<endy) dist=sqrt(pow(xpos-startx,2)+pow(ypos-starty,2)+pow(zpos-startz,2));
+              if(starty>endy) dist=sqrt(pow(xpos-endx,2)+pow(ypos-endy,2)+pow(zpos-endz,2));
+              //if(vhit[ii]->WireID().Plane==2 && vhit[ii]->PeakTime()>420 && vhit[ii]->PeakTime()<530 && vhit[ii]->WireID().TPC==9 && vhit[ii]->WireID().Wire>60 && vhit[ii]->WireID().Wire<80){
+              //cout<<"wire_no and peak time from metadata"<<vhit[ii]->WireID().Wire<<"  "<<vhit[ii]->PeakTime()<<endl;
 
-	      wirenos.push_back(vhit[ii]->WireID().Wire);
-	      peakts.push_back(vhit[ii]->PeakTime());
-	      // }
+              wirenos.push_back(vhit[ii]->WireID().Wire);
+              peakts.push_back(vhit[ii]->PeakTime());
+              // }
 
-	      if(dist<dist0){
-		dist0=dist;
-		wireno=vhit[ii]->WireID().Wire;
-		peaktime=vhit[ii]->PeakTime();
-		tpcno=vhit[ii]->WireID().TPC;
-	      }	
-	    }
-	  }//loop over vhit
-	}//fmthm valid
-	/*************************************filling the values****************************/
-	counter1=0;
-	// bool test=false;
-	for(size_t hitl=0;hitl<hitlist.size();hitl++){
-	  auto & tracks = thass.at(hitlist[hitl].key());
-	  //auto & vmeta = thass.data(hitlist[hitl].key());
-	  //if (!tracks.empty()&&tracks[0].key() == ptrack.key()&&vmeta[0]->Index()!=static_cast<unsigned int>(std::numeric_limits<int>::max())) continue;
-	  //if (!tracks.empty()&&tracks[0].key() == ptrack.key()&&hitlist[hitl]->WireID().Plane==2)
-	  //if(!(hitlist[hitl]->WireID().Plane==2 && tracks[0].key() != ptrack.key() && hitlist[hitl]->PeakTime()>420 && hitlist[hitl]->PeakTime()<530 && hitlist[hitl]->WireID().TPC==9 && hitlist[hitl]->WireID().Wire>60 && hitlist[hitl]->WireID().Wire<80)) continue;
-	  //cout<<"wire no and peak time from hit to track association...................."<<hitlist[hitl]->WireID().Wire<<"  "<<hitlist[hitl]->PeakTime()<<endl;
-	  if (!tracks.empty() && tracks[0].key()!=ptrack.key() && tracklist[tracks[0].key()]->Length()>100) continue;
-	  bool test=true;
-	  float peakth1=hitlist[hitl]->PeakTime();
-	  int wireh1=hitlist[hitl]->WireID().Wire;
-	  for(size_t m=0;m<wirenos.size();m++){
-	    if(wireh1==wirenos[m] && peakth1==peakts[m]){
-	      test=false;
-	      break;
-	    }
-	  }
-	  if(!test) continue;
+              if(dist<dist0){
+                dist0=dist;
+                wireno=vhit[ii]->WireID().Wire;
+                peaktime=vhit[ii]->PeakTime();
+                tpcno=vhit[ii]->WireID().TPC;
+              }        
+            }
+          }//loop over vhit
+        }//fmthm valid
+        /*************************************filling the values****************************/
+        counter1=0;
+        // bool test=false;
+        for(size_t hitl=0;hitl<hitlist.size();hitl++){
+          auto & tracks = thass.at(hitlist[hitl].key());
+          //auto & vmeta = thass.data(hitlist[hitl].key());
+          //if (!tracks.empty()&&tracks[0].key() == ptrack.key()&&vmeta[0]->Index()!=static_cast<unsigned int>(std::numeric_limits<int>::max())) continue;
+          //if (!tracks.empty()&&tracks[0].key() == ptrack.key()&&hitlist[hitl]->WireID().Plane==2)
+          //if(!(hitlist[hitl]->WireID().Plane==2 && tracks[0].key() != ptrack.key() && hitlist[hitl]->PeakTime()>420 && hitlist[hitl]->PeakTime()<530 && hitlist[hitl]->WireID().TPC==9 && hitlist[hitl]->WireID().Wire>60 && hitlist[hitl]->WireID().Wire<80)) continue;
+          //cout<<"wire no and peak time from hit to track association...................."<<hitlist[hitl]->WireID().Wire<<"  "<<hitlist[hitl]->PeakTime()<<endl;
+          if (!tracks.empty() && tracks[0].key()!=ptrack.key() && tracklist[tracks[0].key()]->Length()>100) continue;
+          bool test=true;
+          float peakth1=hitlist[hitl]->PeakTime();
+          int wireh1=hitlist[hitl]->WireID().Wire;
+          for(size_t m=0;m<wirenos.size();m++){
+            if(wireh1==wirenos[m] && peakth1==peakts[m]){
+              test=false;
+              break;
+            }
+          }
+          if(!test) continue;
 
-	  int planeid=hitlist[hitl]->WireID().Plane;
-	  int tpcid=hitlist[hitl]->WireID().TPC;
-	  if(abs(wireh1-wireno)<6 && abs(peakth1-peaktime)<50 && planeid==2 && tpcid==tpcno){
-	    counter1++;
-	  }
-	}
-	// for(size_t t=0;t<peakts.size();t++) cout<<"wire numbers and peak times in the vector "<<wirenos[t]<<"  "<<peakts[t]<<endl;
+          int planeid=hitlist[hitl]->WireID().Plane;
+          int tpcid=hitlist[hitl]->WireID().TPC;
+          if(abs(wireh1-wireno)<6 && abs(peakth1-peaktime)<50 && planeid==2 && tpcid==tpcno){
+            counter1++;
+          }
+        }
+        // for(size_t t=0;t<peakts.size();t++) cout<<"wire numbers and peak times in the vector "<<wirenos[t]<<"  "<<peakts[t]<<endl;
 
-	wirenos.clear();
-	peakts.clear();
+        wirenos.clear();
+        peakts.clear();
      
 
         cout<<"no of hits closeby  "<<counter1<<"   "<<"event "<<event<<" TrkackID "<<track.ID()<<" startx, y, z "<<startx<<" "<<starty<<" "<<startz<<"  wireno, peakt tpcno "<<wireno<<" "<<peaktime<<" "<<tpcno<<" dist "<<dist0<<"min T, max_T"<<min<<" "<<max<<endl; 
@@ -509,22 +520,22 @@ namespace dune{
       trkendcosxyz[cross_trks-1][1]=dir_end.Y();
       trkendcosxyz[cross_trks-1][2]=dir_end.Z();
       for(size_t ical = 0; ical<calos.size(); ++ical){
-	if(!calos[ical]) continue;
-	if(!calos[ical]->PlaneID().isValid) continue;
-	int planenum = calos[ical]->PlaneID().Plane;
-	if(planenum<0||planenum>2) continue;
-	const size_t NHits = calos[ical] -> dEdx().size();
-	ntrkhits[cross_trks-1][planenum]=int(NHits);
-	for(size_t iHit = 0; iHit < NHits; ++iHit){
-	  const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
-	  trkdqdx[cross_trks-1][planenum][iHit]=(calos[ical] -> dQdx())[iHit];
-	  trkdedx[cross_trks-1][planenum][iHit]=(calos[ical] -> dEdx())[iHit];
-	  trkresrange[cross_trks-1][planenum][iHit]=(calos[ical]->ResidualRange())[iHit];
-	  trkhitx[cross_trks-1][planenum][iHit]=TrkPos.X();
-	  trkhity[cross_trks-1][planenum][iHit]=TrkPos.Y();
-	  trkhitz[cross_trks-1][planenum][iHit]=TrkPos.Z();
-	  trkpitch[cross_trks-1][planenum][iHit]=(calos[ical]->TrkPitchVec())[iHit];
-	} // loop over iHit..
+        if(!calos[ical]) continue;
+        if(!calos[ical]->PlaneID().isValid) continue;
+        int planenum = calos[ical]->PlaneID().Plane;
+        if(planenum<0||planenum>2) continue;
+        const size_t NHits = calos[ical] -> dEdx().size();
+        ntrkhits[cross_trks-1][planenum]=int(NHits);
+        for(size_t iHit = 0; iHit < NHits; ++iHit){
+          const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
+          trkdqdx[cross_trks-1][planenum][iHit]=(calos[ical] -> dQdx())[iHit];
+          trkdedx[cross_trks-1][planenum][iHit]=(calos[ical] -> dEdx())[iHit];
+          trkresrange[cross_trks-1][planenum][iHit]=(calos[ical]->ResidualRange())[iHit];
+          trkhitx[cross_trks-1][planenum][iHit]=TrkPos.X();
+          trkhity[cross_trks-1][planenum][iHit]=TrkPos.Y();
+          trkhitz[cross_trks-1][planenum][iHit]=TrkPos.Z();
+          trkpitch[cross_trks-1][planenum][iHit]=(calos[ical]->TrkPitchVec())[iHit];
+        } // loop over iHit..
       } // loop over ical 2nd time...
       if (!isData){
         auto particles = truthUtil.GetMCParticleListFromRecoTrack(clockData, *tracklist[i], evt, fTrackModuleLabel);
@@ -544,7 +555,7 @@ namespace dune{
   
     fEventTree->Fill();
   } // end of analyze function
-	   
+           
     /////////////////// Defintion of reset function ///////////
   void michelremoving::reset(){
     isData = false;
@@ -592,20 +603,20 @@ namespace dune{
       true_trkendy[i]=-99999;
       true_trkendz[i]=-99999;
       for(int j=0; j<3; j++){
-	for(int k=0; k<3000; k++){
-	  trkdqdx[i][j][k]=-99999;
-	  trkdedx[i][j][k]=-99999;
-	  trkresrange[i][j][k]=-99999;
-	  trkhitx[i][j][k]=-99999;
-	  trkhity[i][j][k]=-99999;
-	  trkhitz[i][j][k]=-99999;
-	  trkpitch[i][j][k]=-99999;
-	}
+        for(int k=0; k<3000; k++){
+          trkdqdx[i][j][k]=-99999;
+          trkdedx[i][j][k]=-99999;
+          trkresrange[i][j][k]=-99999;
+          trkhitx[i][j][k]=-99999;
+          trkhity[i][j][k]=-99999;
+          trkhitz[i][j][k]=-99999;
+          trkpitch[i][j][k]=-99999;
+        }
       }
     }
   }
-  //////////////////////// End of definition ///////////////	
-	  
+  //////////////////////// End of definition ///////////////        
+          
   DEFINE_ART_MODULE(michelremoving)
 }
 
