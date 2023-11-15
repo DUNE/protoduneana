@@ -146,6 +146,7 @@ namespace dune{
     std::string fCalorimetryModuleLabel;
     bool  fSaveCaloInfo;
     bool  fSaveTrackInfo;
+    double fMaxX, fMaxY, fMinY, fMaxZ, fMinZ;
 
     protoana::ProtoDUNETruthUtils truthUtil;
 
@@ -153,16 +154,20 @@ namespace dune{
 
   //========================================================================
   michelremoving::michelremoving(fhicl::ParameterSet const& pset) :
-    EDAnalyzer(pset),
-    fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel","")         ),
-    fTrackModuleLabel         (pset.get< std::string >("TrackModuleLabel","")        ),
-    fCalorimetryModuleLabel   (pset.get< std::string >("CalorimetryModuleLabel","")  ),
-    fSaveCaloInfo             (pset.get< bool>("SaveCaloInfo",false)),
-    fSaveTrackInfo            (pset.get< bool>("SaveTrackInfo",false))
-  {
+      EDAnalyzer(pset),
+      fHitsModuleLabel(pset.get<std::string>("HitsModuleLabel", "")),
+      fTrackModuleLabel(pset.get<std::string>("TrackModuleLabel", "")),
+      fCalorimetryModuleLabel(pset.get<std::string >("CalorimetryModuleLabel", "")),
+      fSaveCaloInfo(pset.get<bool>("SaveCaloInfo", false)),
+      fSaveTrackInfo(pset.get<bool>("SaveTrackInfo", false)),
+      fMaxX(pset.get<double>("MaxX", 330.)),
+      fMaxY(pset.get<double>("MaxY", 550.)),
+      fMinY(pset.get<double>("MinY", 50.)),
+      fMaxZ(pset.get<double>("MaxZ", 645.)),
+      fMinZ(pset.get<double>("MinZ", 50.)) {
     if (fSaveTrackInfo == false) fSaveCaloInfo = false;
   }
- 
+
   //========================================================================
   michelremoving::~michelremoving(){
   }
@@ -367,18 +372,13 @@ namespace dune{
       int counter1=99999;
       int tpcno=-1;
 
-      bool start_in_bounds = ((abs(startx) < 330.) && (starty > 50.) &&
-                              (startY < 550.) && (startz > 50.) &&
-                              (startz < 645.));
-      bool end_in_bounds = ((abs(endx) < 330.) && (endy > 50.) &&
-                            (endY < 550.) && (endz > 50.) &&
-                            (endz < 645.));
-      bool bool_a = (std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645);
-      bool bool_b = !(std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645);
-      bool bool_c = !(std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645);
-      bool bool_d = (std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645);
-
-      if (((std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645) && !(std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645))||(!(std::abs(startx)>330 ||  starty<50 || starty>550 || startz<50 || startz>645) && (std::abs(endx)>330 ||  endy<50 || endy>550 || endz<50 || endz>645))){
+      bool start_in_bounds = ((abs(startx) < fMaxX) && (starty > fMinY) &&
+                              (starty < fMaxY) && (startz > fMinZ) &&
+                              (startz < fMaxZ));
+      bool end_in_bounds = ((abs(endx) < fMaxX) && (endy > fMinY) &&
+                              (endy < fMaxY) && (endz > fMinZ) &&
+                              (endz < fMaxZ));
+      if ((!start_in_bounds && end_in_bounds) || (start_in_bounds && !end_in_bounds)) {
         stopping_trks++; //these are total stopping tracks, could be broken as well
 
         /**********************************broken tracks removal**************************************************************************************/
@@ -390,13 +390,16 @@ namespace dune{
           auto dir_pos_k= track_k.VertexDirection();
           auto dir_end_k   = track_k.EndDirection();
           auto end_k = track_k.End();
-          if(k==i) continue;
-          if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<30||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<30)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.97||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.97||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.97||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.97)) break;
-          if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<50||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<50)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.998||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.998||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.998||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.998)) break;
+
+
+
+          if (k==i) continue;
+          if ((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<30||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<30)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.97||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.97||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.97||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.97)) break;
+          if ((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<50||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<50)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.998||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.998||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.998||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.998)) break;
           count++;
         }         
       
-        if(!(count==NTracks-1)|| tracklength<100) continue;
+        if((count != NTracks-1) || tracklength < 100) continue;
         unbroken_trks++;
         //*******************************new stuff*****************************//
      

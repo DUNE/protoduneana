@@ -1,0 +1,56 @@
+#include "services_dune.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "filters.fcl"
+#include "ProtoDUNEUnstableHVFilter.fcl"
+#include "signalservices_dune.fcl"
+#include "caldata_dune.fcl"
+#include "trackfindermodules_dune.fcl"
+#include "ecalibration.fcl"
+#include "triggeralgo_service.fcl"
+#include "photpropservices_dune.fcl"
+#include "ProtoDUNEDataUtils.fcl"
+#include "ProtoDUNEFembFilter.fcl"
+
+
+process_name: michelremoving
+
+services:
+{
+  #Load the service that manages root files for histograms.
+  TFileService: { fileName: "michelremoving_pdhd.root" }
+  RandomNumberGenerator: {}                     #ART native random number generator
+  @table::protodunehd_services
+  message:      @local::standard_info
+  FileCatalogMetadata: @local::art_file_catalog_mc
+}
+services.PdspChannelMapService:      @local::pdspchannelmap
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1            # Number of events to create
+}
+physics:
+      {
+          producers:{
+              
+          }
+          
+          analyzers:{
+            michelremoving:
+              {
+                  module_type: "michelremoving"
+              }
+          }
+ 
+          
+          ana:  [ michelremoving ]
+          end_paths:     [ ana ] 
+}
+
+# define the list of LArSoft modules to run through the simulate path
+physics.analyzers.michelremoving.TrackModuleLabel:        "pandoraTrack"
+physics.analyzers.michelremoving.CalorimetryModuleLabel:  "pandoracalo"
+physics.analyzers.michelremoving.HitsModuleLabel:  "hitpdune"
+physics.analyzers.michelremoving.SaveTrackInfo: true
+physics.analyzers.michelremoving.MaxZ: 410.
