@@ -22,9 +22,10 @@ parser.add_argument('--oh', type=int, default=-1)
 parser.add_argument('-t', action='store_true')
 parser.add_argument('-p', action='store_true')
 parser.add_argument('-m', action='store_true', help='Set max to ultimate max of xsec')
-parser.add_argument('--LADS', type=int, help='0: Use results from Kotlinski. 1: Use results from Rowntree. 2: Both', default = 0)
+parser.add_argument('--LADS', type=int, help='0: Use results from Kotlinski. 1: Use results from Rowntree. 2: Both', default = -1)
 parser.add_argument('--add', action='store_true', help='Set error bars to cov') 
 parser.add_argument('--fixed', action='store_true')
+parser.add_argument('--nochi2', action='store_true')
 parser.add_argument('-v', action='store_true')
 
 args = parser.parse_args()
@@ -393,11 +394,17 @@ leg.AddEntry(g4_xsecs[0], 'Geant4 10.6' if not args.xt else 'Geant4 10.6 Thresho
 if args.xt:
   leg.AddEntry(g4_xsecs_thresh[0], 'Geant4 10.6 No Thresholds', 'l')
 leg.AddEntry(result_xsecs[0], 'ProtoDUNE-SP', 'pez')
-if args.LADS in [0, 2]:
-  leg.AddEntry(LADS_0, "Kotlinski et al. (2000)", 'pez')
-if args.LADS in [1, 2]:
-  leg.AddEntry(LADS_1, "Rowntree et al. (1999)", 'pez')
-leg.AddEntry('', '#chi^{2} = %.2f'%xsec_chi2, '')
+
+
+
+if args.LADS >= 0:
+  if args.LADS in [0, 2]:
+    leg.AddEntry(LADS_0, "Kotlinski et al. (2000)", 'pez')
+  if args.LADS in [1, 2]:
+    leg.AddEntry(LADS_1, "Rowntree et al. (1999)", 'pez')
+
+if not args.nochi2:
+  leg.AddEntry('', '#chi^{2} = %.2f'%xsec_chi2, '')
 leg.Draw('same')
 if args.p:
   t_prelim.DrawLatex(0.33, .5, 'Preliminary')

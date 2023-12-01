@@ -29,6 +29,8 @@ parser.add_argument('--multiple', action='store_true')
 parser.add_argument('--extra_life', type=str, default=None)
 parser.add_argument('--tune', type=str, default=None)
 parser.add_argument('--tune_dir', type=str, default=None)
+parser.add_argument('--random_tune', action='store_true')
+parser.add_argument('--retune', action='store_true')
 
 parser.add_argument('--pduneana_tar', type=str, default='',
                     help='Optional Protoduneana tarball to be set up before NTupleProd')
@@ -127,13 +129,10 @@ if args.extra_life:
 
 if args.tune and args.multiple:
   cmd += [f'-Osubmit.f_5=dropbox://{args.tune_dir}/{args.tune}']
-  #cmd += [f'-Ojob_setup.prescript_5=head -n $((1+\\\\\\${{PROCESS}})) ${{CONDOR_DIR_INPUT}}/{args.tune}']
-  #cmd += [f'-Ojob_setup.prescript_6=export refit_file=$(head -n $((1+\\\\\\${{PROCESS}})) ${{CONDOR_DIR_INPUT}}/{args.tune})']
-  #cmd += [f'-Ojob_setup.prescript_5=head -n ${{PROCESS}} ${{CONDOR_DIR_INPUT}}/{args.tune}']
-  #cmd += [f'-Ojob_setup.prescript_6=export refit_file=$(head -n ${{PROCESS}} ${{CONDOR_DIR_INPUT}}/{args.tune})']
   cmd += [f'-Ojob_setup.prescript_5=head -n ${{PROCESS}} ${{CONDOR_DIR_INPUT}}/{args.tune} | tail -n 1']
   cmd += [f'-Ojob_setup.prescript_6=export refit_file=$(head -n ${{PROCESS}} ${{CONDOR_DIR_INPUT}}/{args.tune} | tail -n 1)']
   cmd += [f'-Ojob_setup.prescript_7=python -m get_ratios $refit_file']
+  if args.retune: cmd[-1] += ' 1'
   cmd += [f'-Ojob_setup.prescript_8=cat tune.txt']
   cmd += [f'-Ojob_setup.prescript_9=ls ${{CONDIR_DIR_INPUT}}']
   cmd += [f'-Oexecutable.arg_{arg_count}=--tune',
@@ -145,12 +144,20 @@ elif args.tune:
   cmd += [f'-Ojob_setup.prescript_5=head -n 1 ${{CONDOR_DIR_INPUT}}/{args.tune}']
   cmd += [f'-Ojob_setup.prescript_6=export refit_file=$(head -n 1 ${{CONDOR_DIR_INPUT}}/{args.tune})']
   cmd += [f'-Ojob_setup.prescript_7=python -m get_ratios $refit_file']
+  if args.retune: cmd[-1] += ' 1'
   cmd += [f'-Ojob_setup.prescript_8=cat tune.txt']
   cmd += [f'-Ojob_setup.prescript_9=ls ${{CONDIR_DIR_INPUT}}']
   cmd += [f'-Oexecutable.arg_{arg_count}=--tune',
           f'-Oexecutable.arg_{arg_count+1}=tune.txt',
           f'-Oexecutable.arg_{arg_count+2}=--refit',
           f'-Oexecutable.arg_{arg_count+3}=file.txt']
+elif args.random_tune:
+  cmd += [f'-Ojob_setup.prescript_5=python -m get_random_tune']
+  cmd += [f'-Ojob_setup.prescript_6=cat tune.txt']
+  cmd += [f'-Ojob_setup.prescript_7=ls ${{CONDIR_DIR_INPUT}}']
+  cmd += [f'-Oexecutable.arg_{arg_count}=--tune',
+          f'-Oexecutable.arg_{arg_count+1}=tune.txt']
+
 
 print(cmd)
 

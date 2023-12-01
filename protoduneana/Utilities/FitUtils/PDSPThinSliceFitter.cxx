@@ -41,10 +41,10 @@
 protoana::PDSPThinSliceFitter::PDSPThinSliceFitter(
     std::string fcl_file, std::string output_file,
     std::string mc_file, std::string data_file, std::string refit_file,
-    std::string tune_file)
+    std::string tune_file, bool retune)
     : fOutputFile(output_file.c_str(), "RECREATE"),
       fMCFileName(mc_file), fDataFileName(data_file),
-      fRefitFile(refit_file) {
+      fRefitFile(refit_file), fRetune(retune) {
 
   Configure(fcl_file);
 
@@ -463,12 +463,17 @@ void protoana::PDSPThinSliceFitter::Tune(std::string tune_file) {
 
 
   auto par = fG4RWParameters.begin();
+  TVectorD tune_pars;
+  size_t ipar = 0;
   if (myfile.is_open()) {
     while (std::getline(myfile, line)) {
       std::cout << line << '\n';
       par->second.SetValue(std::stof(line));
       par->second.SetCentral(std::stof(line));
+      tune_pars.ResizeTo(ipar+1);
+      tune_pars[ipar] = std::stof(line);
       ++par;
+      ++ipar;
       std::cout << "set" << std::endl;
     }
     myfile.close();
@@ -477,6 +482,12 @@ void protoana::PDSPThinSliceFitter::Tune(std::string tune_file) {
     std::exception e;
     throw e;
   }
+
+  fOutputFile.cd();
+  auto * dir = (TDirectory*)fOutputFile.mkdir("TunePars");
+  dir->cd();
+  tune_pars.Write("tune_pars");
+  fOutputFile.cd();
 
 }
 
@@ -1250,9 +1261,12 @@ void protoana::PDSPThinSliceFitter::BuildDataHists() {
         vals.push_back(par.GetValue());
       }
     }
+    std::vector<double> g4rw_pars;
     for (auto it = fG4RWParameters.begin();
          it != fG4RWParameters.end(); ++it) {
-      vals.push_back(it->second.GetValue());
+      std::cout << "G4RW Fake Data: " << (fNominalG4RWFakeData ? 1. : it->second.GetValue()) << std::endl;
+      vals.push_back((fNominalG4RWFakeData ? 1. : it->second.GetValue()));
+      g4rw_pars.push_back(it->second.GetValue());
     }
 
     fFillIncidentInFunction = true;
@@ -1270,6 +1284,37 @@ void protoana::PDSPThinSliceFitter::BuildDataHists() {
     std::cout << std::endl;
     BuildFakeDataXSecs(false);
 
+    //Reset the parameters
+    vals.clear();
+    for (auto it = fSignalParameters.begin();
+         it != fSignalParameters.end(); ++it) {
+      for (size_t i = 0; i < it->second.size(); ++i) {
+        vals.push_back(it->second[i]);
+      }
+    }
+    for (auto it = fFluxParameters.begin();
+         it != fFluxParameters.end(); ++it) {
+      vals.push_back(it->second);
+    }
+
+    for (auto it = fSystParameters.begin();
+         it != fSystParameters.end(); ++it) {
+      vals.push_back(it->second.GetValue());
+    }
+
+    for (auto & sel_var_vec : fSelVarSystPars) {
+      for (auto & par : sel_var_vec) {
+        vals.push_back(par.GetValue());
+      }
+    }
+    size_t ipar = 0;
+    for (auto it = fG4RWParameters.begin();
+         it != fG4RWParameters.end(); ++it) {
+      it->second.SetValue(g4rw_pars[ipar]);
+      vals.push_back(it->second.GetValue());
+      std::cout << "G4RW Fake Data: " << it->second.GetValue() << std::endl;
+      ++ipar;
+    }
     fThinSliceDriver->TurnOffFakeData();
     fUseFakeSamples = false;
     fThinSliceDriver->SetStatVar(false);
@@ -3460,6 +3505,8 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
   fSplitMC = pset.get<bool>("SplitMC");
   fShuffle = pset.get<bool>("Shuffle", false);
   fDoThrows = pset.get<bool>("DoThrows");
+  fDoThrowSystCentrals = pset.get<bool>("DoThrowSystCentrals", false);
+  fSystsToThrow = pset.get<std::vector<size_t>>("SystsToThrow", {});
 
   fThrowType = pset.get<std::string>("ThrowType", "NormalThrow");
   fRemainCorrRange = pset.get<std::pair<int, int>>("RemainCorrRange", {-1, -1});
@@ -3721,6 +3768,11 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
       fCovMatrix->Invert();
       cov_file->Close();
+
+
+      //Here, throw a new central according 
+      if (fDoThrowSystCentrals) ThrowSystCentrals();
+
     }
   }
 
@@ -3728,10 +3780,85 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
   std::vector<fhicl::ParameterSet> par_vec
       = pset.get<std::vector<fhicl::ParameterSet>>("G4RWParameters", {});
   fTuneG4RWPars = pset.get<bool>("TuneG4RWPars", false);
+  fNominalG4RWFakeData = pset.get<bool>("NominalG4RWFakeData", false);
   for (size_t i = 0; i < par_vec.size(); ++i) {
     ThinSliceSystematic syst(par_vec[i]);
     fG4RWParameters[par_vec[i].get<std::string>("Name")] = syst;
     ++fTotalG4RWParameters;
+  }
+}
+
+void protoana::PDSPThinSliceFitter::ThrowSystCentrals() {
+  std::cout << "Throwing Syst Centrals" << std::endl;
+  TMatrixD * cov_lower = (TMatrixD*)fInputChol->GetU().Clone();
+  cov_lower->Transpose(fInputChol->GetU());
+
+  size_t n_cov_rows = cov_lower->GetNrows();
+  if (n_cov_rows != fTotalSystParameters) {
+    std::cout << "Error: " << n_cov_rows << " " << fTotalSystParameters <<
+                 std::endl;
+  }
+
+  std::vector<double> init_vals, new_centrals;
+  std::vector<double> throw_limits, throw_limits_up;
+  for (auto & it : fSystParameters) {
+    init_vals.push_back(it.second.GetCentral());
+    throw_limits.push_back(it.second.GetGenThrowLimit());
+    throw_limits_up.push_back(it.second.GetGenThrowLimitUp());
+  }
+  for (auto & sel_var_vec : fSelVarSystPars) {
+    for (auto & par : sel_var_vec) {
+      init_vals.push_back(par.GetCentral());
+      throw_limits.push_back(par.GetGenThrowLimit());
+      throw_limits_up.push_back(par.GetGenThrowLimitUp());
+    }
+  }
+
+  bool rethrow = true;
+  while (rethrow) {
+    new_centrals.clear();
+    bool all_pos = true;
+    TVectorD rand(fTotalSystParameters);
+    for (size_t i = 0; i < fTotalSystParameters; ++i) {
+
+      bool throw_this = (std::find(fSystsToThrow.begin(),
+                                   fSystsToThrow.end(), i) !=
+                         fSystsToThrow.end());
+      rand[i] = (throw_this ? fRNG.Gaus() : 0.);
+    }
+    TVectorD rand_times_chol = (*cov_lower)*rand;
+
+    for (size_t i = 0; i < fTotalSystParameters; ++i) {
+      double val = rand_times_chol[fCovarianceBinsSimple[i]] +
+                   init_vals[i];
+      bool below = (val < throw_limits[i]);
+      bool above = (val > throw_limits_up[i]);
+      if (below || above) {
+        all_pos = false;
+        std::cout << "Rethrowing " << i << " " << val << " " <<
+                     (below ? throw_limits[i] : throw_limits_up[i]) <<
+                     std::endl;
+        break;
+      }
+      new_centrals.push_back(val);
+    }
+
+    if (all_pos) {
+      size_t i_par = 0;
+      for (auto & it : fSystParameters) {
+        it.second.SetCentral(new_centrals[i_par]);
+        it.second.SetValue(new_centrals[i_par]);
+        ++i_par;
+      }
+      for (auto & sel_var_vec : fSelVarSystPars) {
+        for (auto & par : sel_var_vec) {
+          par.SetCentral(new_centrals[i_par]);
+          par.SetValue(new_centrals[i_par]);
+          ++i_par;
+        }
+      }
+    }
+    rethrow = !all_pos;
   }
 }
 

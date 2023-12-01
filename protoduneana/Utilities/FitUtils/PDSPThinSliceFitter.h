@@ -32,7 +32,8 @@ class PDSPThinSliceFitter {
  public:
   PDSPThinSliceFitter(std::string fcl_file, std::string output_file,
                       std::string mc_file = "", std::string data_file = "",
-                      std::string refit_file = "", std::string tune_file = "");
+                      std::string refit_file = "", std::string tune_file = "",
+                      bool retune = false);
   void FillMCEvents();
   void BuildMCSamples();
   void Tune(std::string tune_file);
@@ -59,6 +60,7 @@ class PDSPThinSliceFitter {
   void MakeMinimizer();
   void ParameterScans();
   void DoThrows(const TH1D & pars, const TMatrixD * cov);
+  void ThrowSystCentrals();
   void Do1DShifts(const TH1D & pars, bool prefit=false);
   void SetBestFit();
   void GetCurrentTruthHists(
@@ -188,6 +190,7 @@ class PDSPThinSliceFitter {
   std::string fMCFileName;
   std::string fDataFileName;
   std::string fRefitFile = "";
+  bool fRetune = false;
   std::string fTreeName;
   std::vector<fhicl::ParameterSet> fSelectionSets;
   std::map<int, int> fSelectionBins;
@@ -218,13 +221,14 @@ class PDSPThinSliceFitter {
        fRunHesse, fRunMinos1D, fRunMinosConts, fSetSigLimits, fSetSystLimits,
        fSetSelVarLimits, fRerunFit, fRequireGoodHesse,
        fRemoveSigThrowLimits, fRunMultiConts,
-       fSignalContoursOnly;
+       fSignalContoursOnly, fDoThrowSystCentrals, fNominalG4RWFakeData;
   size_t fFitAttempts;
   unsigned int fNContourPoints;
   bool fFixVariables;
   bool fSetValsPreFit;
   std::vector<double> fPreFitVals;
   std::map<std::string, double> fSystsToFix, fFixSystsPostFit;
+  std::vector<size_t> fSystsToThrow;
   std::map<std::string, int> fSystParameterIndices;
   std::string fFakeDataRoutine;
   bool fDoFluctuateStats, fFluctuateInSamples,

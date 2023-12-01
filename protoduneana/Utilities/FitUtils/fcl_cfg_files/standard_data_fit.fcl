@@ -45,6 +45,30 @@ AnalysisOptions: {
   BarlowBeeston: true
   #ToSkip: [6]
   NWorkers: 4
+
+  UseBeamShift: true
+  RandomFakeDataBeamShift: false
+  CovarianceRoutines: [
+    {
+      Name: "BeamShift" #From Sungbin's 11/18/2022 upstream energy loss summary
+      #P0: [-5.586e1, 35.]
+      #P1: [-1.553e-2, 0.]
+      #P2: [9.668e-5, 0.]
+
+      P0: [-8.066e1, 143.]
+      P1: [4.801e-2, 0.]
+      P2: [6.079e-5, 0.]
+
+      UseInput: true
+      InputName: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/Fitting_Ploss_data_RecoBeam_RangeFF_muon_BeamWindow_noweight_Beam_Study_1.0GeV_muon.root"
+
+      NominalP0: 539.131
+      NominalP1: -4.18188e-2
+      NominalP2: 5.14203e-4
+      OutputName: "No56FixedBeamShiftCovarianceNoAPA2.root"
+      NCovarianceGens: 1000
+    }
+  ]
 }
 
 Systematics: [
@@ -58,27 +82,32 @@ Systematics: [
 ]
 
 Systematics[1].Central: 1.71
-#Systematics[0].Options.F: .65078 #restricted P
-#Systematics[0].ThrowLimitUp: 1.536
-#Systematics[0].UpperLimit: 1.536
-
-
 Systematics[1].Options.Fractions: [
-[1, [-1., -1., -1., 0.4,  0.2028985507246377, 0.24324324324324323, 0.22010869565217392, 0.15562248995983935, 0.17752234993614305, 0.19827299900365325, 0.22109443954104147, 0.2775628626692457] ],
-[2, [0.0, 0.25, 0.20512820512820515, 0.24705882352941178, 0.291866028708134, 0.23363095238095238, 0.23853711790393015, 0.26844411979547117, 0.2839335180055402, 0.3261278195488722] ],
-[3, [0.28571428571428575, 0.14285714285714288, 0.21176470588235294, 0.17842323651452283, 0.18452380952380953, 0.1461495222034851, 0.14193936960449707, 0.15475564897530217, 0.1736037535946723, 0.1944606413994169] ],
-[4, [] ],
-[5, [0.5750000000000001] ],
-[6, [] ],
-[7, [0.0704647676161919] ]]
-
+  [1, [-1.0, 0.24719101123595508, 0.22820037105751392, 0.17168034032209054, 0.20778466305189774, 0.27755905511811024] ],
+  [2, [-1.0, 0.23255813953488372, 0.27526132404181186, 0.23842404549147034, 0.2752179327521794, 0.3222748815165877] ],
+  [3, [-1.0, 0.19469026548672566, 0.18655692729766807, 0.14479025710419485, 0.16308307736266878, 0.19363474122546107] ],
+  [4, [] ],
+  [5, [0.5750000000000001] ],
+  [6, [] ],
+  [7, [0.07407407407407407] ]
+]
 Systematics[1].UpperLimit: 1.7391304347826089
 Systematics[1].ThrowLimitUp: 1.7391304347826089
 Systematics[1].GenThrowLimitUp: 1.7391304347826089
 
-#Systematics[3].Options.Fractions: [0.24389853564855565, 0.5704915377763382, 0.6986620630125162, 0.7641277641277642, 0.873414146435148]
-
-
+#Beam Match
+Systematics[2].Options.Fractions: [
+  [1, [0.08970672800460035, 0.08520687700736822, 0.09361987911349899, 0.09774190029453475, 0.11536453801983644, 0.1446862996158771]],
+  [2, [0.08418230563002681, 0.0992063492063492, 0.09642222786094899, 0.10104923325262308, 0.11980696600923206, 0.1308411214953271]],
+  [3, [0.08840749414519906, 0.09606502863476815, 0.09770784770784771, 0.10680738203116366, 0.11308106753539657, 0.12402826855123675]],
+  [4, [0.07976705197211682]],
+  [5, [0.08531586267476758]],
+  [6, [0.08120868744098206]],
+  [7, [0.08947612424663885]]
+]
+Systematics[2].UpperLimit: 6.9115044247787605 
+Systematics[2].ThrowLimitUp: 6.9115044247787605
+Systematics[2].GenThrowLimitUp: 6.9115044247787605
 
 AddSystTerm: true
 
@@ -93,12 +122,13 @@ CovarianceBins: [
 ]
 
 CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv.root"
+#CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_scraper.root"
 CovarianceMatrix: "m"
 
 SelectionVarSysts: [
-  @local::beam_shift_vars
+  #@local::beam_shift_vars
 ]
-SetSelVarCentrals: true
+SetSelVarCentrals: false
 
 FixVariables: false 
 SystsToFix: [
@@ -109,32 +139,27 @@ AddDiffInQuadrature:  false
 DiffCovName: "diffs_2D"
 DiffGraphFile: "fluc_xsec_diff.root"
 
+standard_reco_bins: [[0., 400., 450.,
+                      500., 550., 600., 650.,
+                      700., 750., 800., 850.,
+                      900., 1200.]]
 Selections: [
   {
     Name: "Abs"
     ID: 1
-    RecoBins: [[0., 300., 325., 350., 375., 400., 425., 450., 475.,
-                    500., 525., 550., 575., 600., 625., 650., 675.,
-                    700., 725., 750., 775., 800., 825., 850., 875.,
-                    900., 1200.]]
+    RecoBins: @local::standard_reco_bins
     AxisTitles: ["Reconstructed KE (MeV)"]
   },
   {
     Name: "Cex"
     ID: 2
-    RecoBins: [[0., 400., 425., 450., 475.,
-                    500., 525., 550., 575., 600., 625., 650., 675.,
-                    700., 725., 750., 775., 800., 825., 850., 875.,
-                    900., 1200.]]
+    RecoBins: @local::standard_reco_bins
     AxisTitles: ["Reconstructed KE (MeV)"]
   } ,
   {
     Name: "RejectedInt"
     ID: 3
-    RecoBins: [[0., 400., 425., 450., 475.,
-                    500., 525., 550., 575., 600., 625., 650., 675.,
-                    700., 725., 750., 775., 800., 825., 850., 875.,
-                    900., 1200.]]
+    RecoBins: @local::standard_reco_bins
     AxisTitles: ["Reconstructed KE (MeV)"]
   },
   {
@@ -188,27 +213,21 @@ Samples: [
     Name: "Abs"
     ID: 1
     IsSignal: true
-    SignalBins: [400., 450., 500., 550.,
-                 600., 650., 700., 750.,
-                 800., 850., 900.] 
+    SignalBins: [500., 600., 700., 800., 900.]
     FluxType: 1
   },
   {
     Name: "Cex"
     ID: 2
     IsSignal: true
-    SignalBins: [500., 550.,
-                 600., 650., 700., 750.,
-                 800., 850., 900.] 
+    SignalBins: [500., 600., 700., 800., 900.]
     FluxType: 1
   },
   {
     Name: "OtherInel"
     ID: 3
     IsSignal: true 
-    SignalBins: [500., 550.,
-                 600., 650., 700., 750.,
-                 800., 850., 900.] 
+    SignalBins: [500., 600., 700., 800., 900.]
     FluxType: 1
   },
   {
@@ -248,7 +267,7 @@ MaxCalls: 1e9
 NScanSteps: 100
 Tolerance: 1.e-2 #0.001
 UpperLimit: 10.0
-LowerLimit: 1.e-5
+LowerLimit: -1 
 FitFlux: true
 ScaleToDataBeamProfile: true
 RerunFit: true
@@ -286,7 +305,8 @@ MaxEntries: -1
 MaxDataEntries: -1 #54000
 DoFakeData: false 
 FluctuateStats: false 
-DoThrows: true 
+DoThrows: false
+RequireGoodHesse: true
 NThrows: 10000
 DoScans: false
 OnlySystScans: false
