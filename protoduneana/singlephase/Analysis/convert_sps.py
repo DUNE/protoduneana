@@ -1,6 +1,8 @@
 import numpy as np, h5py as h5, ROOT as RT
 from argparse import ArgumentParser as ap
 
+##NEED TO UPDATE SO EACH EVENT IS FLAT IN THE OUTPUT -- ALSO OPEN AND REWRITE?
+
 class RootFile():
   def __init__(self, filename):
     self.filename = filename.replace(
