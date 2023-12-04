@@ -1,0 +1,11 @@
+zmax: 410.
+level: 'michelremoving'
+track_zmax: 400.
+track_len_max: 415.
+track_ediv_min: -999. 
+track_ediv_max: -999. 
+track_ediv2_min: -999. 
+track_ediv2_max: -999.
+do_true_efield: True 
+ny: 120
+nz: 82 
