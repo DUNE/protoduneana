@@ -17,11 +17,19 @@ def get_tree(f):
   return f.Get('savehits/space_points')
 
 def get_node_features(e):
-  return np.array([
-     e.x, e.y, e.z,
-     e.charge0, e.charge1, e.charge2,
-     e.rms0, e.rms1, e.rms2
-  ])
+  results = np.zeros(len(e.x)*9)
+  results[0:len(e.x)*9:9] = e.x
+  results[1:len(e.x)*9:9] = e.y
+  results[2:len(e.x)*9:9] = e.z
+
+  results[3:len(e.x)*9:9] = e.charge0
+  results[4:len(e.x)*9:9] = e.charge1
+  results[5:len(e.x)*9:9] = e.charge2
+
+  results[6:len(e.x)*9:9] = e.rms0
+  results[7:len(e.x)*9:9] = e.rms1
+  results[8:len(e.x)*9:9] = e.rms2
+  return results
 
 def get_unique_indices():
   return (np.array([0, 0, 0, 1, 1, 2]), np.array([0, 1, 2, 1, 2, 2]))
@@ -33,18 +41,21 @@ def get_formed_edges(e, knn=5):
   return edge_indices
 
 def make_edges(nf, i, j):
-  nfi = nf[:, i]
-  nfj = nf[:, j]
+  nf_reshaped = nf.reshape(-1, 9)
+  nfi = nf_reshaped[i, :]
+  nfj = nf_reshaped[j, :]
+  print(nfi, nfj)
 
   d = nfi - nfj
-  outer_indices = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
-  d_out = np.array([
-    d[oi]*d[oj] for oi, oj in outer_indices
-  ])
+  print(d.shape)
+  #outer_indices = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
+  #d_out = np.array([
+  #  d[oi]*d[oj] for oi, oj in outer_indices
+  #])
 
-  dc_out = np.array([
-    d[3+oi]*d[3+oj] for oi, oj in outer_indices
-  ])
+  #dc_out = np.array([
+  #  d[3+oi]*d[3+oj] for oi, oj in outer_indices
+  #])
   #d_out0 = d[0]*d[0]
   #d_out1 = d[0]*d[1]
   #d_out2 = d[0]*d[2]
@@ -59,16 +70,22 @@ def make_edges(nf, i, j):
   #dc_out4 = d[4]*d[5]
   #dc_out5 = d[5]*d[5]
 
-  ave_c = (nfi[3:6, :] + nfj[3:6, :]) / 2.
+  ave_c = (nfi[:, 3:6] + nfj[:, 3:6]) / 2.
+  print(ave_c.shape)
 
-  edge_features = np.zeros((21, len(i)))
-  edge_features[:3, :] = d[:3]
-  edge_features[3:9 :] = d_out
-  edge_features[9:12, :] = d[3:6]
-  edge_features[12:18, :] = dc_out
-  edge_features[18:21, :] = ave_c
+  nfeatures = ave_c.shape[1] + d.shape[1] + 2 # + 2 for edge indices
+  nedges = ave_c.shape[0]
 
-  return edge_features
+  edge_features = np.zeros((nedges, nfeatures))
+  edge_features[:,:d.shape[1]] = d
+  #edge_features[3:9 :] = d_out
+  #edge_features[9:12, :] = d[3:6]
+  #edge_features[12:18, :] = dc_out
+  edge_features[:, d.shape[1]:-2] = ave_c
+  edge_features[:, -2] = i
+  edge_features[:, -1] = j
+
+  return edge_features.flatten()
 
 def get_edges(nf, knn=5):
   edge_indices = [[], []]
@@ -125,11 +142,13 @@ def setup_normal_dataset(f, init_entries, dname, nfeatures):
   return dset
 
 def setup_dataset(f, init_entries, dname='node_features', nfeatures=9):
+  ##Setting up dataset. Each entry will coincide with an event.
+  ##Each entry will be nfeatures*nobs (i.e. nodes/edges)
   dt = h5.vlen_dtype(np.dtype('float32'))
   dset = f.create_dataset(dname,
-                          (init_entries, nfeatures, ),
+                          (init_entries,),
                           dtype=dt,
-                          maxshape=(None, nfeatures, ))
+                          maxshape=(None,))
   return dset
 
 def get_beam_fraction(e):
@@ -166,7 +185,7 @@ if __name__ == '__main__':
     files = [
       l.strip('\n') for l in f.readlines()
     ]
-  print(files)
+  #print(files)
 
   with h5.File(args.o, 'w') as h5_file:
     total_entries = 0
@@ -177,6 +196,7 @@ if __name__ == '__main__':
         i = total_entries
         total_entries += t.GetEntries()
         if iFile == 0:
+          #TODO -- remove nfeatures
           output_nodes = setup_dataset(h5_file, t.GetEntries())
           output_edges = setup_dataset(h5_file, t.GetEntries(),
                                        dname='edge_features', nfeatures=21)
@@ -192,27 +212,28 @@ if __name__ == '__main__':
 
         else:
           print('Resizing')
-          output_nodes.resize(total_entries, 0)
-          output_edges.resize(total_entries, 0)
-          output_edge_indices.resize(total_entries, 0)
-          output_truth.resize(total_entries, 0)
-          output_beam_fraction.resize(total_entries, 0)
+          output_nodes.resize(total_entries)
+          output_edges.resize(total_entries)
+          output_edge_indices.resize(total_entries)
+          output_truth.resize(total_entries)
+          output_beam_fraction.resize(total_entries)
           print('Done')
         for e in t:
           print(i)
           nf = get_node_features(e)
           ei, ej = get_formed_edges(e)
           ef = make_edges(nf, ei, ej)
-          #ei, ef = get_edges(nf)
 
-          edge_indices = np.zeros((2, len(ei)))
-          edge_indices[0, :] = ei
-          edge_indices[1, :] = ej
+          #edge_indices = np.zeros((2, len(ei)))
+          #edge_indices[0, :] = ei
+          #edge_indices[1, :] = ej
 
+          #print('nf shape', nf.shape)
           output_nodes[i] = nf
           output_edges[i] = ef#np.array(ef).T
-          output_edge_indices[i] = edge_indices#np.array(ei)
-          output_truth[i] = get_truth(e)
-          output_beam_fraction[i] = get_beam_fraction(e)
+          #output_edge_indices[i] = edge_indices#np.array(ei)
+          #output_truth[i] = get_truth(e)
+          #output_beam_fraction[i] = get_beam_fraction(e)
 
           i += 1
+          break
