@@ -3,6 +3,7 @@ from math import sqrt
 from argparse import ArgumentParser as ap
 from array import array
 RT.gROOT.SetBatch()
+RT.gStyle.SetOptStat(0)
 
 parser = ap()
 
@@ -126,9 +127,15 @@ plus_cov.Write()
 minus_cov.SetTitle(';Cross Section Bin;Cross Section Bin')
 minus_cov.Write()
 ave_cov.SetTitle(';Cross Section Bin;Cross Section Bin')
-ave_var.SetTitle(';Cross Section Bin')
+ave_var.SetTitle(';Cross Section Bin;Uncertainty [mb]')
+ave_var.SetTitleSize(.05, 'XY')
+ave_var.SetTitleOffset(.8, 'XY')
 ave_cov.Write()
 ave_var.Write()
+c_var = RT.TCanvas()
+c_var.SetTicks()
+ave_var.Draw()
+c_var.Write('c_var')
 
 ave_corr = ave_cov.Clone('ave_corr')
 for i in range(0, len(nom_vals)):
@@ -138,7 +145,12 @@ for i in range(0, len(nom_vals)):
     ave_corr.SetBinContent(i+1, j+1,
                            ave_cov.GetBinContent(i+1, j+1)/sqrt(val_i*val_j))
 
+ave_corr.SetTitleSize(.05, 'XY')
+ave_corr.SetTitleOffset(.8, 'XY')
 ave_corr.Write()
-
+c_corr = RT.TCanvas()
+c_corr.SetTicks()
+ave_corr.Draw('colz')
+c_corr.Write('c_corr')
 
 fOut.Close()

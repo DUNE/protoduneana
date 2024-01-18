@@ -53,6 +53,7 @@ physics: {
 
 outputs: {}
 
-physics.filters.fTruth.PDG: [211, -13]
+#physics.filters.fTruth.PDG: [211, -13, -11, 2212]
+physics.filters.fTruth.PDG: [211, -13] #, -11, 2212]
 physics.analyzers.savehits.SelectEvents: ["fpath"]
 services.ParticleInventoryService.ParticleInventory.EveIdCalculator: "EmEveIdCalculator"

@@ -48,40 +48,18 @@ def make_edges(nf, i, j):
 
   d = nfi - nfj
   print(d.shape)
-  #outer_indices = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
-  #d_out = np.array([
-  #  d[oi]*d[oj] for oi, oj in outer_indices
-  #])
 
-  #dc_out = np.array([
-  #  d[3+oi]*d[3+oj] for oi, oj in outer_indices
-  #])
-  #d_out0 = d[0]*d[0]
-  #d_out1 = d[0]*d[1]
-  #d_out2 = d[0]*d[2]
-  #d_out3 = d[1]*d[1]
-  #d_out4 = d[1]*d[2]
-  #d_out5 = d[2]*d[2]
+  ave = (nfi + nfj)/2.
 
-  #dc_out0 = d[3]*d[3]
-  #dc_out1 = d[3]*d[4]
-  #dc_out2 = d[3]*d[5]
-  #dc_out3 = d[4]*d[4]
-  #dc_out4 = d[4]*d[5]
-  #dc_out5 = d[5]*d[5]
+  #ave_c = (nfi[:, 3:6] + nfj[:, 3:6]) / 2.
+  #print(ave_c.shape)
 
-  ave_c = (nfi[:, 3:6] + nfj[:, 3:6]) / 2.
-  print(ave_c.shape)
-
-  nfeatures = ave_c.shape[1] + d.shape[1] + 2 # + 2 for edge indices
-  nedges = ave_c.shape[0]
+  nfeatures = 14 # + 2 for edge indices
+  nedges = ave.shape[0]
 
   edge_features = np.zeros((nedges, nfeatures))
-  edge_features[:,:d.shape[1]] = d
-  #edge_features[3:9 :] = d_out
-  #edge_features[9:12, :] = d[3:6]
-  #edge_features[12:18, :] = dc_out
-  edge_features[:, d.shape[1]:-2] = ave_c
+  edge_features[:, :6] = d[:, :6] #diff in position (3), charge (3)
+  edge_features[:, 6:12] = ave[:, :6] #ave in position (3), charge (3)
   edge_features[:, -2] = i
   edge_features[:, -1] = j
 
@@ -155,22 +133,37 @@ def get_beam_fraction(e):
   return e.reco_beam_fraction
 def get_truth(e): 
   results = np.zeros(6)
-  if e.true_pdg == -13:
+  if e.true_pdg == -13: ##Is muon
     results[3] = 1.
   elif e.true_pdg == 211:
-    if e.true_end_z < -.49375:
+    if e.true_end_z < -.49375: ##Upstream int
       results[5] = 1.
     elif e.true_end_process == 'pi+Inelastic':
-      if e.true_n_piplus == 0 and e.true_n_piminus == 0 and e.true_n_pi0 == 0:
+      if e.true_n_piplus == 0 and e.true_n_piminus == 0 and e.true_n_pi0 == 0: ##Abs
         results[0] = 1.
-      elif e.true_n_piplus == 0 and e.true_n_piminus == 0 and e.true_n_pi0 == 1: 
+      elif e.true_n_piplus == 0 and e.true_n_piminus == 0 and e.true_n_pi0 == 1: ##Ch. Ex
         results[1] = 1.
-      else:
+      else: ##Other int
         results[2] = 1.
-    else: 
+    else: ##Other/decay?
       results[4] = 1.
   else:
     print('WARNING') 
+
+  return results
+
+def get_truth_pdg(e): 
+  results = np.zeros(4)
+  if e.true_pdg == -11:
+    results[0] = 1.
+  elif e.true_pdg == 211:
+    results[1] = 1.
+  elif e.true_pdg == 2212:
+    results[2] = 1.
+  elif e.true_pdg == -13: ##Is muon
+    results[3] = 1.
+  else:
+    print(f'WARNING: pdg is {e.true_pdg}')
 
   return results
 
@@ -178,18 +171,24 @@ if __name__ == '__main__':
   parser = ap()
   parser.add_argument('-i', required=True, type=str)
   parser.add_argument('-o', default='convert.hdf5', type=str)
-  parser.add_argument('--max', type=int, default=None)
+  parser.add_argument('-n', type=int, default=1, help='Number of files')
+  parser.add_argument('--nskip', type=int, default=0, help='Beginning file')
+  parser.add_argument('--max', type=int, default=-1)
+  parser.add_argument('--input_root', action='store_true')
   args = parser.parse_args()
 
-  with open(args.i, 'r') as f:
-    files = [
-      l.strip('\n') for l in f.readlines()
-    ]
-  #print(files)
-
+  if args.input_root:
+    filelist = [args.i]
+  else:
+    with open(args.i, 'r') as f:
+      files = [
+        l.strip('\n') for l in f.readlines()
+      ]
+    filelist = files[args.nskip:args.nskip+args.n]
   with h5.File(args.o, 'w') as h5_file:
     total_entries = 0
-    for iFile, filename in enumerate(files[:args.max]):
+    #for iFile, filename in enumerate(files[:args.max]):
+    for iFile, filename in enumerate(filelist):
       with RootFile(filename) as f:
         print(f)
         t = get_tree(f)
@@ -199,27 +198,33 @@ if __name__ == '__main__':
           #TODO -- remove nfeatures
           output_nodes = setup_dataset(h5_file, t.GetEntries())
           output_edges = setup_dataset(h5_file, t.GetEntries(),
-                                       dname='edge_features', nfeatures=21)
+                                       dname='edge_features', nfeatures=14)
           output_edge_indices = setup_dataset(
               h5_file, t.GetEntries(),
               dname='edge_indices', nfeatures=2)
           output_truth = setup_normal_dataset(
               h5_file, t.GetEntries(),
               dname='truth', nfeatures=6)
+          output_truth_pdg = setup_normal_dataset(
+              h5_file, t.GetEntries(),
+              dname='truth_pdg', nfeatures=4)
           output_beam_fraction = setup_normal_dataset(
               h5_file, t.GetEntries(),
               dname='beam_fraction', nfeatures=1)
 
         else:
           print('Resizing')
-          output_nodes.resize(total_entries)
-          output_edges.resize(total_entries)
-          output_edge_indices.resize(total_entries)
-          output_truth.resize(total_entries)
-          output_beam_fraction.resize(total_entries)
+          output_nodes.resize(total_entries, axis=0)
+          output_edges.resize(total_entries, axis=0)
+          output_edge_indices.resize(total_entries, axis=0)
+          output_truth.resize(total_entries, axis=0)
+          output_truth_pdg.resize(total_entries, axis=0)
+          output_beam_fraction.resize(total_entries, axis=0)
           print('Done')
+        a = 0
         for e in t:
           print(i)
+          if a >= args.max and args.max > 0: break
           nf = get_node_features(e)
           ei, ej = get_formed_edges(e)
           ef = make_edges(nf, ei, ej)
@@ -232,8 +237,9 @@ if __name__ == '__main__':
           output_nodes[i] = nf
           output_edges[i] = ef#np.array(ef).T
           #output_edge_indices[i] = edge_indices#np.array(ei)
-          #output_truth[i] = get_truth(e)
-          #output_beam_fraction[i] = get_beam_fraction(e)
+          output_truth[i] = get_truth(e)
+          output_truth_pdg[i] = get_truth_pdg(e)
+          output_beam_fraction[i] = get_beam_fraction(e)
 
           i += 1
-          break
+          a += 1
