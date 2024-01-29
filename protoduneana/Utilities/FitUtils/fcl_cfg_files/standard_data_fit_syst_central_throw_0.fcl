@@ -1,0 +1,4 @@
+#include "standard_data_fit.fcl"
+
+DoThrowSystCentrals: true
+SystsToThrow: [0]

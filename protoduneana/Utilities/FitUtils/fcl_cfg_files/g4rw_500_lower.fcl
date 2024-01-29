@@ -1,0 +1,65 @@
+#include "g4rw_fluc_500_lower.fcl"
+MaxEntries: 30000 #152936
+FluctuateStats: false 
+FluctuateInSamples: false 
+FitType: "None"
+SetSelVarCentrals: false 
+
+SelectionVarSysts: [
+]
+RequireGoodHesse: true 
+
+AnalysisOptions.SetValsFakeData: [
+  #[0, 1.5]
+]
+FitFlux: true 
+AnalysisOptions.FakeDataRoutine: "Asimov"
+AnalysisOptions.UseBeamShift: false
+AnalysisOptions.RandomFakeDataBeamShift: false
+
+VaryMCStatsForFakeData: false 
+UseMCStatVarWeight: false
+UseMCStatVarWeightFakeData: false
+
+DoThrows: false 
+NThrows: 500
+
+#AnalysisOptions.FakeDataG4RWGrid.Var:
+#  [1., 1., 1., 1., 1., 1.,
+#   1., 1., 1., 1., 1., 1.,
+#   1., 1., 1., 1., 1., 1.]
+#G4RWParameters: [
+#  @sequence::G4RWFitAbsCexPars
+#]
+#G4RWParameters[0].Central: 0.69
+#G4RWParameters[1].Central: 0.69
+#G4RWParameters[2].Central: 0.69
+#G4RWParameters[3].Central: 0.69
+#G4RWParameters[4].Central: 0.69
+#G4RWParameters[5].Central: 0.69
+#
+#G4RWParameters[6].Central: 1.44
+#G4RWParameters[7].Central: 1.44
+#G4RWParameters[8].Central: 1.44
+#G4RWParameters[9].Central: 1.44
+#G4RWParameters[10].Central: 1.44
+#G4RWParameters[11].Central: 1.44
+#
+#G4RWParameters[12].Central: 1.00
+#G4RWParameters[13].Central: 1.00
+#G4RWParameters[14].Central: 1.00
+#G4RWParameters[15].Central: 1.00
+#G4RWParameters[16].Central: 1.00
+#G4RWParameters[17].Central: 1.00
+#TuneG4RWPars: true
+
+#AnalysisOptions.FakeDataG4RWGrid: {
+#    Position: [0, 1,  2,  3,  4]
+#    #Position: [1]
+#    #Var:      [1.5]
+#    Shift:    [6, 6, 13, 13, 13]
+#    Var:      [0.69, 0.69, 1.44, 1.44, 1.44]
+#    Branch: "g4rw_full_grid_abscex_coeffs"
+#    UseCoeffs: true
+#    SingleBranch: false
+#}

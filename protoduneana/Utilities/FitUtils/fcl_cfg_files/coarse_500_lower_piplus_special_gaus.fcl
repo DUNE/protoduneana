@@ -1,0 +1,26 @@
+#include "coarse_500_lower_coarse_reco_asimov.fcl"
+
+MaxEntries: -1 
+MaxDataEntries: @local::MaxEntries
+
+SplitMC: false 
+FluctuateStats: false
+FluctuateInSamples: false 
+#VaryMCStatsForFakeData: true
+
+AnalysisOptions.FakeDataRoutine: "AngleVar"
+AnalysisOptions.FakeDataAngleVar: {
+  RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/piplus_special_gaus.root"
+  Limits: [ 
+    [1, [0., 400., 600., 800., 1000.]],
+    [2, [0., 400., 600., 800., 1000.]],
+    [3, [0., 400., 600., 800., 1000.]]
+  ]
+
+  RatioNames: [
+    [1, ["r1", "r2", "r3", "r4", "r5"]],
+    [2, ["r1", "r2", "r3", "r4", "r5"]],
+    [3, ["r1", "r2", "r3", "r4", "r5"]]
+  ]
+  PDG: 211 
+}

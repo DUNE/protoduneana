@@ -1,0 +1,9 @@
+#include "coarse_500_lower_coarse_reco_asimov.fcl"
+G4RWParameters: [
+  @sequence::G4RWFitAbsCexPars
+]
+TuneG4RWPars: true
+NominalG4RWFakeData: true
+MaxEntries: 152936
+MaxDataEntries: 152936 
+FitType: "Normal"

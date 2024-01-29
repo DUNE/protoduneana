@@ -1,0 +1,35 @@
+#include "standard_data_fit.fcl"
+MaxEntries: -1
+DoThrows: false
+MaxDataEntries: -1
+FluctuateStats: false
+VaryMCStatsForFakeData: false
+
+LowerLimit: 1.e-10
+FitType: "Normal"
+G4RWParameters: [
+  @sequence::G4RWFitAbsCexPars
+]
+G4RWParameters[0].Central: 0.85
+G4RWParameters[1].Central: 0.85
+G4RWParameters[2].Central: 0.85
+G4RWParameters[3].Central: 0.85
+G4RWParameters[4].Central: 0.85
+G4RWParameters[5].Central: 0.85
+
+G4RWParameters[6].Central: 1.22
+G4RWParameters[7].Central: 1.22
+G4RWParameters[8].Central: 1.22
+G4RWParameters[9].Central: 1.22
+G4RWParameters[10].Central: 1.22
+G4RWParameters[11].Central: 1.22
+
+G4RWParameters[12].Central: 1.00
+G4RWParameters[13].Central: 1.00
+G4RWParameters[14].Central: 1.00
+G4RWParameters[15].Central: 1.00
+G4RWParameters[16].Central: 1.00
+G4RWParameters[17].Central: 1.00
+
+
+TuneG4RWPars: true

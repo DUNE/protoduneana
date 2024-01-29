@@ -1,0 +1,87 @@
+#include "asimov.fcl"
+
+MaxEntries: 20000 #152936
+MaxDataEntries: 20000 #152936
+DoThrows: false
+SplitMC: false 
+Shuffle: false 
+FluctuateStats: false
+FluctuateInSamples: false 
+FitType: "None"
+DoThrowSystCentrals: false 
+#SystsToThrow: [0]
+#VaryMCStatsForFakeData: true
+G4RWParameters: [
+  #@sequence::G4RWFitAbsCexPars
+]
+#G4RWParameters[0].Central: 0.85
+#G4RWParameters[1].Central: 0.85
+#G4RWParameters[2].Central: 0.85
+#G4RWParameters[3].Central: 0.85
+#G4RWParameters[4].Central: 0.85
+#G4RWParameters[5].Central: 0.85
+#
+#G4RWParameters[6].Central: 1.22
+#G4RWParameters[7].Central: 1.22
+#G4RWParameters[8].Central: 1.22
+#G4RWParameters[9].Central: 1.22
+#G4RWParameters[10].Central: 1.22
+#G4RWParameters[11].Central: 1.22
+#
+#G4RWParameters[12].Central: 1.00
+#G4RWParameters[13].Central: 1.00
+#G4RWParameters[14].Central: 1.00
+#G4RWParameters[15].Central: 1.00
+#G4RWParameters[16].Central: 1.00
+#G4RWParameters[17].Central: 1.00
+#TuneG4RWPars: true
+#NominalG4RWFakeData: true
+
+
+RequireGoodHesse: false
+AnalysisOptions.FakeDataRoutine: "Asimov"
+AnalysisOptions.BarlowBeeston: false 
+SetSelVarCentrals: false
+SelectionVarSysts: [
+ 
+]
+
+standard_reco_bins: [[0., 400., 450.,
+                      500., 550., 600., 650.,
+                      700., 750., 800., 850.,
+                      900., 1200.]]
+Selections[0].RecoBins: @local::standard_reco_bins
+Selections[1].RecoBins: @local::standard_reco_bins
+Selections[2].RecoBins: @local::standard_reco_bins
+
+signal_bins: [500., 600., 700., 800., 900.]
+Samples[0].SignalBins: @local::signal_bins
+Samples[1].SignalBins: @local::signal_bins
+Samples[2].SignalBins: @local::signal_bins
+
+Systematics[1].Options.Fractions: [
+  [1, [-1.0, 0.24719101123595508, 0.22820037105751392, 0.17168034032209054, 0.20778466305189774, 0.27755905511811024] ],
+  [2, [-1.0, 0.23255813953488372, 0.27526132404181186, 0.23842404549147034, 0.2752179327521794, 0.3222748815165877] ],
+  [3, [-1.0, 0.19469026548672566, 0.18655692729766807, 0.14479025710419485, 0.16308307736266878, 0.19363474122546107] ],
+  [4, [] ],
+  [5, [0.5750000000000001] ],
+  [6, [] ],
+  [7, [0.07407407407407407] ]
+]
+Systematics[1].UpperLimit: 1.7391304347826089
+Systematics[1].ThrowLimitUp: 1.7391304347826089
+Systematics[1].GenThrowLimitUp: 1.7391304347826089
+
+#Beam Match
+Systematics[2].Options.Fractions: [
+  [1, [0.08970672800460035, 0.08520687700736822, 0.09361987911349899, 0.09774190029453475, 0.11536453801983644, 0.1446862996158771]],
+  [2, [0.08418230563002681, 0.0992063492063492, 0.09642222786094899, 0.10104923325262308, 0.11980696600923206, 0.1308411214953271]],
+  [3, [0.08840749414519906, 0.09606502863476815, 0.09770784770784771, 0.10680738203116366, 0.11308106753539657, 0.12402826855123675]],
+  [4, [0.07976705197211682]],
+  [5, [0.08531586267476758]],
+  [6, [0.08120868744098206]],
+  [7, [0.08947612424663885]]
+]
+Systematics[2].UpperLimit: 6.9115044247787605 
+Systematics[2].ThrowLimitUp: 6.9115044247787605
+Systematics[2].GenThrowLimitUp: 6.9115044247787605
