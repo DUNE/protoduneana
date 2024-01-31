@@ -1,10 +1,13 @@
+#include "EvSelBranches.fcl"
+
 TreeName: "pduneana/beamana"
 MCFile: "mc_try.root"
 DataFile: "data_try.root"
-UseMT: false
+UseMT: true #false
 
 DoReconstructable: false 
 
+ColumnList: @local::columnlist
 
 CheckCalo: true 
 EndZHigh: 222.10561
@@ -43,41 +46,59 @@ UseWeightedTrackScore: true
 #DataBeamInstPScale: 1.007
 #DataBeamInstPScale: 0.993
 
-####Using BI
-MCXLow: -3.
-MCXHigh: 7.
-MCYLow: -8.
-MCYHigh: 7.
-MCZLow: 27.5
-MCZHigh: 32.5
-MCCosLow: .93
-DataXLow: 0.
-DataXHigh: 10.
-DataYLow: -5.
-DataYHigh: 10.
-DataZLow: 30.
-DataZHigh: 35.
-DataCosLow: .93
+####Using FV
+UseFVBeamCut: true
+MCMeanX:-2.18868327
+MCSigmaX: 1.15702154
+MCMeanY: 0.97183832
+MCSigmaY: 1.17307941
+MCMeanR: 2.71273912
+MCSigmaR: 1.08169567
+DataMeanX: 3.0995176
+DataSigmaX: 1.36652396
+DataMeanY: 1.37823363
+DataSigmaY: 1.60954298
+DataMeanR: 3.72614747
+DataSigmaR: 1.38783237
+MCCosLow: .95
+DataCosLow: .95
 
-###Using TPC Info
+
+####Using BI
+#MCXLow: -3.
+#MCXHigh: 7.
+#MCYLow: -8.
+#MCYHigh: 7.
+#MCZLow: 27.5
+#MCZHigh: 32.5
+#MCCosLow: .93
+#DataXLow: 0.
+#DataXHigh: 10.
+#DataYLow: -5.
+#DataYHigh: 10.
+#DataZLow: 30.
+#DataZHigh: 35.
+#DataCosLow: .93
+#
+####Using TPC Info
 DoAngle: true 
 XYZCut: 3.
 CosCut: 0.95
-MCMeanX: -30.81
-MCMeanY: 422.41
+#MCMeanX: -30.81
+#MCMeanY: 422.41
 MCMeanZ: 0.11
-MCSigmaX: 5.02
-MCSigmaY: 4.51
+#MCSigmaX: 5.02
+#MCSigmaY: 4.51
 MCSigmaZ: 0.22
 MCMeanThetaX: 101.58
 MCMeanThetaY: 101.19
 MCMeanThetaZ: 16.59
-
-DataMeanX: -27.91
-DataMeanY: 424.36
+#
+#DataMeanX: -27.91
+#DataMeanY: 424.36
 DataMeanZ: 3.78
-DataSigmaX: 4.71
-DataSigmaY: 5.16
+#DataSigmaX: 4.71
+#DataSigmaY: 5.16
 DataSigmaZ: 1.10
 #DataMeanThetaX: 100.45
 #DataMeanThetaY: 103.52

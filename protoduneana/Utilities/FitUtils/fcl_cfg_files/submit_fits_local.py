@@ -89,7 +89,8 @@ if args.data_input != '':
 
 ##Special commands for overriding some setup stuff
 if not args.pduneana_tar == '':
-  extra = 'dropbox://' if args.dropbox else ''
+  #extra = 'dropbox://' if args.dropbox else ''
+  extra = 'dropbox://' if 'dropbox' not in args.pduneana_tar else ''
   cmd += ['-Ojob_setup.setup_local=True',
           f'-Osubmit.tar_file_name={extra}{args.pduneana_tar}',
           #'-Ojob_setup.setup=delete',

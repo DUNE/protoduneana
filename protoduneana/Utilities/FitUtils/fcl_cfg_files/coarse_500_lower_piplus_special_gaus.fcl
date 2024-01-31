@@ -8,6 +8,9 @@ FluctuateStats: false
 FluctuateInSamples: false 
 #VaryMCStatsForFakeData: true
 
+AddSignalConstraint: false
+
+FitType: "Normal"
 AnalysisOptions.FakeDataRoutine: "AngleVar"
 AnalysisOptions.FakeDataAngleVar: {
   RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/piplus_special_gaus.root"

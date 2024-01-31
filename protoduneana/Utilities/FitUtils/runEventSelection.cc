@@ -27,6 +27,8 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
       "reco_daughter_PFP_trackScore_collection_weight_by_charge" :
       "reco_daughter_PFP_trackScore_collection");
                                     
+  bool use_FV_beamcut = pset.get<bool>("UseFVBeamCut", false);
+  if (use_FV_beamcut) std::cout << "Using FV_beamcut" << std::endl;
   auto mc = frame.Define("testing1", testing(1)/*testing1*/)
            .Define("testing2", testing(2)/*testing2*/)
            .Define("beam_P_range",
@@ -41,7 +43,8 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
            .Define("primary_isBeamType", isBeamType(pset.get<bool>("CheckCalo")),
                    {"reco_beam_type", "reco_beam_incidentEnergies"})
            .Define("primary_ends_inAPA3",
-                   endAPA3(pset.get<double>("EndZHigh")), {"reco_beam_endZ"})
+                   endAPA3(pset.get<double>("EndZHigh")),
+                   {(use_FV_beamcut ? "reco_beam_calo_endZ" : "reco_beam_endZ")})
            .Define("shower_dists",
                    shower_dists(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
@@ -124,7 +127,27 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
                    modified_interacting_energy(20.),
                    {"beam_inst_P", "reco_beam_calibrated_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("daughter_PDGs_types", daughter_PDG_types,
-                   {"reco_daughter_PFP_true_byHits_PDG"});
+                   {"reco_daughter_PFP_true_byHits_PDG"})
+           .Define("FV_vals",
+                   FV_values(pset.get<double>("EndZCutFV", 30.)),
+                   {"reco_beam_calo_X", "reco_beam_calo_Y",
+                    "reco_beam_calo_Z", "reco_beam_calo_endZ",
+                    "beam_inst_X", "beam_inst_Y",
+                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"})
+           .Define("passBeamCutFV",
+                   beam_cut_FV(
+                       pset.get<double>("EndZCutFV", 30.),
+                       pset.get<double>("MCCosLow", .95),
+                       pset.get<double>("MCMeanX"),
+                       pset.get<double>("MCMeanY"),
+                       pset.get<double>("MCMeanR"),
+                       pset.get<double>("MCSigmaX"),
+                       pset.get<double>("MCSigmaY"),
+                       pset.get<double>("MCSigmaR")),
+                   {/*"reco_beam_calo_X", "reco_beam_calo_Y",
+                    "reco_beam_calo_Z",*/"FV_vals", "reco_beam_calo_endZ"/*,
+                    "beam_inst_X", "beam_inst_Y", "beam_inst_Z",
+                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"*/});
 
   if(pset.get<bool>("UseBI")) {
     mc = mc.Define(
@@ -165,7 +188,8 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
                  {"reco_beam_vertex_michel_score", "reco_beam_vertex_nHits"});
   mc = mc.Define("selection_ID", selection_ID(pset.get<bool>("DoMichel")),
                  {"primary_isBeamType", "primary_ends_inAPA3",
-                  "has_noPion_daughter", "passBeamCut",
+                  "has_noPion_daughter",
+                  (use_FV_beamcut ? "passBeamCutFV" : "passBeamCut"),
                   "has_shower_dist_energy", "vertex_cut"}) 
          .Define("selection_ID_inclusive",
                  selection_ID_inclusive(pset.get<bool>("DoMichel")),
@@ -196,6 +220,8 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
       "reco_daughter_PFP_trackScore_collection_weight_by_charge" :
       "reco_daughter_PFP_trackScore_collection");
 
+  bool use_FV_beamcut = pset.get<bool>("UseFVBeamCut", false);
+  if (use_FV_beamcut) std::cout << "Using FV_beamcut" << std::endl;
   auto data = frame.Define("testing1", testing(1)/*testing1*/)
            .Define("testing2", testing(2)/*testing2*/)
            .Define("beamPID", data_beam_PID, {"beam_inst_PDG_candidates", "MC", "true_beam_PDG"})
@@ -214,7 +240,8 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
            .Define("primary_isBeamType", isBeamType(pset.get<bool>("CheckCalo")),
                    {"reco_beam_type", "reco_beam_incidentEnergies"})
            .Define("primary_ends_inAPA3",
-                   endAPA3(pset.get<double>("EndZHigh")), {"reco_beam_endZ"})
+                   endAPA3(pset.get<double>("EndZHigh")),
+                   {(use_FV_beamcut ? "reco_beam_calo_endZ" : "reco_beam_endZ")})
            .Define("shower_dists",
                    shower_dists(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
@@ -258,6 +285,26 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
                    exclude_runs(
                        pset.get<std::vector<int>>("ExcludeRuns")),
                    {"run"})
+           .Define("FV_vals",
+                   FV_values(pset.get<double>("EndZCutFV", 30.)),
+                   {"reco_beam_calo_X", "reco_beam_calo_Y",
+                    "reco_beam_calo_Z", "reco_beam_calo_endZ",
+                    "beam_inst_X", "beam_inst_Y",
+                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"})
+           .Define("passBeamCutFV",
+                   beam_cut_FV(
+                       pset.get<double>("EndZCutFV", 30.),
+                       pset.get<double>("DataCosLow", .95),
+                       pset.get<double>("DataMeanX"),
+                       pset.get<double>("DataMeanY"),
+                       pset.get<double>("DataMeanR"),
+                       pset.get<double>("DataSigmaX"),
+                       pset.get<double>("DataSigmaY"),
+                       pset.get<double>("DataSigmaR")),
+                   {/*"reco_beam_calo_X", "reco_beam_calo_Y",
+                    "reco_beam_calo_Z",*/ "FV_vals", "reco_beam_calo_endZ"/*,
+                    "beam_inst_X", "beam_inst_Y", "beam_inst_Z",
+                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"*/});
            /*.Define("beam_inst_P_scaled", beam_inst_P_scaled())*/;
 
   if(pset.get<bool>("UseBI")) {
@@ -294,13 +341,16 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
          "reco_beam_calo_startZ", "reco_beam_calo_endX",
          "reco_beam_calo_endY", "reco_beam_calo_endZ"});
   }
+
+
   data = data.Define("vertex_cut",
                      vertex_michel_cut(pset.get<double>("MichelCut")),
                      {"reco_beam_vertex_michel_score",
                       "reco_beam_vertex_nHits"})/*;
   data = data*/.Define("selection_ID", selection_ID(pset.get<bool>("DoMichel")),
                  {"primary_isBeamType", "primary_ends_inAPA3",
-                  "has_noPion_daughter", "passBeamCut",
+                  "has_noPion_daughter",
+                  (use_FV_beamcut ? "passBeamCutFV" : "passBeamCut"),
                   "has_shower_dist_energy", "vertex_cut"})
                 .Define("selection_ID_inclusive",
                         selection_ID_inclusive(pset.get<bool>("DoMichel")),
@@ -358,6 +408,8 @@ int main(int argc, char ** argv){
   if (pset.get<bool>("UseMT"))
     ROOT::EnableImplicitMT(4);
 
+  const auto & column_list
+      = pset.get<std::vector<std::string>>("ColumnList");
   if (found_mc) {
     ROOT::RDataFrame frame(tree_name, mc_file);
     std::cout << "Calling DefineMC" << std::endl;
@@ -374,7 +426,7 @@ int main(int argc, char ** argv){
     }
 
     auto time0 = std::chrono::high_resolution_clock::now();
-    mc.Snapshot(tree_name, "eventSelection_mc_all.root");
+    mc.Snapshot(tree_name, "eventSelection_mc_all.root", column_list);
     //mc.Snapshot(tree_name, "eventSelection_mc_reconstructable.root");
     auto time1 = std::chrono::high_resolution_clock::now();
     std::cout << "Time: " <<
@@ -392,7 +444,6 @@ int main(int argc, char ** argv){
     if (pset.get<bool>("SaveAllData", false))
       data.Snapshot(tree_name, "eventSelection_data_all.root");
     data = data.Filter("passBeamQuality && good_run");
-    //asdf
     if (pset.get<bool>("DoReconstructable"))
       data = data.Filter("reco_reconstructable_beam_event");
     if (pset.get<bool>("RestrictBeamP")) {
@@ -407,7 +458,7 @@ int main(int argc, char ** argv){
     }*/
 
     auto time0 = std::chrono::high_resolution_clock::now();
-    data.Snapshot(tree_name, "eventSelection_data_BeamQuality.root");
+    data.Snapshot(tree_name, "eventSelection_data_BeamQuality.root", column_list);
     auto time1 = std::chrono::high_resolution_clock::now();
     std::cout << "Time: " <<
                  std::chrono::duration_cast<std::chrono::seconds>(time1 - time0).count() <<

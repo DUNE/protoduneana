@@ -44,7 +44,7 @@ AnalysisOptions: {
   DataCalibrationFactor: 1.02
   BarlowBeeston: true
   #ToSkip: [6]
-  NWorkers: 4
+  NWorkers: 16
 
   UseBeamShift: true
   RandomFakeDataBeamShift: false

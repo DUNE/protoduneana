@@ -4,6 +4,9 @@ MaxEntries: -1
 FluctuateStats: false
 FluctuateInSamples: false 
 SplitMC: false 
+FitType: "Normal"
+
+AddSignalConstraint: false
 
 AnalysisOptions.FakeDataRoutine: "AngleVar"
 AnalysisOptions.FakeDataAngleVar: {

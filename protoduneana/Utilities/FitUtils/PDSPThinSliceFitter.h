@@ -74,7 +74,7 @@ class PDSPThinSliceFitter {
     std::map<int, std::vector<TH1*>> & truth_xsec_hists);
   void BuildFakeDataXSecs(bool use_scales = true);
   void BuildDataFromToy();
-  double CalcChi2SystTerm(), CalcRegTerm();
+  double CalcChi2SystTerm(), CalcRegTerm(), CalcSignalConstraint();
   void CalculateCrossSection(TH1D * xsec_hist);
   void CalcFullCrossSection(TH1D * xsec_hist);
   void CalcApproxCrossSection(TH1D * xsec_hist);
@@ -162,8 +162,8 @@ class PDSPThinSliceFitter {
   size_t fTotalSystParameters = 0, fTotalG4RWParameters = 0;
   std::map<std::string, size_t> fCovarianceBins;
   std::vector<size_t> fCovarianceBinsSimple;
-  bool fAddSystTerm, fAddRegTerm, fAddDiffInQuadrature;
-  double fRegFactor = 0.;
+  bool fAddSystTerm, fAddRegTerm, fAddDiffInQuadrature, fAddSignalConstraint;
+  double fRegFactor = 0., fSignalConstraintSize;
   TMatrixD * fCovMatrix, * fCovMatrixDisplay;
   TDecompChol * fInputChol;
   //std::map<int, std::string> fDiffGraphs;

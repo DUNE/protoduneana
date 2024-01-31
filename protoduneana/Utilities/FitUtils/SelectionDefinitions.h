@@ -1,4 +1,5 @@
 #include "TRandom3.h"
+#include <array>
 class new_interaction_topology {
  private:
   double fEndZLow, fEndZHigh;
@@ -668,6 +669,148 @@ class beam_cut_BI {
   }
 };
 
+class FV_values {
+  private:
+    double fZMin;
+  public:
+    FV_values(double zmin) : fZMin(zmin) {}
+    std::array<double, 6> operator ()(
+        std::vector<double> & calo_X,
+        std::vector<double> & calo_Y,
+        std::vector<double> & calo_Z, 
+        double calo_endZ,
+        double beam_inst_X,
+        double beam_inst_Y,
+        double beam_inst_dirX,
+        double beam_inst_dirY,
+        double beam_inst_dirZ) {
+      if (calo_endZ < fZMin)
+        return {-999., -999., -999., -999., -999., -999.};
+
+      //Find the point the track enters FV
+      size_t fv_index = 0;
+      for (; fv_index < calo_Z.size(); ++fv_index) {
+        if (calo_Z[fv_index] > fZMin) break;
+      }
+
+      //To prevent indexing issues 
+      if (fv_index == 0) ++fv_index;
+
+      double x1 = calo_X[fv_index];
+      double y1 = calo_Y[fv_index];
+      double z1 = calo_Z[fv_index];
+
+      double x0 = calo_X[fv_index-1];
+      double y0 = calo_Y[fv_index-1];
+      double z0 = calo_Z[fv_index-1];
+
+      double xl = calo_X.back();
+      double yl = calo_Y.back();
+      double zl = calo_Z.back();
+
+      //project to the FV face
+      double x = (fZMin - z0)*(x1 - x0)/(z1 - z0) + x0;
+      double y = (fZMin - z0)*(y1 - y0)/(z1 - z0) + y0;
+
+      //check if in cut region
+      double beam_x = beam_inst_X + beam_inst_dirX*fZMin/beam_inst_dirZ;
+      double beam_y = beam_inst_Y + beam_inst_dirY*fZMin/beam_inst_dirZ;
+
+      double dx = (x-beam_x);
+      double dy = (y-beam_y);
+      double r = sqrt(dx*dx + dy*dy);
+      /*if ((abs((dx - fMeanX)/fSigmaX) > 3.) ||
+          (abs((dy - fMeanY)/fSigmaY) > 3.) ||
+          (abs((r - fMeanR)/fSigmaR) > 3.)) return false;*/
+
+      //get the angle between pt on FV face and end of track
+      double r_end = sqrt((xl-x)*(xl-x) + (yl-y)*(yl-y) + (zl-fZMin)*(zl-fZMin));
+      double costheta = (
+        (xl-x)/r_end*beam_inst_dirX +
+        (yl-y)/r_end*beam_inst_dirY +
+        (zl-fZMin)/r_end*beam_inst_dirZ);
+
+      return {x, y, r, beam_x, beam_y, costheta};
+    }
+};
+
+class beam_cut_FV {
+  private:
+    double fZMin;
+    double fCosCut, fMeanX, fMeanY, fMeanR, fSigmaX, fSigmaY, fSigmaR;
+
+  public:
+    beam_cut_FV(double zmin, double coscut, double mean_x, double mean_y,
+                double mean_r, double sigma_x, double sigma_y, double sigma_r)
+     : fZMin(zmin), fCosCut(coscut),
+       fMeanX(mean_x), fMeanY(mean_y), fMeanR(mean_r),
+       fSigmaX(sigma_x), fSigmaY(sigma_y), fSigmaR(sigma_r) {}
+    bool operator()(/*std::vector<double> & calo_X,
+                    std::vector<double> & calo_Y,
+                    std::vector<double> & calo_Z, */
+                    std::array<double, 6> fv_vals,
+                    double calo_endZ/*,
+                    double beam_inst_X, double beam_inst_Y, double beam_inst_Z,
+                    double beam_inst_dirX, double beam_inst_dirY,
+                    double beam_inst_dirZ*/) {
+      //If upstream of FV -- reject
+      if (calo_endZ < fZMin) return false;
+
+      //Find the point the track enters FV
+      /*size_t fv_index = 0;
+      for (; fv_index < calo_Z.size(); ++fv_index) {
+        if (calo_Z[fv_index] > fZMin) break;
+      }
+
+      //To prevent indexing issues 
+      if (fv_index == 0) ++fv_index;
+
+      double x1 = calo_X[fv_index];
+      double y1 = calo_Y[fv_index];
+      double z1 = calo_Z[fv_index];
+
+      double x0 = calo_X[fv_index-1];
+      double y0 = calo_Y[fv_index-1];
+      double z0 = calo_Z[fv_index-1];
+
+      double xl = calo_X.back();
+      double yl = calo_Y.back();
+      double zl = calo_Z.back();*/
+
+      //project to the FV face
+      //double x = (fZMin - z0)*(x1 - x0)/(z1 - z0) + x0;
+      //double y = (fZMin - z0)*(y1 - y0)/(z1 - z0) + y0;
+
+      //check if in cut region
+      double beam_x = fv_vals[3];//beam_inst_X + beam_inst_dirX*fZMin/beam_inst_dirZ;
+      double beam_y = fv_vals[4];//beam_inst_Y + beam_inst_dirY*fZMin/beam_inst_dirZ;
+
+      double fv_x = fv_vals[0];
+      double fv_y = fv_vals[1];
+      double r = fv_vals[2];
+      double costheta = fv_vals[5];
+      double dx = (fv_x-beam_x);
+      double dy = (fv_y-beam_y);
+      //double r = sqrt(dx*dx + dy*dy);
+      if ((abs((dx - fMeanX)/fSigmaX) > 3.) ||
+          (abs((dy - fMeanY)/fSigmaY) > 3.) ||
+          (abs((r - fMeanR)/fSigmaR) > 3.) ||
+          (costheta < fCosCut)) return false;
+
+      //get the angle between pt on FV face and end of track
+      //double r_end = sqrt((xl-x)*(xl-x) + (yl-y)*(yl-y) + (zl-fZMin)*(zl-fZMin));
+      //double costheta = (
+      //  (xl-x)/r_end*beam_inst_dirX +
+      //  (yl-y)/r_end*beam_inst_dirY +
+      //  (zl-fZMin)/r_end*beam_inst_dirZ);
+
+      //if (costheta < fCosCut) return false;
+
+      return true;
+
+    }
+};
+
 class beam_cut_TPC {
  private:
   bool fDoAngle;
@@ -697,6 +840,7 @@ class beam_cut_TPC {
    double diffY = calo_beam_endY - calo_beam_startY;
    double diffZ = calo_beam_endZ - calo_beam_startZ;
    double r = sqrt(diffX*diffX + diffY*diffY + diffZ*diffZ);
+
 
    double cosTrk_thetaX = diffX / r;
    double cosTrk_thetaY = diffY / r;

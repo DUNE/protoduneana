@@ -1864,8 +1864,11 @@ void protoana::PDSPThinSliceFitter::NormalFit() {
     double chi2_syst = (fAddSystTerm ? CalcChi2SystTerm() : 0.);
     double chi2_stat = fThinSliceDriver->CalculateChi2(fSamples, fDataSet).first;
     double chi2_reg = (fAddRegTerm ? CalcRegTerm() : 0.);
+    double chi2_sig = (fAddSignalConstraint ? CalcSignalConstraint() : 0.);
     std::cout << "chi2 Syst: " << chi2_syst << std::endl;
     std::cout << "chi2 Stat: " << chi2_stat << std::endl;
+    std::cout << "chi2 Reg: " << chi2_reg << std::endl;
+    std::cout << "chi2 Sig: " << chi2_sig << std::endl;
     output_cov_status.Write("cov_status");
 
     GetCovarianceVals("Migrad");
@@ -2169,6 +2172,9 @@ void protoana::PDSPThinSliceFitter::NormalFit() {
     TVectorD chi2_reg_out(1);
     chi2_reg_out[0] = chi2_reg;
     chi2_reg_out.Write("chi2_reg");
+    TVectorD chi2_sig_out(1);
+    chi2_sig_out[0] = chi2_sig;
+    chi2_sig_out.Write("chi2_sig");
 
     fBestFitSignalPars = fSignalParameters; 
     fBestFitFluxPars = fFluxParameters; 
@@ -2490,7 +2496,7 @@ void protoana::PDSPThinSliceFitter::RunFitAndSave() {
 
     std::vector<std::string> to_copy = {
       "cCorr", "covHist", "corrHist", "CovMatrix", "chi2_syst",
-      "chi2_stat", "chi2_reg"
+      "chi2_stat", "chi2_reg", "chi2_sig"
     };
 
     fOutputFile.cd();
@@ -3331,6 +3337,7 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
           std::cout << "Syst chi2 took " << delta << " us" << std::endl;
 
         double reg_term  = (fAddRegTerm ? CalcRegTerm() : 0.);
+        double sig_term = (fAddSignalConstraint ? CalcSignalConstraint() : 0.);
 
         if (fDebugChi2)
           std::cout << chi2_points.first << " " << syst_chi2 << std::endl;
@@ -3401,8 +3408,8 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
 
 
         if (fCoutLevel > 0)
-          std::cout << (chi2_points.first + syst_chi2 + reg_term) << std::endl;
-        return (chi2_points.first + syst_chi2 + reg_term);
+          std::cout << (chi2_points.first + syst_chi2 + reg_term + sig_term) << std::endl;
+        return (chi2_points.first + syst_chi2 + reg_term + sig_term);
       },
       fTotalSignalParameters + fTotalFluxParameters + fTotalSystParameters + fTotalG4RWParameters);
       std::cout << "Done F2" << std::endl;
@@ -3600,6 +3607,9 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
     fDiffCovName = pset.get<std::string>("DiffCovName");
     fDiffGraphFile = pset.get<std::string>("DiffGraphFile");
   }
+
+  fAddSignalConstraint = pset.get<bool>("AddSignalConstraint", false);
+  fSignalConstraintSize = pset.get<double>("SignalConstraintSize", 10.);
 
   //Initialize systematics
   if (fDoSysts) {
@@ -4626,6 +4636,17 @@ double protoana::PDSPThinSliceFitter::CalcChi2SystTerm() {
   return new_result;
 }
 
+double protoana::PDSPThinSliceFitter::CalcSignalConstraint() {
+  double result = 0.;
+  for (auto & pars : fSignalParameters) {
+    for (auto & par : pars.second) {
+      result += std::pow((par - 1.)/fSignalConstraintSize, 2);
+    }
+  }
+
+  return result;
+}
+
 //Trim TODO
 void protoana::PDSPThinSliceFitter::MakeThrowsTree(TTree & tree, std::vector<double> & branches) {
   for (auto it = fSignalParameters.begin(); it != fSignalParameters.end(); ++it) {
@@ -4634,7 +4655,7 @@ void protoana::PDSPThinSliceFitter::MakeThrowsTree(TTree & tree, std::vector<dou
       tree.Branch(fSignalParameterNames[it->first][i].c_str(),
                   &branches.back());
     }
-  }
+ }
 
   for (auto it = fFluxParameters.begin(); it != fFluxParameters.end(); ++it) {
     branches.push_back(0.);
