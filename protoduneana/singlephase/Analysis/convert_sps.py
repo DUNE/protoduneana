@@ -1,5 +1,6 @@
 import numpy as np, h5py as h5, ROOT as RT
 from argparse import ArgumentParser as ap
+from scipy.spatial import Delaunay
 
 ##NEED TO UPDATE SO EACH EVENT IS FLAT IN THE OUTPUT -- ALSO OPEN AND REWRITE?
 
@@ -34,11 +35,54 @@ def get_node_features(e):
 def get_unique_indices():
   return (np.array([0, 0, 0, 1, 1, 2]), np.array([0, 1, 2, 1, 2, 2]))
 
-def get_formed_edges(e, knn=5):
-  edge_indices = [np.array(e.edge_i)[:, :knn].flatten(),
+def get_delaunay_edges(e, nf):
+  points = np.zeros((len(e.x), 3))
+  points[:, 0] = nf[0:len(e.x)*9:9]
+  points[:, 1] = nf[1:len(e.x)*9:9]
+  points[:, 2] = nf[2:len(e.x)*9:9]
+
+  tri = Delaunay(points)
+
+  tri_points = np.zeros((len(tri.simplices)*12, 2))
+  start = 0
+  for v in tri.simplices:
+    pairs = np.array([[i,j] for i in v for j in v if i != j])
+    tri_points[start:start+12, :] = pairs
+    start += 12
+
+  return np.unique(tri_points.astype(int), axis=0).T
+  
+def make_edge_i(n, knn=5):
+  print('Making', n)
+  return np.repeat(np.arange(n), knn, axis=0)
+
+  
+def get_formed_edges(e, knn=5, force_bidirection=False):
+  edge_indices = [make_edge_i(len(e.edge_i), knn=knn),
                   np.array(e.edge_j)[:, :knn].flatten()]
 
+  if force_bidirection:
+    edge_indices = np.array(edge_indices)
+    #print(edge_indices.shape)
+    all_edges = np.zeros((2*len(edge_indices[0]), 2), dtype=int)
+    all_edges[0::2] = edge_indices.T[:, ::-1]
+    all_edges[1::2] = edge_indices.T[:]
+
+    #print(all_edges.shape)
+    #print(all_edges[:10])
+    edge_indices = np.unique(all_edges, axis=0)
+    #print(edge_indices.shape)
+    edge_indices = edge_indices.T
+
   return edge_indices
+
+#def get_formed_edges(e, knn=5):
+#  edge_indices = [np.array( 
+#  #edge_indices = [np.array(e.edge_i)[:, :knn].flatten(),
+#  #                np.array(e.edge_j)[:, :knn].flatten()]
+#
+#  return edge_indices
+
 
 def make_edges(nf, i, j):
   nf_reshaped = nf.reshape(-1, 9)
@@ -175,6 +219,8 @@ if __name__ == '__main__':
   parser.add_argument('--nskip', type=int, default=0, help='Beginning file')
   parser.add_argument('--max', type=int, default=-1)
   parser.add_argument('--input_root', action='store_true')
+  parser.add_argument('--delaunay', action='store_true')
+  parser.add_argument('--bidirection', action='store_true')
   args = parser.parse_args()
 
   if args.input_root:
@@ -226,7 +272,7 @@ if __name__ == '__main__':
           print(i)
           if a >= args.max and args.max > 0: break
           nf = get_node_features(e)
-          ei, ej = get_formed_edges(e)
+          ei, ej = get_delaunay_edges(e, nf) if args.delaunay else  get_formed_edges(e, force_bidirection=args.bidirection)
           ef = make_edges(nf, ei, ej)
 
           #edge_indices = np.zeros((2, len(ei)))
