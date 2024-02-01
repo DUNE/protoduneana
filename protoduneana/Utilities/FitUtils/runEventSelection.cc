@@ -196,15 +196,15 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
                  {"primary_isBeamType", "primary_ends_inAPA3",
                   "passBeamCut", "vertex_cut"});
 
-  if (pset.get<bool>("DoFakeResAndSel", false)) {
-    auto fake_res_sel = pset.get<fhicl::ParameterSet>("FakeResSelPars");
-    double fake_res = fake_res_sel.get<double>("Resolution", 10.);
-    double fake_sel = fake_res_sel.get<double>("FakeSel", .05);
-
+  if (pset.get<bool>("DoFakeRes", false)) {
+    double fake_res = pset.get<double>("FakeResolution", 10.);
     mc = mc.Redefine("reco_beam_interactingEnergy", fake_res_func(fake_res),
-                     {"true_beam_PDG", "true_beam_endP"})
-           .Redefine("selection_ID", fake_selection(fake_sel),
-                     {"new_interaction_topology"});
+                     {"true_beam_PDG", "true_beam_endP"});
+  }
+  if (pset.get<bool>("DoFakeSel", false)) {
+    double fake_sel = pset.get<double>("FakeSel", .05);
+    mc = mc.Redefine("selection_ID", fake_selection(fake_sel),
+                     {"new_interaction_topology", "selection_ID"});
   }
 
   std::cout << "Filtering MC" << std::endl;

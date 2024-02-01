@@ -417,7 +417,7 @@ class AbsCexDriver : public ThinSliceDriver {
    std::map<int, double> fMeans;
 
    double fEnergyFix;
-   bool fDoEnergyFix;
+   bool fDoEnergyFix, fDoEnergyByLen;
 
    double fPitch;
    double fZ0;

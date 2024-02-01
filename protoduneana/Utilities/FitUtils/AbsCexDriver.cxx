@@ -47,7 +47,8 @@ protoana::AbsCexDriver::AbsCexDriver(
     const fhicl::ParameterSet & extra_options)
     : ThinSliceDriver(extra_options),
       fEnergyFix(extra_options.get<double>("EnergyFix")),
-      fDoEnergyFix(extra_options.get<bool>("DoEnergyFix")),
+      fDoEnergyFix(extra_options.get<bool>("DoEnergyFix", false)),
+      fDoEnergyByLen(extra_options.get<bool>("DoEnergyByLen", false)),
       fPitch(extra_options.get<double>("WirePitch")),
       fZ0(extra_options.get<double>("Z0")),
       fMultinomial(extra_options.get<bool>("Multinomial", true)),
@@ -66,6 +67,12 @@ protoana::AbsCexDriver::AbsCexDriver(
       fNThreads(extra_options.get<int>("NThreads", 1)),
       fExtraHistSets(extra_options.get<std::vector<fhicl::ParameterSet>>(
           "ExtraHists", {})) {
+
+  if (fDoEnergyFix && fDoEnergyByLen) {
+    std::string message = "Error -- cannot use fDoEnergyFix and fDoEnergyByLen at same time";
+    throw std::runtime_error(message);
+  }
+
   if (fSliceMethod == "Alt") {
     fIn = new TFile("end_slices.root", "OPEN");
     fEndSlices = (TH2D*)fIn->Get("h2D")->Clone();
@@ -159,7 +166,7 @@ void protoana::AbsCexDriver::FillMCEvents(
 
   int sample_ID, selection_ID, event, run, subrun;
   int true_beam_PDG;
-  double true_beam_interactingEnergy, reco_beam_interactingEnergy;
+  double true_beam_interactingEnergy, reco_beam_interactingEnergy, reco_beam_alt_len;
   double true_beam_endP, true_beam_mass, true_beam_endZ;
   double reco_beam_endZ, true_beam_startP, reco_beam_startY;
   double reco_beam_startX_SCE, reco_beam_startY_SCE, reco_beam_startZ_SCE;
@@ -195,6 +202,7 @@ void protoana::AbsCexDriver::FillMCEvents(
   tree->SetBranchAddress("true_beam_mass", &true_beam_mass); //good
   tree->SetBranchAddress("reco_beam_interactingEnergy", //good
                          &reco_beam_interactingEnergy);
+  tree->SetBranchAddress("reco_beam_alt_len", &reco_beam_alt_len);
   tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ); //good
   tree->SetBranchAddress("reco_beam_calo_startX", &reco_beam_startX_SCE);
   tree->SetBranchAddress("reco_beam_calo_startY", &reco_beam_startY_SCE);
@@ -491,7 +499,12 @@ void protoana::AbsCexDriver::FillMCEvents(
     events.back().SetSampleID(sample_ID);
     events.back().SetSelectionID(selection_ID);
     events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
-    events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+    if (fDoEnergyByLen) {
+      events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
+    }
+    else {
+      events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+    }
     events.back().SetTrueEndP(true_beam_endP);
     events.back().SetTrueEndZ(true_beam_endZ);
     events.back().SetTrueStartP(true_beam_startP);
@@ -606,7 +619,13 @@ void protoana::AbsCexDriver::FillMCEvents(
       fake_data_events.back().SetSampleID(sample_ID);
       fake_data_events.back().SetSelectionID(selection_ID);
       fake_data_events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
-      fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+      //fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+      if (fDoEnergyByLen) {
+        fake_data_events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
+      }
+      else {
+        fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+      }
       fake_data_events.back().SetTrueEndP(true_beam_endP);
       fake_data_events.back().SetTrueEndZ(true_beam_endZ);
       fake_data_events.back().SetTrueStartP(true_beam_startP);
@@ -882,6 +901,7 @@ void protoana::AbsCexDriver::BuildMCSamples(
     }
     else if (reco_beam_incidentEnergies./*->*/size()) {
       double energy[1] = {reco_beam_interactingEnergy};
+      
       if (fDoEnergyFix) {
         for (size_t k = 1; k < reco_beam_incidentEnergies.size(); ++k) {
           double deltaE = ((reco_beam_incidentEnergies)[k-1] -
@@ -2428,7 +2448,7 @@ void protoana::AbsCexDriver::BuildDataHists(
     std::vector<double> & beam_fluxes,
     int split_val) {
   int selection_ID; 
-  double reco_beam_interactingEnergy, reco_beam_endZ,
+  double reco_beam_interactingEnergy, reco_beam_endZ, reco_beam_alt_len,
          reco_beam_startX, reco_beam_startY, reco_beam_startZ;
   std::vector<double> * reco_beam_incidentEnergies = 0x0;
   if (!fInclusive) {
@@ -2440,6 +2460,7 @@ void protoana::AbsCexDriver::BuildDataHists(
   tree->SetBranchAddress("reco_beam_interactingEnergy",
                         &reco_beam_interactingEnergy);
   tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
+  tree->SetBranchAddress("reco_beam_alt_len", &reco_beam_alt_len);
   tree->SetBranchAddress("reco_beam_calo_startX", &reco_beam_startX);
   tree->SetBranchAddress("reco_beam_calo_startY", &reco_beam_startY);
   tree->SetBranchAddress("reco_beam_calo_startZ", &reco_beam_startZ);
@@ -2554,7 +2575,14 @@ void protoana::AbsCexDriver::BuildDataHists(
       }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
-          double energy = reco_beam_interactingEnergy + deltaE_scale;
+          double energy = 0.;
+          if (fDoEnergyByLen) {
+            energy = (*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len;
+          }
+          else {
+            energy = reco_beam_interactingEnergy + deltaE_scale;
+          }
+
           if (fDoEnergyFix) {
             for (size_t k = 1; k < reco_beam_incidentEnergies->size(); ++k) {
               double deltaE = ((*reco_beam_incidentEnergies)[k-1] -

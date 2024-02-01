@@ -1024,21 +1024,37 @@ class fake_selection {
   public:
     fake_selection(double m) : fFakeMix(m) {}
 
-    int operator()(int id) {
+    int operator()(int true_id, int sel_ID) {
       double r = fRNG.Uniform(0., 1.);
-      if (id > 4)
+      if (sel_ID == 5 || sel_ID == 6) return 6;
+
+      if (true_id > 4)
         return 4;
-      if (id == 4)
+      if (true_id == 4)
         return 6;
 
       if (r < fFakeMix)
-        return sels[id].first;
+        return sels[true_id].first;
       else if (r < 2*fFakeMix)
-        return sels[id].second;
+        return sels[true_id].second;
       else
-        return id;
+        return true_id;
     }
 };
+
+auto get_sce_len(const std::vector<double> & calo_x,
+                 const std::vector<double> & calo_y,
+                 const std::vector<double> & calo_z) {
+  double result = 0.;
+  for (size_t i = 1; i < calo_x.size(); ++i) {
+    double dx = calo_x[i] - calo_x[i-1];
+    double dy = calo_y[i] - calo_y[i-1];
+    double dz = calo_z[i] - calo_z[i-1];
+
+    result += sqrt((dx*dx) + (dy*dy) + (dz*dz));
+  }
+  return result;
+}
 
 /*auto exp_coeffs(std::vector<std::vector<double>> coeffs) {
   std::vector<std::vector<double>> results;
