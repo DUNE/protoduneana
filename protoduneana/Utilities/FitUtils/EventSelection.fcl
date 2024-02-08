@@ -10,7 +10,7 @@ DoReconstructable: false
 ColumnList: @local::columnlist
 
 CheckCalo: true 
-EndZHigh: 222.10561
+EndZHigh: 220 #222.10561
 EndZLow: -.49375
 Threshold: .150
 CexNPi0: true

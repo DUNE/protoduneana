@@ -106,7 +106,8 @@ void protoana::PDSPThinSliceFitter::ResetParameters() {
                  " " << it->second.GetCentral() << " " <<
                  it->second.GetLowerLimit() << " " <<
                  it->second.GetUpperLimit() << std::endl;
-    double val = it->second.GetCentral();
+    double val = (fThrowAndFixSysts ? it->second.GetValue() :
+                  it->second.GetCentral());
     if (fRandomStart) {
       it->second.SetValue(fRNG.Gaus(1., .1)*it->second.GetCentral());
       val = it->second.GetValue();
@@ -125,6 +126,11 @@ void protoana::PDSPThinSliceFitter::ResetParameters() {
                    " to value " << fSystsToFix.at(it->first) <<
                    std::endl;
       fMinimizer->SetVariableValue(n_par, fSystsToFix.at(it->first));
+      fMinimizer->FixVariable(n_par);
+      it->second.SetValue(fSystsToFix.at(it->first));
+    }
+    else if (fThrowAndFixSysts) {
+      //This is set above, just fix it here
       fMinimizer->FixVariable(n_par);
     }
     ++n_par;
@@ -259,7 +265,7 @@ void protoana::PDSPThinSliceFitter::MakeMinimizer() {
   }
 
 
-  int cov_bin_counter = 0;
+  size_t cov_bin_counter = 0;
   for (auto it = fSystParameters.begin(); it != fSystParameters.end(); ++it) {
     std::cout << "Adding parameter " << it->second.GetName().c_str() <<
                  " " << it->second.GetCentral() << " " <<
@@ -279,6 +285,9 @@ void protoana::PDSPThinSliceFitter::MakeMinimizer() {
       fMinimizer->SetVariableLimits(n_par, it->second.GetLowerLimit(),
                                     it->second.GetUpperLimit());
     }
+
+        ;
+
     if (fFixVariables &&
         fSystsToFix.find(it->first) != fSystsToFix.end()) {
       std::cout << "Fixing variable " << it->second.GetName() <<
@@ -286,6 +295,37 @@ void protoana::PDSPThinSliceFitter::MakeMinimizer() {
                    std::endl;
       fMinimizer->SetVariableValue(n_par, fSystsToFix.at(it->first));
       fMinimizer->FixVariable(n_par);
+      it->second.SetValue(fSystsToFix.at(it->first));
+    }
+    //Configured to throw the systematics parameters and fix them 
+    //TODO -- EXPAND TO CORRELATED
+    else if (fThrowAndFixSysts) {
+      //If we're throwing this, generate a random number --
+      //elsewise, just use the central
+      if (std::find(fSystsToThrowAndFix.begin(),
+                    fSystsToThrowAndFix.end(),
+                    it->first) != fSystsToThrowAndFix.end()) {
+                    //cov_bin_counter) != fSystsToThrowAndFix.end()) {
+        //Get the central value & error and throw 1D gaussian
+        size_t new_cov_bin = fCovarianceBinsSimple[cov_bin_counter];
+        double err = sqrt((*fCovMatrixDisplay)[new_cov_bin][new_cov_bin]);
+        /*double */val = fRNG.Gaus(it->second.GetCentral(), err);
+
+        //Check it's in valid range
+        //TODO -- RETHROW IF OUT OF RANGE OR JUST SET AT LIMIT?
+        if (val < it->second.GetLowerLimit()) val = it->second.GetLowerLimit();
+        else if (val > it->second.GetUpperLimit()) val = it->second.GetUpperLimit();
+      }
+      else {
+        val = it->second.GetCentral();
+      }
+
+      //Set it and fix
+      fMinimizer->SetVariableValue(n_par, val);
+      fMinimizer->FixVariable(n_par);
+      it->second.SetValue(val);
+      std::cout << "Fixing variable (All, Systs): (" << n_par << ", " <<
+                   cov_bin_counter << ") to " << val << std::endl;
     }
 
     fSystParameterIndices[it->first] = n_par;
@@ -2399,6 +2439,7 @@ void protoana::PDSPThinSliceFitter::RunFitAndSave() {
 
     for (auto it = fSystParameters.begin();
          it != fSystParameters.end(); ++it) {
+      std::cout << "syst: " << it->second.GetValue() << std::endl;
       vals.push_back(it->second.GetValue());
     }
 
@@ -3621,6 +3662,15 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
       fSystParameters[par_vec[i].get<std::string>("Name")] = syst;
       ++fTotalSystParameters;
     }
+    fThrowAndFixSysts = pset.get<bool>("ThrowAndFixSysts", false);
+    fSystsToThrowAndFix
+        = pset.get<std::vector<std::string>>("SystsToThrowAndFix", {});
+    if (fThrowAndFixSysts && fSystsToThrowAndFix.empty()) {
+      std::string message = "PDSPThinSliceFitter::Configure: ";
+      message += "Error. Requesting to Throw and fix systs, ";
+      message += "but provided empty vector of systs to throw and fix";
+      throw std::runtime_error(message);
+    }
 
     //New selection vars
     std::vector<fhicl::ParameterSet> sel_vec
@@ -3659,7 +3709,8 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
     }
 
-    if (fAddSystTerm) {
+    //Moving this
+    //if (fAddSystTerm) {
       std::vector<std::pair<std::string, int>> temp_vec
           = pset.get<std::vector<std::pair<std::string, int>>>("CovarianceBins");
       fCovarianceBins
@@ -3781,9 +3832,10 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
 
       //Here, throw a new central according 
-      if (fDoThrowSystCentrals) ThrowSystCentrals();
+      //Adding syst term check here
+      if (fAddSystTerm && fDoThrowSystCentrals) ThrowSystCentrals();
 
-    }
+    //}
   }
 
   //New initialize g4rw systematics

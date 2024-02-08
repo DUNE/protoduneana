@@ -236,15 +236,15 @@ void protoana::AbsCexDriver::FillMCEvents(
   tree->SetBranchAddress("reco_beam_true_byHits_ID", &reco_beam_true_byHits_ID); //good
 
   std::vector<std::vector<double>> * g4rw_full_grid_proton_coeffs = 0x0,
-                                   //* g4rw_full_grid_piplus_coeffs = 0x0,
+                                   * g4rw_full_grid_piplus_coeffs = 0x0,
                                    * g4rw_full_fine_piplus_coeffs = 0x0,
                                    * g4rw_full_grid_abscex_coeffs = 0x0,
                                    * g4rw_primary_grid_abscex_coeffs = 0x0,
                                    * g4rw_downstream_grid_piplus_coeffs = 0x0;
   tree->SetBranchAddress("g4rw_full_grid_proton_coeffs", //good
                          &g4rw_full_grid_proton_coeffs);
-  //tree->SetBranchAddress("g4rw_full_grid_piplus_coeffs",
-  //                       &g4rw_full_grid_piplus_coeffs);
+  tree->SetBranchAddress("g4rw_full_grid_piplus_coeffs",
+                         &g4rw_full_grid_piplus_coeffs);
   tree->SetBranchAddress("g4rw_full_fine_piplus_coeffs",
                          &g4rw_full_fine_piplus_coeffs);
   tree->SetBranchAddress("g4rw_full_grid_abscex_coeffs",
@@ -563,8 +563,8 @@ void protoana::AbsCexDriver::FillMCEvents(
       events.back().MakeG4RWCoeff(name_downstream,
                                   (*g4rw_downstream_grid_piplus_coeffs)[j]);
 
-      //std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
-      //events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
+      std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
+      events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
     }
 
     for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
@@ -704,8 +704,8 @@ void protoana::AbsCexDriver::FillMCEvents(
       for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
         //std::string name_full = "g4rw_full_grid_weights_" + std::to_string(j);
         //fake_data_events.back().MakeG4RWBranch(name_full, (*g4rw_full_grid_weights)[j]);
-       // std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
-       // fake_data_events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
+        std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
+        fake_data_events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
 
         //std::string name_primary = "g4rw_primary_grid_weights_" +
         //                           std::to_string(j);

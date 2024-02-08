@@ -162,7 +162,8 @@ class PDSPThinSliceFitter {
   size_t fTotalSystParameters = 0, fTotalG4RWParameters = 0;
   std::map<std::string, size_t> fCovarianceBins;
   std::vector<size_t> fCovarianceBinsSimple;
-  bool fAddSystTerm, fAddRegTerm, fAddDiffInQuadrature, fAddSignalConstraint;
+  bool fAddSystTerm, fAddRegTerm, fAddDiffInQuadrature, fAddSignalConstraint,
+       fThrowAndFixSysts;
   double fRegFactor = 0., fSignalConstraintSize;
   TMatrixD * fCovMatrix, * fCovMatrixDisplay;
   TDecompChol * fInputChol;
@@ -229,6 +230,7 @@ class PDSPThinSliceFitter {
   std::vector<double> fPreFitVals;
   std::map<std::string, double> fSystsToFix, fFixSystsPostFit;
   std::vector<size_t> fSystsToThrow;
+  std::vector<std::string> fSystsToThrowAndFix;
   std::map<std::string, int> fSystParameterIndices;
   std::string fFakeDataRoutine;
   bool fDoFluctuateStats, fFluctuateInSamples,
