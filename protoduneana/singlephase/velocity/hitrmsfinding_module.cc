@@ -21,7 +21,7 @@
 #include "duneprototypes/Protodune/singlephase/DataUtils/ProtoDUNEDataUtils.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -106,7 +106,7 @@ namespace protoana{
   private:
     ProtoDUNEDataUtils fDataUtils;
     TTree* fEventTree;
-    geo::GeometryCore const * fGeometry;
+    geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
     //These are the tree variables I will be using
     Int_t    run;                  
@@ -290,8 +290,6 @@ namespace protoana{
   void hitrmsfinding::analyze( const art::Event& evt){//analyze
     reset();  
 
-    // art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
-    fGeometry = &*(art::ServiceHandle<geo::Geometry>());
     //Detector properties service
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt);
    
@@ -548,7 +546,7 @@ namespace protoana{
 	    double xyzStart[3];
 	    double xyzEnd[3];
 	    unsigned int wireno=vhit[ii]->WireID().Wire;
-            fGeometry->WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,2,wireno), xyzStart, xyzEnd);
+            fWireReadoutGeom.WireEndPoints(geo::WireID(0,vhit[ii]->WireID().TPC,2,wireno), xyzStart, xyzEnd);
 	    hitz_wire2.push_back(xyzStart[2]);
 	    double truermsb=-1;
 

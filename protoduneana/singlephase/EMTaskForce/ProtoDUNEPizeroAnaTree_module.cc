@@ -38,7 +38,8 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
+// #include "larcore/Geometry/Geometry.h"
 #include "dunecore/DuneObj/ProtoDUNEBeamEvent.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -349,7 +350,8 @@ private:
   double fShower2_cal_dQdx[NMAXPIZEROS][NMAXHITS];
 
   // Other
-  geo::GeometryCore const* fGeometryService;
+  //  geo::GeometryCore const* fGeometryService;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
   spacecharge::SpaceChargeService::provider_type const* fSCEService;
 };
 
@@ -372,7 +374,7 @@ protoana::ProtoDUNEPizeroAnaTree::ProtoDUNEPizeroAnaTree(fhicl::ParameterSet con
   fHitTag(p.get<std::string>("HitTag")),
   fVerbose(p.get<int>("Verbose")) {
   // Get a pointer to the geometry service provider.
-  fGeometryService = lar::providerFrom<geo::Geometry>();
+  //  fGeometryService = lar::providerFrom<geo::Geometry>();
   fSCEService = lar::providerFrom<spacecharge::SpaceChargeService>();
 }
 
@@ -987,7 +989,7 @@ protoana::ProtoDUNEPizeroAnaTree::FillPrimaryPFParticle(art::Event const & evt,
     for( unsigned i = 0; i < pfpDHits.size() && rec_hiti < NMAXHITS; ++i){
       if(pfpDHits[i]->WireID().Plane != 2) continue;
 
-      const geo::WireGeo* pwire = fGeometryService->WirePtr(pfpDHits[i]->WireID());
+      const geo::WireGeo* pwire = fWireReadoutGeom.WirePtr(pfpDHits[i]->WireID());
       auto xyzWire = pwire->GetCenter();
       fprimaryDaughterHitWire[di][rec_hiti] = pfpDHits[i]->WireID().Wire;
       fprimaryDaughterHitTime[di][rec_hiti] = pfpDHits[i]->PeakTime();
@@ -1008,7 +1010,7 @@ protoana::ProtoDUNEPizeroAnaTree::FillPrimaryPFParticle(art::Event const & evt,
       // Record general hit information.
       fprimaryDaughterHitCharge[di][rec_hiti] = pfpDHits[i]->Integral();
       // Determine own hit pitch with SCE corrections.
-      const double wirePitch = fGeometryService->WirePitch(pfpDHits[i]->WireID().planeID());
+      const double wirePitch = fWireReadoutGeom.Plane(pfpDHits[i]->WireID()).WirePitch();
       TVector3 objdir(0,0,0);
       if(daughterTrack != 0x0) {
         objdir = {daughterTrack->Trajectory().StartDirection().X(),

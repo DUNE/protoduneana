@@ -1,5 +1,6 @@
 #include "protoduneana/Utilities/ProtoDUNETrackUtils.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -656,7 +657,7 @@ std::pair<double, int> protoana::ProtoDUNETrackUtils::GetVertexMichelScore(
     double max_x, double min_y, double max_y, double min_z, bool check_wire,
     double check_x, double check_y, double check_z) {
 
-  art::ServiceHandle<geo::Geometry> geom;
+  auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
   anab::MVAReader<recob::Hit, 4> hitResults(evt, "emtrkmichelid:emtrkmichel");
 
   //Skip short tracks
@@ -693,7 +694,7 @@ std::pair<double, int> protoana::ProtoDUNETrackUtils::GetVertexMichelScore(
 
   if (check_z) {
     for (const auto * hit : hits_from_traj_view2) {
-      double wire_z = geom->Wire(hit->WireID()).GetCenter().Z();
+      double wire_z = wireReadout.Wire(hit->WireID()).GetCenter().Z();
       if (wire_z > highest_z) {
         highest_z = wire_z;
         vertex_tpc = hit->WireID().TPC;
@@ -781,7 +782,7 @@ std::pair<double, double> protoana::ProtoDUNETrackUtils::GetVertexMichelScore_we
     double max_x, double min_y, double max_y, double min_z, bool check_wire,
     double check_x, double check_y, double check_z) {
 
-  art::ServiceHandle<geo::Geometry> geom;
+  auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
   anab::MVAReader<recob::Hit, 4> hitResults(evt, "emtrkmichelid:emtrkmichel");
 
   //Skip short tracks
@@ -818,7 +819,7 @@ std::pair<double, double> protoana::ProtoDUNETrackUtils::GetVertexMichelScore_we
 
   if (check_z) {
     for (const auto * hit : hits_from_traj_view2) {
-      double wire_z = geom->Wire(hit->WireID()).GetCenter().Z();
+      double wire_z = wireReadout.Wire(hit->WireID()).GetCenter().Z();
       if (wire_z > highest_z) {
         highest_z = wire_z;
         vertex_tpc = hit->WireID().TPC;

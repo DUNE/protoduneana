@@ -3,7 +3,7 @@
 
 bool protoana::G4ReweightUtils::CreateRWTraj(
     const simb::MCParticle & part, const sim::ParticleList & plist,
-    art::ServiceHandle < geo::Geometry > geo_serv, int event,
+    const geo::GeometryCore & geom, int event,
     G4ReweightTraj * theTraj) {
 
   //Loop over daughters
@@ -36,7 +36,7 @@ bool protoana::G4ReweightUtils::CreateRWTraj(
     double z = part.Position(i).Z();
     
     geo::Point_t test_point{x, y, z};
-    const TGeoMaterial * test_material = geo_serv->Material(test_point);
+    const TGeoMaterial * test_material = geom.Material(test_point);
 
     if (!strcmp(test_material->GetName(), "LAr")) {
       traj_X.push_back(x);
@@ -114,7 +114,7 @@ bool protoana::G4ReweightUtils::CreateRWTraj(
 
 std::vector<G4ReweightTraj *> protoana::G4ReweightUtils::CreateNRWTrajs(
     const simb::MCParticle & part, const sim::ParticleList & plist,
-    art::ServiceHandle < geo::Geometry > geo_serv, int event,
+    const geo::GeometryCore &geom, int event,
     std::string material_name, bool fVerbose) {
   std::vector<G4ReweightTraj *> results;
 
@@ -144,7 +144,7 @@ std::vector<G4ReweightTraj *> protoana::G4ReweightUtils::CreateNRWTrajs(
     double z = part.Position(i).Z();
 
     geo::Point_t test_point{x, y, z};
-    const TGeoMaterial * test_material = geo_serv->Material(test_point);
+    const TGeoMaterial * test_material = geom.Material(test_point);
     if (!test_material) continue;
     //if (!strcmp(test_material->GetName(), material_name)) {
     if (test_material->GetName() == material_name) {
@@ -332,7 +332,7 @@ std::pair<double, double> protoana::G4ReweightUtils::GetNTrajPMSigmaWeights(
 std::vector<std::vector<G4ReweightTraj *>>
     protoana::G4ReweightUtils::BuildHierarchy(
         int ID, int PDG, const sim::ParticleList & plist,
-        art::ServiceHandle<geo::Geometry> geo_serv, int event,
+        const geo::GeometryCore & geom, int event,
         std::string material_name, bool skip_first, bool verbose) {
 
   std::deque<int> to_create = {ID};
@@ -365,7 +365,7 @@ std::vector<std::vector<G4ReweightTraj *>>
         std::cout << "Not skipping " << part->TrackId() << std::endl;
       }
       std::vector<G4ReweightTraj *> temp_trajs =
-          CreateNRWTrajs(*part, plist, geo_serv,
+          CreateNRWTrajs(*part, plist, geom,
                          event, material_name, verbose);
     
       if (temp_trajs.size()) {

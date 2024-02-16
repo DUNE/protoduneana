@@ -49,7 +49,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // LArSoft Includes
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
@@ -87,7 +87,7 @@ public:
 private:
   // Declare member data here.
   TTree *fTree;
-  geo::GeometryCore const* fGeom;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
   double reco_beam_len_sce;
   int selected_track;
   protoana::ProtoDUNETrackUtils trackUtil;
@@ -149,7 +149,6 @@ pdsp::HadronHitsRemoval::HadronHitsRemoval(fhicl::ParameterSet const& p)
   cout<<"$$$HadronHitsRemoval$$$"<<endl;
   // Call appropriate produces<>() functions here.
   recob::HitCollectionCreator::declare_products(producesCollector(), "", true, false);
-  fGeom = &*(art::ServiceHandle<geo::Geometry>());
   produces<std::vector<recob::SpacePoint>>();
   produces<art::Assns<recob::Hit, recob::SpacePoint>>(); // this space point will only be used as a tag
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -325,9 +324,9 @@ void pdsp::HadronHitsRemoval::produce(art::Event& evt)
         
         auto TpIndices = calo[index].TpIndices();
         
-        double wirecoord_U = fGeom->WireCoordinate(pos, geo::PlaneID{0, 1, 0});
-        double wirecoord_V = fGeom->WireCoordinate(pos, geo::PlaneID{0, 1, 1});
-        double wirecoord_X = fGeom->WireCoordinate(pos, geo::PlaneID{0, 1, 2});
+        double wirecoord_U = fWireReadoutGeom.Plane(geo::PlaneID{0, 1, 0}).WireCoordinate(pos);
+        double wirecoord_V = fWireReadoutGeom.Plane(geo::PlaneID{0, 1, 1}).WireCoordinate(pos);
+        double wirecoord_X = fWireReadoutGeom.Plane(geo::PlaneID{0, 1, 2}).WireCoordinate(pos);
         cout<<"$$$WireCoord: U "<<wirecoord_U<<"\tV "<<wirecoord_V<<"\tX "<<wirecoord_X<<endl; // Wire ID of cut point
         
         std::vector< art::Ptr< recob::Hit > > remove_hits;
@@ -341,7 +340,7 @@ void pdsp::HadronHitsRemoval::produce(art::Event& evt)
           auto hit = beamPFP_hits[kk];
           
           geo::WireID hitid = hit->WireID();
-          //std::vector<geo::WireID> cwids = fGeom->ChannelToWire(hit->Channel());
+          //std::vector<geo::WireID> cwids = fWireReadoutGeom.ChannelToWire(hit->Channel());
           //cout<<"@@@"<<hitid.Plane<<"\t"<<hitid.Wire<<"\t"<<hitid.TPC<<"\t"<<hitid.Cryostat<<endl;
           
           if (hitid.TPC == 1 && hitid.Cryostat == 0) {

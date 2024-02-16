@@ -26,13 +26,11 @@
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/PFParticle.h"
-#include "nusimdata/SimulationBase/MCParticle.h"
-#include "nusimdata/SimulationBase/MCTruth.h"
-
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -40,6 +38,10 @@
 #include "lardataobj/RecoBase/PointCharge.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
+
+
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
 #include "dunecore/DuneObj/ProtoDUNEBeamEvent.h"
 //#include "duneprototypes/Protodune/Analysis/ProtoDUNETrackUtils.h"
@@ -178,7 +180,7 @@ class protoana::protonbeamana : public art::EDAnalyzer {
 		bool fVerbose;
 
 		//geometry
-		geo::GeometryCore const * fGeometry;
+                geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
 		// define parameters for primary tracks
 		std::vector<double> primtrk_startx;
@@ -431,11 +433,6 @@ void protoana::protonbeamana::analyze(art::Event const & evt)
 	art::FindManyP<recob::Track> pftrack(PFPListHandle,evt,"pandoraTrack");
 	std::cout<<"number of pfp_particles "<<pfplist.size()<<std::endl;
 	//std::cout<<" size of pfParticles "<<pfParticles.size()<<std::endl;
-
-	//HY::call geometry service
-	fGeometry = &*(art::ServiceHandle<geo::Geometry>());
-
-
 
 	// Implementation of required member function here.
 	run = evt.run();
@@ -702,8 +699,8 @@ void protoana::protonbeamana::analyze(art::Event const & evt)
 										double xyzEnd[3];
 										unsigned int wireno=std::round(wire_no);
 										geo::WireID wireid(0,TPCb[clt],2,wireno);
-                                                                                fGeometry->WireEndPoints(wireid, xyzStart, xyzEnd);
-										//fGeometry->WireEndPoints(wireid, xyzStart, xyzEnd);
+                                                                                fWireReadoutGeom.WireEndPoints(wireid, xyzStart, xyzEnd);
+										//fWireReadoutGeom.WireEndPoints(wireid, xyzStart, xyzEnd);
 										std::cout<<"Z position of intersection = "<<xyzStart[2]<<" "<<xyzEnd[2]<<"  "<<wireno<<std::endl;
 										Zintersection.push_back(xyzStart[2]);
 										Yintersection.push_back(xyzStart[1]);

@@ -17,6 +17,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -146,10 +147,10 @@ void PionCrossSectionAnalyzer::analyze(art::Event const& evt){
       std::cout<<"Track ID of the geantGoodParticle "<<geantGoodParticle->TrackId()<<std::endl;
       std::cout<<"Process:"<<geantGoodParticle->Process()<<std::endl;
       
-      art::ServiceHandle<geo::Geometry> geom;
       simb::MCTrajectory truetraj=geantGoodParticle->Trajectory();
 
-      geo::View_t view = geom->View(2);
+      auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+      geo::View_t view = wireReadout.Plane({0, 0, 2}).View();
       auto simIDE_prim=bt_serv->TrackIdToSimIDEs_Ps(geantGoodParticle->TrackId(),view);
       std::map<double, sim::IDE> orderedSimIDE;
       for (auto& ide : simIDE_prim) orderedSimIDE[ide->z]= *ide;
