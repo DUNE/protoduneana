@@ -1,0 +1,11 @@
+#include "EventSelection.fcl"
+DoFakeSel: false 
+FakeSel: 0. #.05
+
+DoNewFakeSel: true
+
+DoFakeRes: true
+Resolution: 10.
+
+#FakeResSelPars: {
+#}
