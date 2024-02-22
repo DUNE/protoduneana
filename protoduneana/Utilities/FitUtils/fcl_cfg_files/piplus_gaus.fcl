@@ -1,16 +1,15 @@
-#include "coarse_500_lower_coarse_reco_asimov.fcl"
+#include "asimov.fcl"
 
-MaxEntries: -1
-FluctuateStats: false
-FluctuateInSamples: false 
+MaxEntries: -1 
+
 SplitMC: false 
-FitType: "Normal"
-
-AddSignalConstraint: false
+FluctuateStats: true 
+FluctuateInSamples: true 
+#VaryMCStatsForFakeData: true
 
 AnalysisOptions.FakeDataRoutine: "AngleVar"
 AnalysisOptions.FakeDataAngleVar: {
-    RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/new_proton_flat.root"
+  RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/piplus_gaus.root"
   Limits: [ 
     [1, [0., 400., 600., 800., 1000.]],
     [2, [0., 400., 600., 800., 1000.]],
@@ -22,5 +21,5 @@ AnalysisOptions.FakeDataAngleVar: {
     [2, ["r1", "r2", "r3", "r4", "r5"]],
     [3, ["r1", "r2", "r3", "r4", "r5"]]
   ]
-  PDG: 2212
+  PDG: 211
 }

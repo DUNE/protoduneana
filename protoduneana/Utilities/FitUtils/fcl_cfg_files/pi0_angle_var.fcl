@@ -1,4 +1,4 @@
-#include "asimov.fcl"
+#include "coarse_500_lower_coarse_reco_asimov.fcl"
 
 MaxEntries: -1
 FluctuateStats: false
