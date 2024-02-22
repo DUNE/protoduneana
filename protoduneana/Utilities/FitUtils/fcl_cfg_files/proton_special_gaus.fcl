@@ -1,4 +1,4 @@
-#include "coarse_500_lower_coarse_reco_asimov.fcl"
+#include "asimov.fcl"
 
 MaxEntries: -1 
 
