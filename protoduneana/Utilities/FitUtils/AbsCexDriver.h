@@ -572,8 +572,9 @@ class AbsCexDriver : public ThinSliceDriver {
    std::vector<int> fERecoSelections, fEndZSelections, fOneBinSelections;
    double fBeamInstPScale/*, fMCBeamInstPShift*/;
    bool fRestrictBeamInstP, fDebugRestrictBeamP;
-   bool fVaryDataCalibration, fThrowCalibration, fVaryCalibrationFakeData;
-   double fDataCalibrationFactor;
+   bool fVaryDataCalibration, fVaryMCCalibration, fThrowCalibration,
+        fVaryCalibrationFakeData;
+   double fDataCalibrationFactor, fMCCalibrationFactor;
    bool fBarlowBeeston;
    std::vector<int> fToSkip;
    size_t fNWorkers;

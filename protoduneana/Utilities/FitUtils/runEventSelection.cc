@@ -200,11 +200,16 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset) {
     double fake_res = pset.get<double>("FakeResolution", 10.);
     mc = mc.Redefine("reco_beam_interactingEnergy", fake_res_func(fake_res),
                      {"true_beam_PDG", "true_beam_endP"});
+    mc = mc.Redefine("reco_beam_incidentEnergies", fake_res_inc, {});
   }
   if (pset.get<bool>("DoFakeSel", false)) {
     double fake_sel = pset.get<double>("FakeSel", .05);
     mc = mc.Redefine("selection_ID", fake_selection(fake_sel),
                      {"new_interaction_topology", "selection_ID"});
+  }
+  else if (pset.get<bool>("DoNewFakeSel", false)) {
+    mc = mc.Redefine("selection_ID", new_fake_selection,
+                     {"new_interaction_topology"});
   }
 
   std::cout << "Filtering MC" << std::endl;
@@ -457,8 +462,10 @@ int main(int argc, char ** argv){
     if (pset.get<bool>("RestrictBeamXY", false)) {
     }*/
 
+    const auto & data_column_list
+        = pset.get<std::vector<std::string>>("DataColumnList");
     auto time0 = std::chrono::high_resolution_clock::now();
-    data.Snapshot(tree_name, "eventSelection_data_BeamQuality.root", column_list);
+    data.Snapshot(tree_name, "eventSelection_data_BeamQuality.root", data_column_list);
     auto time1 = std::chrono::high_resolution_clock::now();
     std::cout << "Time: " <<
                  std::chrono::duration_cast<std::chrono::seconds>(time1 - time0).count() <<

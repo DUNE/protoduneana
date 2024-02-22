@@ -320,6 +320,8 @@ void protoana::ThinSliceDataSet::GenerateStatFluctuation(
           double val = it.second->GetBinContent(i, j);
           double r_val = fRNG.PoissonD(val);
           sel_hist->AddBinContent(i, r_val);
+
+
           beam_fluxes[j-1] += r_val;
         }
       }
@@ -440,6 +442,16 @@ void protoana::ThinSliceDataSet::FillHistsFromSamples(
         for (auto it2 = hists.begin(); it2 != hists.end(); ++it2) {
 
           fSelectionHists[it2->first]->Add(it2->second);
+          for (int sel_bin = 1; sel_bin <= it2->second->GetNbinsX(); ++sel_bin) {
+            double x
+                = fBeamBinSelectionHists[it2->first]->GetXaxis()->GetBinCenter(
+                    sel_bin);
+            double y
+                = fBeamBinSelectionHists[it2->first]->GetYaxis()->GetBinCenter(
+                    i+1);
+            fBeamBinSelectionHists[it2->first]->Fill(
+                x, y, it2->second->GetBinContent(sel_bin));
+          }
           flux += it2->second->Integral();
           fluxes_by_beam[i] += it2->second->Integral();
           //std::cout << "Adding " << it2->second->Integral() << " to " << i << std::endl;

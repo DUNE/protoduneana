@@ -8,9 +8,10 @@ UseMT: true #false
 DoReconstructable: false 
 
 ColumnList: @local::columnlist
+DataColumnList: @local::datacolumnlist
 
 CheckCalo: true 
-EndZHigh: 220 #222.10561
+EndZHigh: 215 #222.10561
 EndZLow: -.49375
 Threshold: .150
 CexNPi0: true

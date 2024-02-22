@@ -63,7 +63,9 @@ protoana::AbsCexDriver::AbsCexDriver(
       fRestrictBeamInstP(extra_options.get<bool>("RestrictBeamInstP", false)),
       fDebugRestrictBeamP(extra_options.get<bool>("DebugRestrictBeamP", false)),
       fVaryDataCalibration(extra_options.get<bool>("VaryDataCalibration", false)),
+      fVaryMCCalibration(extra_options.get<bool>("VaryMCCalibration", false)),
       fDataCalibrationFactor(extra_options.get<double>("DataCalibrationFactor", 1.)),
+      fMCCalibrationFactor(extra_options.get<double>("MCCalibrationFactor", 1.)),
       fNThreads(extra_options.get<int>("NThreads", 1)),
       fExtraHistSets(extra_options.get<std::vector<fhicl::ParameterSet>>(
           "ExtraHists", {})) {
@@ -1200,7 +1202,7 @@ void protoana::AbsCexDriver::RefillSampleLoop(
       }
 
       if (selected_hist->FindBin(energy[0]) == 0) {
-        val[0] = selected_hist->GetBinCenter(1);
+          val[0] = selected_hist->GetBinCenter(1);
       }
       else if (selected_hist->FindBin(energy[0]) > selected_hist->GetNbinsX()) {
         val[0] = selected_hist->GetBinCenter(selected_hist->GetNbinsX());
@@ -1253,6 +1255,8 @@ void protoana::AbsCexDriver::RefillSampleLoop(
 
     std::lock_guard<std::mutex> guard(fRefillMutex);
     this_sample->FillSelectionHist(new_selection, val, weight);
+    //std::cout << "Filling " << new_selection << " " << event.GetSampleID() <<
+    //             " " << signal_index << " " << val[0] << std::endl;
     //Fill the total incident hist with truth info
     if (fill_incident) {
       //this_sample->FillTrueIncidentHist(good_true_incEnergies, weight);
@@ -2591,6 +2595,12 @@ void protoana::AbsCexDriver::BuildDataHists(
                 energy += deltaE;
                 if (deltaE*fDataCalibrationFactor < fEnergyFix) {
                   energy -= deltaE*fDataCalibrationFactor;
+                }
+              }
+              else if (fVaryMCCalibration) {
+                energy += deltaE;
+                if (deltaE*fMCCalibrationFactor < fEnergyFix) {
+                  energy -= deltaE*fMCCalibrationFactor;
                 }
               }
               else {

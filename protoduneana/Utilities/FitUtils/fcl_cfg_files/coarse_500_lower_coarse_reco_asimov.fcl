@@ -8,6 +8,7 @@ Shuffle: false
 FluctuateStats: false
 FluctuateInSamples: false 
 FitType: "None"
+Do1DShifts: true 
 DoThrowSystCentrals: false 
 #SystsToThrow: [0]
 #VaryMCStatsForFakeData: true

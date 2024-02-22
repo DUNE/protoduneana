@@ -997,6 +997,10 @@ class exclude_runs {
     }
 };
 
+auto fake_res_inc() {
+  return std::vector<double>({1.});
+}
+
 class fake_res_func {
   private:
     double fFakeRes;
@@ -1041,6 +1045,15 @@ class fake_selection {
         return true_id;
     }
 };
+
+auto new_fake_selection(int true_id) {
+  if (true_id == 4)
+    return 6;
+  else if (true_id > 4)
+    return 4;
+  else
+    return true_id;
+}
 
 auto get_sce_len(const std::vector<double> & calo_x,
                  const std::vector<double> & calo_y,
