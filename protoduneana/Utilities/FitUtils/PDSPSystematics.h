@@ -41,6 +41,11 @@ class PDSPSystematics {
       const ThinSliceSystematic & par);
       //const std::map<std::string, ThinSliceSystematic> & pars);
 
+  void SetupSyst_CosThetaEff(
+      const std::map<std::string, ThinSliceSystematic> & pars);
+  static double GetSystWeight_CosThetaEff(
+    const ThinSliceEvent & event, int signal_idnex);
+
   static double GetSystWeight_G4RWCoeffNoPar(
       const ThinSliceEvent & event, int signal_index);
   static double GetSystWeight_TiedG4RWCoeffNoPar(
@@ -224,6 +229,15 @@ class PDSPSystematics {
   static const ThinSliceSystematic * fBeamMatchHighPar;
 
   static const ThinSliceSystematic * fBeamScraperPar;
+
+  //CosThetaEff
+  static std::vector<int> fCosThetaEffIDs;
+  static std::vector<int> fCosThetaEffSels;
+  static std::vector<int> fCosThetaEffPDGs;
+  static std::vector<std::pair<double, double>> fCosThetaEffRanges;
+  static std::vector<double> fCosThetaEffFracs;
+  static std::vector<const ThinSliceSystematic *> fActiveCosThetaEffPars;
+  //static double GetSystWeight_CosThetaEff(const ThinSliceEvent & event);
  private:
 
   static double GetFractionBySample(

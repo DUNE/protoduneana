@@ -20,6 +20,7 @@ class ThinSliceSystematic {
       fIsG4RWCoeff(pset.get<bool>("IsG4RWCoeff", false)),
       fIsTiedG4RWCoeff(pset.get<bool>("IsTiedG4RWCoeff", false)),
       fIsSelVar(pset.get<bool>("IsSelVar", false)),
+      fIsCosThetaEff(pset.get<bool>("IsCosThetaEff", false)),
       fSelectionID(selection_id),
       fSelectionBin(selection_bin),
       fOptions(pset.get<fhicl::ParameterSet>("Options")) {
@@ -117,6 +118,10 @@ class ThinSliceSystematic {
     return fIsG4RWCoeff;
   }
 
+  const bool GetIsCosThetaEff() const {
+    return fIsCosThetaEff;
+  }
+
   const bool GetIsTiedG4RWCoeff() const {
     return fIsTiedG4RWCoeff;
   }
@@ -147,7 +152,7 @@ class ThinSliceSystematic {
   double fGenThrowLimitUp; 
   double fSigma;
 
-  bool fIsG4RWCoeff, fIsTiedG4RWCoeff, fIsSelVar;
+  bool fIsG4RWCoeff, fIsTiedG4RWCoeff, fIsSelVar, fIsCosThetaEff;
   int fSelectionID, fSelectionBin;
   std::string fG4RWCoeffBranch = "";
   bool fG4RWExtend = false;

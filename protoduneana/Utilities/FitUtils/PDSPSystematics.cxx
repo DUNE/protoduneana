@@ -11,6 +11,14 @@ std::vector<const protoana::ThinSliceSystematic *> protoana::PDSPSystematics::fA
 std::vector<const protoana::ThinSliceSystematic *> protoana::PDSPSystematics::fActiveSignalG4RWPars = {};
 std::vector<const protoana::ThinSliceSystematic *> protoana::PDSPSystematics::fActiveTiedSignalG4RWPars = {};
 
+std::vector<const protoana::ThinSliceSystematic *> protoana::PDSPSystematics::fActiveCosThetaEffPars = {};
+std::vector<int> protoana::PDSPSystematics::fCosThetaEffIDs = {};
+std::vector<int> protoana::PDSPSystematics::fCosThetaEffSels = {};
+std::vector<std::pair<double, double>> protoana::PDSPSystematics::fCosThetaEffRanges = {};
+std::vector<double> protoana::PDSPSystematics::fCosThetaEffFracs = {};
+std::vector<int> protoana::PDSPSystematics::fCosThetaEffPDGs = {};
+
+
 int protoana::PDSPSystematics::fUpstreamID = 0;
 int protoana::PDSPSystematics::fNoTrackID = 0;
 double protoana::PDSPSystematics::fEndZNoTrackCut = 0.;
@@ -36,6 +44,7 @@ const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamMatchHighP
 
 const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperPar = 0x0;
 
+
 protoana::PDSPSystematics::PDSPSystematics(
     const std::vector<ThinSliceEvent> & events,
     std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
@@ -59,6 +68,7 @@ protoana::PDSPSystematics::PDSPSystematics(
   SetupSyst_BeamShift(pars, output_file);//Trim
   SetupSyst_EDivWeight(pars);//Done
   SetupSyst_EndZNoTrackWeight(pars);//Done
+  SetupSyst_CosThetaEff(pars);
   SetupSyst_BeamMatch(pars);//Done
   SetupSyst_BeamMatchHigh(pars);//Done
   SetupSyst_BeamMatchLow(pars);//Done
@@ -129,6 +139,67 @@ double protoana::PDSPSystematics::GetEventWeight(
     //std::cout << syst.first << " " << contribution <<
     //             std::endl;
     weight *= contribution;
+  }
+
+  return weight;
+}
+
+void protoana::PDSPSystematics::SetupSyst_CosThetaEff(
+  const std::map<std::string, ThinSliceSystematic> & pars) {
+  for (const auto & par : pars) {
+    if (par.second.GetIsCosThetaEff()) {
+      std::cout << "Setting up costheta eff syst: " << par.first << std::endl;
+    }
+    else continue;
+
+    fCosThetaEffIDs.push_back(par.second.GetOption<int>("ID"));
+    fCosThetaEffSels.push_back(par.second.GetOption<int>("Sel"));
+    fCosThetaEffRanges.push_back(
+        par.second.GetOption<std::pair<double, double>>("Range"));
+    fCosThetaEffFracs.push_back(
+        par.second.GetOption<double>("Frac"));
+    fCosThetaEffPDGs.push_back(
+        par.second.GetOption<int>("PDG"));
+    fActiveCosThetaEffPars.push_back(&(par.second));
+  }
+
+  fActiveSystematics.push_back({"CosThetaEff", GetSystWeight_CosThetaEff});
+}
+
+double protoana::PDSPSystematics::GetSystWeight_CosThetaEff(
+    const ThinSliceEvent & event, int signal_index) {
+  double weight = 1.;
+  size_t ipar = 0;
+  for (const auto * par : fActiveCosThetaEffPars) {
+
+    if (event.GetSampleID() != fCosThetaEffIDs[ipar]) continue;
+    //std::cout << par->GetName() << " " << par->GetValue() << " " <<
+    //           event.GetSampleID() << " " << fCosThetaEffIDs[ipar] << " ";
+
+    double cos = -1.;
+    if (fCosThetaEffPDGs[ipar] == 211) {
+      cos = event.GetLeadingPiPlusCostheta();
+    }
+    else if (fCosThetaEffPDGs[ipar] == 2212) {
+      cos = event.GetLeadingPCostheta();
+    }
+    else if (fCosThetaEffPDGs[ipar] == 111) {
+      cos = event.GetLeadingPi0Costheta();
+    }
+
+    auto range = fCosThetaEffRanges[ipar];
+    //std::cout << cos << " " << range.first << " " << range.second;
+    if (cos < range.first || cos > range.second) continue;
+
+    double c = par->GetValue();
+    double f = fCosThetaEffFracs[ipar];
+    double subweight = (
+      event.GetSelectionID() == fCosThetaEffSels[ipar] ?
+      c : (1. - c*f)/(1. - f)
+    );
+    //std::cout << " " << c << " " << f << " " << subweight << std::endl;
+
+    weight *= CheckAndReturn(subweight, "CosThetaEff", (*par), event);
   }
 
   return weight;

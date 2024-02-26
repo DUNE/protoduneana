@@ -73,8 +73,10 @@ Systematics: [
   @local::g4rw_proton_coeff
   ,@local::SystematicsList.end_z_no_track_weight
   ,@local::SystematicsList.beam_match_weight
-  ,@local::g4rw_downstream_piplus_low_coeff
-  ,@local::g4rw_downstream_piplus_high_coeff
+  #,@local::g4rw_downstream_piplus_low_coeff
+  #,@local::g4rw_downstream_piplus_high_coeff
+  ,@local::g4rw_full_piplus_low_coeff
+  ,@local::g4rw_full_piplus_high_coeff
   ,@local::SystematicsList.beam_scraper_weight
 ]
 
@@ -126,8 +128,13 @@ CovarianceBins: [
  ["end_z_no_track_weight", 0] #10%
  ,["g4rw_proton_coeff", 1] #33%
  ,["beam_match_weight", 2] #20%
- ,["g4rw_downstream_piplus_low_coeff", 3] #33%
- ,["g4rw_downstream_piplus_high_coeff", 4] #33%
+
+ #,["g4rw_downstream_piplus_low_coeff", 3] #33%
+ #,["g4rw_downstream_piplus_high_coeff", 4] #33%
+
+ ,["g4rw_full_piplus_low_coeff", 3] #33%
+ ,["g4rw_full_piplus_high_coeff", 4] #33%
+
  ,["beam_scraper_weight", 5] #50%
 ]
 
@@ -312,22 +319,23 @@ DrawXSecUnderflow: false
 ## Validation
 RandomStart: false 
 SplitMC:  false 
-MaxEntries:  100000 #152936 #
+#MaxEntries:  100000 #152936 #
+MaxEntries:  40000 #152936 #
 MaxDataEntries: @local::MaxEntries #54000
 DoFakeData: true
 FluctuateStats: false 
-DoThrows: true 
+DoThrows: false
 NThrows: 10000
 DoScans: false 
 OnlySystScans: false 
 RunHesse: true
 Do1DShifts: false #true 
-DoSysts: true 
+DoSysts: true
 MaxRethrows: 1000
 #####################
 
-#FitType: "Normal"
-FitType: "None"
+FitType: "Normal"
+#FitType: "None"
 #FitType: "ConstructCovariance"
 #FitType: "ThrowsOnly"
 #PriorFitResults: "selvar.root"
