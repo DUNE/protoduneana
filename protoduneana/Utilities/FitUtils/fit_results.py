@@ -1,4 +1,5 @@
 import ROOT as RT
+import numpy as np
 import math
 from array import array
 import sys
@@ -17,6 +18,36 @@ args = parser.parse_args()
 
 RT.gROOT.LoadMacro("~/protoDUNEStyle.C")
 
+
+def get_new_xsec(f, name):
+  
+  if name == 'abs': title = 'Abs'
+  elif name == 'cex': title = 'Cex'
+  elif name == 'other': title = 'OtherInel'
+
+  hist = f.Get(f"PostFitXSec/PostFit{title}XSec")
+  xs = []
+  ys = []
+  eyhs = []
+  eyls = []
+  for i in range(1, hist.GetNbinsX()+1):
+    xs.append(hist.GetBinCenter(i))
+    ys.append(hist.GetBinContent(i))
+    eyhs.append(0.)
+    eyls.append(0.)
+  
+  n = len(xs)
+  print(n)
+  new_gr = RT.TGraphAsymmErrors(
+    n,
+    np.array(xs),
+    np.array(ys),
+    np.array([0.]*n),
+    np.array([0.]*n),
+    np.array(eyls),
+    np.array(eyhs)
+  )
+  return new_gr
 
 def combine(hists, title):
   combined = RT.TH1D(title, "", 3, 0, 3)
@@ -434,5 +465,64 @@ if not args.nothrows:
   if args.fixed:
     for i in range(3):
       grs[i].Write('gr_fixed_%s'%['Abs', 'Cex', 'OtherInel'][i])
+else:
+  '''
+  abs_hist = fIn.Get("PostFitXSec/PostFitAbsHist")
+  abs_xs = []
+  abs_ys = []
+  abs_eyhs = []
+  abs_eyls = []
+  for i in range(1, abs_hist.GetNbinsX()+1):
+    abs_xs.append(abs_hist.GetBinCenter(i))
+    abs_ys.append(abs_hist.GetBinContent(i))
+    abs_eyhs.append(0.)
+    abs_eyls.append(0.)
+  
+  n_abs = len(abs_xs)
+  print(n_abs)
+  new_gr_abs = RT.TGraphAsymmErrors(
+    n_abs,
+    np.array(abs_xs),
+    np.array(abs_ys),
+    np.array([0.]*n_abs),
+    np.array([0.]*n_abs),
+    np.array(abs_eyls),
+    np.array(abs_eyhs)
+  )
+  '''
+  new_gr_abs = get_new_xsec(fIn, 'abs')
+  new_gr_cex = get_new_xsec(fIn, 'cex')
+  new_gr_other = get_new_xsec(fIn, 'other')
+  
+  n = new_gr_abs.GetN() + new_gr_cex.GetN() + new_gr_other.GetN()
+  cov = RT.TH2D('xsec_cov', '', n, 0, n, n, 0, n)
+  corr = RT.TH2D('xsec_corr', '', n, 0, n, n, 0, n)
+
+  if len(args.add_files) > 0:
+  #if len(sys.argv) > 3:
+    for af, ac in zip(args.add_files, args.add_covs):
+      #extra_cov_file = RT.TFile(sys.argv[3], 'open')
+      extra_cov_file = RT.TFile(af, 'open')
+      #extra_cov = extra_cov_file.Get(sys.argv[4])
+      extra_cov = extra_cov_file.Get(ac)
+  
+      for i in range(1, extra_cov.GetNbinsX()+1):
+        for j in range(1, extra_cov.GetNbinsX()+1):
+          cov.SetBinContent(i, j, cov.GetBinContent(i, j) + extra_cov.GetBinContent(i, j))
+  
+    #for i in range(1, extra_cov.GetNbinsX()+1):
+    #  for j in range(1, extra_cov.GetNbinsX()+1):
+    for i in range(1, cov.GetNbinsX()+1):
+      for j in range(1, cov.GetNbinsX()+1):
+        corr.SetBinContent(i, j, cov.GetBinContent(i, j)/math.sqrt(cov.GetBinContent(i, i)*cov.GetBinContent(j, j)))
+
+
+  
+  fOut.cd()
+  new_gr_abs.Write('abs_xsec')
+  new_gr_cex.Write('cex_xsec')
+  new_gr_other.Write('other_xsec')
+  cov.Write()
+  corr.Write()
 fOut.Close();
   
