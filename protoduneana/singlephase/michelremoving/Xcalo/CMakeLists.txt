@@ -5,6 +5,12 @@ cet_make_exec( make_x_correction
                ROOT_BASIC_LIB_LIST
                CaloTools              
                )
+cet_make_exec( make_x_correctionAlt
+              SOURCE protoDUNE_X_calibAlt.C
+              LIBRARIES
+              ROOT_BASIC_LIB_LIST
+              CaloTools
+              )
 install_headers()
 install_fhicl()
 install_source()

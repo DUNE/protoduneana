@@ -22,7 +22,7 @@
 #include "TColor.h"
 #include "TProfile.h"
 #include "TProfile2D.h"
-void plotXCaloLifetime(std::string runNumber, std::string txtLabel, std::string location, std::string tpc, int plane=2)
+void plotXCaloLifetimeAlt(std::string runNumber, std::string txtLabel, std::string location, std::string tpc, int plane=2)
 {
         int yLoc=1; int zLoc=1;
         if (location=="low") yLoc=0;
@@ -33,11 +33,11 @@ void plotXCaloLifetime(std::string runNumber, std::string txtLabel, std::string 
         if (tpc=="third") zLoc=2;  
 	std::cout<<yLoc<<","<<zLoc<<std::endl;
         ofstream outfile;
-	outfile.open(Form("mich1_lifetimeresults_%s_%s_%s_plane%d.txt",txtLabel.c_str(),location.c_str(),tpc.c_str(),plane),std::ios_base::app);
+	outfile.open(Form("mich1_lifetimeresults_%s_%s_%s_plane%d_alt.txt",txtLabel.c_str(),location.c_str(),tpc.c_str(),plane),std::ios_base::app);
 	gROOT->LoadMacro("protoDUNEStyle.C");
 	gROOT->SetStyle("protoDUNEStyle");
 	gROOT->ForceStyle();
-	gStyle->SetTitleX(0.3);
+	gStyle->SetTitleX(0.35);
 	gStyle->SetOptFit(111);
         gStyle->SetStatX(0.85);
 	gStyle->SetStatY(0.88); 
@@ -48,12 +48,12 @@ void plotXCaloLifetime(std::string runNumber, std::string txtLabel, std::string 
 	if (runNumber.find(Form("MC"))!=std::string::npos){
 	std::string set="MC";
 	std::string s="MC";
-	fileName=Form("Xcalo_mich1_mc_sceOn.root");
+	fileName=Form("Xcalo_mich1_mc_sceOn_alt.root");
 	}
         else if (runNumber.find(Form("NoDiff"))!=std::string::npos){
         std::string set="MC No Diff";
         std::string s="MC No Diff";
-        fileName=Form("Xcalo_mich1_mc_noDiff_sceOn.root");
+        fileName=Form("Xcalo_mich1_mc_sceOn_noDiff_alt.root");
         }
 
 
@@ -61,7 +61,7 @@ void plotXCaloLifetime(std::string runNumber, std::string txtLabel, std::string 
 
 
         else{  
-	fileName=Form("Xcalo_mich1_r%s.root",runNumber.c_str());
+	fileName=Form("Xcalo_mich1_r%s_alt.root",runNumber.c_str());
 	}
 	TFile my_file1(Form("%s",fileName.c_str()));
 	TTree* t1=(TTree*)my_file1.Get("t1");
@@ -70,14 +70,6 @@ void plotXCaloLifetime(std::string runNumber, std::string txtLabel, std::string 
 	t1->SetBranchAddress("year_month_date1",&year_month_day);
 	t1->GetEntry(0);
 	std::cout<<hour_min_sec<<','<<year_month_day<<std::endl;
-        std::string stampDayString, year, month, day;
-                stampDayString=std::to_string(year_month_day);
-                year=stampDayString.substr(0,4);
-                month=stampDayString.substr(4,2);
-                day=stampDayString.substr(6,2);
-
-
-
 
 	TH1F *x_correction_factor=(TH1F*)my_file1.Get(Form("dqdx_mpv_X_hist_%d_%d_%d",plane,yLoc,zLoc));
         int nBins=x_correction_factor->GetNbinsX();
@@ -120,12 +112,8 @@ for (int i=1; i<=x_correction_factor->GetNbinsX();i++){
 	rebinHistR->GetXaxis()->SetRangeUser(0,2.0);
 	rebinHistR->GetXaxis()->CenterTitle();
 	rebinHistR->GetYaxis()->CenterTitle(); 
-	rebinHistR->SetTitle(Form("Cth-Crss BR, %s/%s/%s",day.c_str(),month.c_str(),year.c_str()));
-	if (runNumber.find(Form("MC"))!=std::string::npos)  rebinHistR->SetTitle(Form("Cth-Crss BR, Sim."));
-        if (runNumber.find(Form("NoDiff"))!=std::string::npos) rebinHistR->SetTitle(Form("Cth-Crss BR, Sim. No Diff."));
-
-
-
+	rebinHistR->SetTitle(Form("Run %s BR",s.c_str()));
+	if (runNumber.find(Form("MC"))!=std::string::npos)  rebinHist->SetTitle(Form("%s BR",s.c_str()));
 	double lifetimeEst_BR=(time_BR.at(time_BR.size()-1)-time_BR.at(0))/(TMath::Log(beamRight.at(0)/beamRight.at(beamRight.size()-1)));
         
         double initial_BR=beamRight.at(0);
@@ -168,17 +156,17 @@ for (int i=1; i<=x_correction_factor->GetNbinsX();i++){
 	tL.SetNDC();  
 	tL.DrawLatex(0.10,0.94,"#bf{DUNE:ProtoDUNE-SP}");
 	tL.Draw("SAME");
-        c1.Print(Form("fitXCalo%s_BR_%s_%s_plane%d.png",s.c_str(),location.c_str(),tpc.c_str(),plane));
-	c1.Print(Form("fitXCalo%s_BR_%s_%s_plane%d.pdf",s.c_str(),location.c_str(),tpc.c_str(),plane));
+        c1.Print(Form("fitXCalo%s_BR_%s_%s_plane%d_alt.png",s.c_str(),location.c_str(),tpc.c_str(),plane));
+	c1.Print(Form("fitXCalo%s_BR_%s_%s_plane%d_alt.pdf",s.c_str(),location.c_str(),tpc.c_str(),plane));
 	rebinHistL->GetXaxis()->SetTitle("Drift Time [ms]");
 	rebinHistL->GetYaxis()->SetTitle("dQ/dx [(ADC count)#timestick/cm]");
 	rebinHistL->GetYaxis()->SetRangeUser(0,100);
 	rebinHistL->GetXaxis()->SetRangeUser(0,2.0);
         rebinHistL->GetXaxis()->CenterTitle();
 	rebinHistL->GetYaxis()->CenterTitle(); 
-	rebinHistL->SetTitle(Form("Cth-Crss BL, Date: %s/%s/%s",day.c_str(),month.c_str(),year.c_str()));
-	if (runNumber.find(Form("MC"))!=std::string::npos)  rebinHistL->SetTitle(Form("Cth-Crss BL, Sim."));
-        if (runNumber.find(Form("NoDiff"))!=std::string::npos) rebinHistL->SetTitle("Cth-Crss BL, Sim. No Diff.");
+	rebinHistL->SetTitle(Form("Run %s BL",s.c_str()));
+	if (runNumber.find(Form("MC"))!=std::string::npos)  rebinHist->SetTitle(Form("%s BL",s.c_str()));
+
 	TH1D* rebinHistLCopy=(TH1D*)rebinHistL->Clone("rebinHistLCopy");
         fit->SetParameter(0,initial_BL);
 	fit->SetParameter(1,lifetimeEst_BL); 
@@ -206,8 +194,8 @@ for (int i=1; i<=x_correction_factor->GetNbinsX();i++){
 	tL.SetNDC();  
 	tL.DrawLatex(0.10,0.94,"#bf{DUNE:ProtoDUNE-SP}");
 	tL.Draw("SAME");
-        c1.Print(Form("fitXCalo%s_BL_%s_%s_plane%d.png",s.c_str(),location.c_str(),tpc.c_str(),plane));
-	c1.Print(Form("fitXCalo%s_BL_%s_%s_plane%d.pdf",s.c_str(),location.c_str(),tpc.c_str(),plane));
+        c1.Print(Form("fitXCalo%s_BL_%s_%s_plane%d_alt.png",s.c_str(),location.c_str(),tpc.c_str(),plane));
+	c1.Print(Form("fitXCalo%s_BL_%s_%s_plane%d_alt.pdf",s.c_str(),location.c_str(),tpc.c_str(),plane));
 	rebinHist->GetXaxis()->SetTitle("Drift Time [ms]");
 	rebinHist->GetYaxis()->SetTitle("dQ/dx [(ADC count)#timestick/cm]");
 	rebinHist->GetYaxis()->SetRangeUser(0,100);
@@ -234,7 +222,7 @@ for (int i=1; i<=x_correction_factor->GetNbinsX();i++){
 	double fullSystTau=fit->GetParError(1); double fullConstErr=fit->GetParError(0);
 	outfile<<runNumber<<','<<year_month_day<<','<<hour_min_sec<<","<<fullLife<<","<<fullSystTau<<","<<fullConst<<","<<fullConstErr<<','<<fullLife_R<<","<<fullSystTau_R<<","<<fullConst_R<<","<<fullConstErr_R<<','<<fullLife_L<<","<<fullSystTau_L<<","<<fullConst_L<<","<<fullConstErr_L<<std::endl;
 
-	c1.Print(Form("fitXCalo%s_%s_%s_plane%d.png",s.c_str(),location.c_str(),tpc.c_str(),plane));
-	c1.Print(Form("fitXCalo%s_%s_%s_plane%d.pdf",s.c_str(),location.c_str(),tpc.c_str(),plane));
+	c1.Print(Form("fitXCalo%s_%s_%s_plane%d_alt.png",s.c_str(),location.c_str(),tpc.c_str(),plane));
+	c1.Print(Form("fitXCalo%s_%s_%s_plane%d_alt.pdf",s.c_str(),location.c_str(),tpc.c_str(),plane));
 }
 

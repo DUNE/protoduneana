@@ -197,6 +197,7 @@ TF1 *runlangaufit(TH1 *his, int plane, double xbin_max){
   for(int k=0; k<4; ++k){
     pllo[k] = 0.01*sv[k];
     plhi[k] = 100*sv[k];
+  if (k==0) pllo[k]=0.1;
   }
   double chisqr;
   int    ndf;
@@ -230,6 +231,7 @@ TF1 *runlangaufit(TH1 *his, int plane, double xbin_max){
 //
     cout<<"Refitting"<<endl;
     for(int k=0; k<4; ++k){
+      if (k==0) continue;
       sv[k]*=1.01;
       pllo[k] = 0.01*sv[k];
       plhi[k] = 100*sv[k];
