@@ -1,3 +1,5 @@
+include_directories(${HEP_HPC_INCLUDE_DIRS})
+
 art_make(BASENAME_ONLY
   MODULE_LIBRARIES
   art::Framework_Core
@@ -11,8 +13,8 @@ art_make(BASENAME_ONLY
   art::Persistency_Provenance
   art::Utilities
   messagefacility::MF_MessageLogger
-  cetlib 
-  cetlib_except
+  cetlib::cetlib
+  cetlib_except::cetlib_except
   lardataobj::RecoBase
   lardata::Utilities
   larcorealg::Geometry
@@ -21,7 +23,7 @@ art_make(BASENAME_ONLY
   larsim::MCCheater_BackTrackerService_service           
   larsim::MCCheater_ParticleInventoryService_service
   larreco::RecoAlg
-  ROOT_BASIC_LIB_LIST
+  ROOT::Core ROOT::Tree ROOT::Hist
   hep_hpc_hdf5
   ${HDF5_LIBRARIES}
   )

@@ -1,5 +1,5 @@
 
-cet_build_plugin(       HitNormCheck art::module
+cet_build_plugin(       HitNormCheck art::module LIBRARIES
 			lardataobj::RecoBase
                         lardata::ArtDataHelper
                         lardata::Utilities
@@ -16,11 +16,11 @@ cet_build_plugin(       HitNormCheck art::module
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib 
                         cetlib_except::cetlib_except
-                        ROOT_BASIC_LIB_LIST
+                        ROOT::Core ROOT::Tree ROOT::Hist
                         BASENAME_ONLY
 )
 
-cet_build_plugin(	CosmicsdQdx art::module
+cet_build_plugin(	CosmicsdQdx art::module LIBRARIES
 			lardataobj::RecoBase
                         lardata::ArtDataHelper
                         lardata::Utilities
@@ -37,16 +37,16 @@ cet_build_plugin(	CosmicsdQdx art::module
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib 
                         cetlib_except::cetlib_except
-                        ROOT_BASIC_LIB_LIST
+                        ROOT::Core ROOT::Tree ROOT::Hist
                         duneprototypes::ProtoDUNEDataUtils
 			ProtoDUNEUtilities
                         BASENAME_ONLY
 )
 
-cet_build_plugin(	TrackHitInfo art::module
-			lardataobj_RecoBase
-                        lardata_ArtDataHelper
-                        lardata_Utilities
+cet_build_plugin(	TrackHitInfo art::module LIBRARIES
+			lardataobj::RecoBase
+                        lardata::ArtDataHelper
+                        lardata::Utilities
                         art::Framework_Core
                         art::Framework_Principal
                         art::Framework_Services_Registry
@@ -60,7 +60,7 @@ cet_build_plugin(	TrackHitInfo art::module
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib 
                         cetlib_except::cetlib_except
-                        ROOT_BASIC_LIB_LIST
+                        ROOT::Core ROOT::Tree ROOT::Hist
                         duneprototypes::ProtoDUNEDataUtils
 			ProtoDUNEUtilities
                         BASENAME_ONLY

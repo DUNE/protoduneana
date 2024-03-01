@@ -1,9 +1,12 @@
 
-cet_build_plugin(PDSPmatch art::module
+cet_build_plugin(PDSPmatch art::module LIBRARIES
                         lardataobj::RawData
                         lardataobj::RecoBase
                         larcorealg::Geometry
-                        dunepdlegacy_Overlays
+                        larana::OpticalDetector
+                        lardata::Utilities
+                        dunepdlegacy::Overlays
+                        duneprototypes::Protodune_singlephase_Utility
                         artdaq_core::artdaq-core_Data
                         dunecore::Geometry
                         art::Framework_Core
@@ -19,16 +22,19 @@ cet_build_plugin(PDSPmatch art::module
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib 
                         cetlib_except::cetlib_except
-                        ROOT_BASIC_LIB_LIST
-                        dunepdlegacy_rce_dataaccess
+                        ROOT::Core ROOT::Tree ROOT::Hist
+                        dunepdlegacy::rce_dataaccess
                         BASENAME_ONLY
 )
 
-cet_build_plugin(PDSPmatchmc art::module
+cet_build_plugin(PDSPmatchmc art::module LIBRARIES
                         lardataobj::RawData
                         lardataobj::RecoBase
                         larcorealg::Geometry
-                        dunepdlegacy_Overlays
+                        larana::OpticalDetector
+                        dunepdlegacy::Overlays
+                        lardata::Utilities
+                        duneprototypes::Protodune_singlephase_Utility
                         artdaq_core::artdaq-core_Data
                         dunecore::Geometry
                         nusimdata::SimulationBase
@@ -47,8 +53,8 @@ cet_build_plugin(PDSPmatchmc art::module
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib 
                         cetlib_except::cetlib_except
-                        ROOT_BASIC_LIB_LIST
-                        dunepdlegacy_rce_dataaccess
+                        ROOT::Core ROOT::Tree ROOT::Hist
+                        dunepdlegacy::rce_dataaccess
                         BASENAME_ONLY
 )
 

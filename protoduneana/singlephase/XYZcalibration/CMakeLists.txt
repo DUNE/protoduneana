@@ -24,7 +24,7 @@ art_make(
   cetlib::cetlib 
   cetlib_except::cetlib_except
   fhiclcpp::fhiclcpp
-  ROOT_BASIC_LIB_LIST
+  ROOT::Core ROOT::Tree ROOT::Hist
   MODULE_LIBRARIES larana::OpticalDetector_OpDigiProperties_service
   larana::OpticalDetector_OpHitFinder
   larana::OpticalDetector
@@ -38,7 +38,7 @@ art_make(
   larreco::RecoAlg
   larcorealg::Geometry
   larcore::Geometry_Geometry_service
-  larsim::Simulation nug4_ParticleNavigation lardataobj_Simulation
+  larsim::Simulation nug4::ParticleNavigation lardataobj::Simulation
   lardata::Utilities
   lardataobj::RawData
   larreco::Calorimetry
@@ -59,12 +59,12 @@ art_make(
   cetlib::cetlib 
   cetlib_except::cetlib_except
   fhiclcpp::fhiclcpp
-  ROOT_BASIC_LIB_LIST
+  ROOT::Core ROOT::Tree ROOT::Hist
   SERVICE_LIBRARIES
   larcorealg::Geometry
   larcore::Geometry_Geometry_service
   CLHEP
-  ROOT_BASIC_LIB_LIST
+  ROOT::Core ROOT::Tree ROOT::Hist
   )
 
 cet_remove_compiler_flags(CXX -pedantic)

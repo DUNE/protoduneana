@@ -23,9 +23,9 @@ art_make( MODULE_LIBRARIES
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib 
                         cetlib_except::cetlib_except
-			ROOT_BASIC_LIB_LIST
-                        ROOT_GENVECTOR
-                        ROOT_GEOM
+			ROOT::Core ROOT::Tree ROOT::Hist
+                        ROOT::GenVector
+                        ROOT::Geom
                         ProtoDUNEUtilities
 )
 
