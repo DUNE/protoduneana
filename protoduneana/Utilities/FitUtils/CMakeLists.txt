@@ -38,6 +38,7 @@ art_make_library( LIBRARY_NAME protodune_fitutils
 art_make_exec( NAME runProtoDUNEFit
 	       SOURCE runProtoDUNEFit.cc
 	       LIBRARIES protodune_fitutils
+	       ${ROOT_ROOSTATS}
 	    )
 
 art_make_exec( NAME runEventSelection
