@@ -1,0 +1,18 @@
+BEGIN_PROLOG
+
+singleHit:
+{
+   module_type: "SingleHit"
+   LogLevel:     5
+
+   SpacePointLabel:   "reco3d"
+   ClusterLabel:      "pandora"
+   TrackLabel:        "pandoraTrack"
+   HitLabel:          "prout"
+
+   ChannelWindow:     1
+   PeakTimeWindow:    20
+   CoincidenceWindow: 10
+}
+
+END_PROLOG
