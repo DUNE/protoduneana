@@ -1,0 +1,76 @@
+##include "singleHitConfig.fcl"
+#include "services_dune.fcl"
+#include "services_vdcoldbox.fcl"
+
+#include "services_dune.fcl"
+#include "services_vdcoldbox.fcl" 
+##include "workflow_reco_vdcrp2_mc.fcl"
+
+#include "pandoramodules_dune.fcl"
+#include "wirecell_dune.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "calorimetry_vdcb.fcl"
+#include "pid_dune10kt.fcl"
+#include "energyreco.fcl"
+#include "opticaldetectormodules_dune.fcl"
+#include "dataprep_dune.fcl"
+#include "SpacePointSolver_dune.fcl"
+
+
+#include "channelstatus_vdcb.fcl"
+#include "channelstatus_vdct.fcl"
+#include "vdcb_dataprep_sequences.fcl"
+#include "tools_dune.fcl"
+
+process_name: SingleHit
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+}
+
+services:
+{
+  TFileService: { fileName: "singleHitOutput.root" }
+  
+  TimeTracker:           @local::dune_time_tracker
+  MemoryTracker:         @local::dune_memory_tracker
+  RandomNumberGenerator: {} #ART native random number generator
+   
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+                        @table::vdcb_crp2_services
+                        @table::vdcb_dataprep_base_services
+                        @table::vdcb_sim_base_services
+}
+
+physics:
+{
+  analyzers:
+  {
+    ana:
+    {
+      module_type: "SingleHit"
+      LogLevel:     5
+
+      SpacePointLabel:   "reco3d"
+      ClusterLabel:      "pandora"
+      TrackLabel:        "pandoroTrack"
+      HitLabel:          "gaushit"
+
+      ChannelWindowInt:     1
+      ChannelWindowExt:     2
+      HitMultiplicity:      3
+      PeakTimeWindowInt:    20
+      PeakTimeWindowExt:    20
+      CoincidenceWindow:    10
+      Pitch:                0.9 #in cm
+      PitchMultiplier:      1.2
+    }
+
+  }
+
+  analysis: [ ana ]
+  end_paths: [ analysis ]
+}
+
