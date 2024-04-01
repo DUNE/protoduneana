@@ -1039,6 +1039,9 @@ private:
                       reco_daughter_allShower_startX,
                       reco_daughter_allShower_startY,
                       reco_daughter_allShower_startZ,
+                      reco_daughter_allShower_startX_SCE,
+                      reco_daughter_allShower_startY_SCE,
+                      reco_daughter_allShower_startZ_SCE,
                       reco_daughter_allShower_dirX,
                       reco_daughter_allShower_dirY,
                       reco_daughter_allShower_dirZ,
@@ -2042,6 +2045,12 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_daughter_allShower_startX", &reco_daughter_allShower_startX);
   fTree->Branch("reco_daughter_allShower_startY", &reco_daughter_allShower_startY);
   fTree->Branch("reco_daughter_allShower_startZ", &reco_daughter_allShower_startZ);
+  fTree->Branch("reco_daughter_allShower_startX_SCE",
+                &reco_daughter_allShower_startX_SCE);
+  fTree->Branch("reco_daughter_allShower_startY_SCE",
+                &reco_daughter_allShower_startY_SCE);
+  fTree->Branch("reco_daughter_allShower_startZ_SCE",
+                &reco_daughter_allShower_startZ_SCE);
   fTree->Branch("reco_daughter_allShower_dirX", &reco_daughter_allShower_dirX);
   fTree->Branch("reco_daughter_allShower_dirY", &reco_daughter_allShower_dirY);
   fTree->Branch("reco_daughter_allShower_dirZ", &reco_daughter_allShower_dirZ);
@@ -2906,6 +2915,9 @@ void pduneana::PDSPAnalyzer::reset()
   reco_daughter_allShower_startX.clear();
   reco_daughter_allShower_startY.clear();
   reco_daughter_allShower_startZ.clear();
+  reco_daughter_allShower_startX_SCE.clear();
+  reco_daughter_allShower_startY_SCE.clear();
+  reco_daughter_allShower_startZ_SCE.clear();
 
   reco_daughter_allShower_dirX.clear();
   reco_daughter_allShower_dirY.clear();
@@ -5038,11 +5050,20 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
       if (fVerbose) std::cout << "pandora2 shower: " << pandora2Shower << std::endl;
 
       if( pandora2Shower ){
+        double x = pandora2Shower->ShowerStart().X();
+        double y = pandora2Shower->ShowerStart().Y();
+        double z = pandora2Shower->ShowerStart().Z();
         reco_daughter_allShower_ID.push_back(     pandora2Shower->ID() );
         reco_daughter_allShower_len.push_back(    pandora2Shower->Length() );
-        reco_daughter_allShower_startX.push_back( pandora2Shower->ShowerStart().X() );
-        reco_daughter_allShower_startY.push_back( pandora2Shower->ShowerStart().Y() );
-        reco_daughter_allShower_startZ.push_back( pandora2Shower->ShowerStart().Z() );
+        reco_daughter_allShower_startX.push_back(pandora2Shower->ShowerStart().X());
+        reco_daughter_allShower_startY.push_back(pandora2Shower->ShowerStart().Y());
+        reco_daughter_allShower_startZ.push_back(pandora2Shower->ShowerStart().Z());
+
+        auto sce = lar::providerFrom<spacecharge::SpaceChargeService>();
+        auto offset = sce->GetPosOffsets({x, y, z});
+        reco_daughter_allShower_startX_SCE.push_back(x - offset.X());
+        reco_daughter_allShower_startY_SCE.push_back(y + offset.Y());
+        reco_daughter_allShower_startZ_SCE.push_back(z + offset.Z());
 
         reco_daughter_allShower_dirX.push_back( pandora2Shower->Direction().X() );
         reco_daughter_allShower_dirY.push_back( pandora2Shower->Direction().Y() );
@@ -5137,6 +5158,9 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         reco_daughter_allShower_startX.push_back(-999.);
         reco_daughter_allShower_startY.push_back(-999.);
         reco_daughter_allShower_startZ.push_back(-999.);
+        reco_daughter_allShower_startX_SCE.push_back(-999.);
+        reco_daughter_allShower_startY_SCE.push_back(-999.);
+        reco_daughter_allShower_startZ_SCE.push_back(-999.);
         reco_daughter_allShower_dirX.push_back(-999.);
         reco_daughter_allShower_dirY.push_back(-999.);
         reco_daughter_allShower_dirZ.push_back(-999.);
