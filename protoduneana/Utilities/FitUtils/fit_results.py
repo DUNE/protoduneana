@@ -435,7 +435,11 @@ if not args.nothrows:
   
   if len(args.add_files) > 0:
   #if len(sys.argv) > 3:
-    for af, ac in zip(args.add_files, args.add_covs):
+    add_covs = (
+      [args.add_covs[0]]*len(args.add_files) if len(args.add_covs) == 1
+      else args.add_covs
+    )
+    for af, ac in zip(args.add_files, add_covs):
       #extra_cov_file = RT.TFile(sys.argv[3], 'open')
       extra_cov_file = RT.TFile(af, 'open')
       #extra_cov = extra_cov_file.Get(sys.argv[4])
@@ -500,12 +504,17 @@ else:
 
   if len(args.add_files) > 0:
   #if len(sys.argv) > 3:
-    for af, ac in zip(args.add_files, args.add_covs):
+    add_covs = (
+      [args.add_covs[0]]*len(args.add_files) if len(args.add_covs) == 1
+      else args.add_covs
+    )
+    for af, ac in zip(args.add_files, add_covs):
       #extra_cov_file = RT.TFile(sys.argv[3], 'open')
       extra_cov_file = RT.TFile(af, 'open')
       #extra_cov = extra_cov_file.Get(sys.argv[4])
       extra_cov = extra_cov_file.Get(ac)
   
+      print(af)
       for i in range(1, extra_cov.GetNbinsX()+1):
         for j in range(1, extra_cov.GetNbinsX()+1):
           cov.SetBinContent(i, j, cov.GetBinContent(i, j) + extra_cov.GetBinContent(i, j))
