@@ -1,5 +1,11 @@
 #include "TRandom3.h"
+#include "TProfile.h"
 #include <array>
+#include <numeric>
+#include <memory>
+#include <iostream>
+#include "TMath.h"
+#include <map>
 class new_interaction_topology {
  private:
   double fEndZLow, fEndZHigh;
@@ -147,6 +153,19 @@ class selection_ID {
       return 1;
     }
   }
+};
+
+class recalc_chi2_proton {
+  private:
+    TProfile * fTemplate;
+    double fScale;
+
+  public:
+    recalc_chi2_proton(TProfile * prof, double scale=1.)
+      : fTemplate(prof), fScale(scale) {};
+    std::vector<double> operator()(
+        std::vector<std::vector<double>> dedx,
+        std::vector<std::vector<double>> range);
 };
 
 class selection_ID_inclusive {
@@ -511,9 +530,10 @@ bool shower_dist_energy_check(double shower_dist, double shower_energy) {
 class has_shower_dist_energy {
  private:
   double fTrackScoreCut;
+  double fScale = 1.;
  public:
-  has_shower_dist_energy(double cut)
-    : fTrackScoreCut(cut) {}
+  has_shower_dist_energy(double cut, double scale=1.)
+    : fTrackScoreCut(cut), fScale(scale) {}
   bool operator()(const std::vector<double> &track_score,
                   const std::vector<double> &shower_x,
                   const std::vector<double> &shower_y,
@@ -526,7 +546,7 @@ class has_shower_dist_energy {
                           std::pow((shower_z[i] - z), 2));
        
        if ((track_score[i] < fTrackScoreCut) &&
-           (track_score[i] > 0.) && shower_dist_energy_check(dist, energy[i])
+           (track_score[i] > 0.) && shower_dist_energy_check(dist, fScale*energy[i])
            /*(dist > 5. && dist < 1000.) &&
            (energy[i] > 80. && energy[i] < 1000.)*/) {
          return true;
@@ -561,6 +581,55 @@ class endAPA3 {
   
   bool operator()(double reco_beam_endZ) {
     return (reco_beam_endZ < fEndZCut);
+  }
+};
+
+auto make_simple_chi2(const std::vector<double> & chi2,
+                      const std::vector<int> & ndof) {
+  auto results = chi2;
+  for (size_t i = 0; i < results.size(); ++i) {
+    if (ndof[i] > 0) {
+      results[i] /= ndof[i];
+    }
+    else {
+      results[i] = -999.;
+    }
+  }
+  return results;
+}
+
+class secondary_noPion_simple {
+ private:
+  double fTrackScoreCut;
+  double fChi2Cut;
+  double fdEdXLow, fdEdXMed, fdEdXHigh;
+ public:
+  secondary_noPion_simple(double track_score_cut, double chi2_cut,
+                   double dEdX_low, double dEdX_med, double dEdX_high)
+    : fTrackScoreCut(track_score_cut),
+      fChi2Cut(chi2_cut),
+      fdEdXLow(dEdX_low),
+      fdEdXMed(dEdX_med),
+      fdEdXHigh(dEdX_high) {}
+  bool operator()(
+      const std::vector<double> &track_score, 
+      const std::vector<int> &trackID,
+      const std::vector<double> &dEdX,
+      const std::vector<double> &chi2_ndof) {
+    for( size_t i = 0; i < track_score.size(); ++i ) {
+      if ((trackID[i] != -999) && (track_score[i] > fTrackScoreCut)) {
+        if (dEdX[i] < fdEdXMed && dEdX[i] > fdEdXLow) {
+          return false;
+        }
+        else if (dEdX[i] < fdEdXHigh) {
+          if (chi2_ndof[i] > fChi2Cut) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 };
 

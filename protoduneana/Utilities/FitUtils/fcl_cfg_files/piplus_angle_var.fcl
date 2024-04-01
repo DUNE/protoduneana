@@ -1,6 +1,7 @@
 #include "asimov.fcl"
 
-MaxEntries: 120000 
+FitType: "Normal"
+MaxEntries: -1 
 MaxDataEntries: @local::MaxEntries
 FluctuateStats: false
 FluctuateInSamples: false 
@@ -23,3 +24,5 @@ AnalysisOptions.FakeDataAngleVar: {
   ]
   PDG: 211
 }
+DoSysts: false
+AddSystTerm: false

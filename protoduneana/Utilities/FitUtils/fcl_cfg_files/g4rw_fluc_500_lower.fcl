@@ -1,12 +1,12 @@
 #include "asimov.fcl"
 
-MaxEntries: 120000 #152936 #
+MaxEntries: 20000 #152936 #
 MaxDataEntries: @local::MaxEntries
 
 DoThrows: false
 SplitMC: false 
 Shuffle: false 
-FitType:  "Normal"
+FitType:  "None"
 
 FluctuateStats: true 
 FluctuateInSamples: true

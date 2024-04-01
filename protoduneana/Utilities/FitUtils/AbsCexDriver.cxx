@@ -64,6 +64,7 @@ protoana::AbsCexDriver::AbsCexDriver(
       fDebugRestrictBeamP(extra_options.get<bool>("DebugRestrictBeamP", false)),
       fVaryDataCalibration(extra_options.get<bool>("VaryDataCalibration", false)),
       fVaryMCCalibration(extra_options.get<bool>("VaryMCCalibration", false)),
+      fVaryMCCalSelection(extra_options.get<bool>("VaryMCCalSelection", false)),
       fDataCalibrationFactor(extra_options.get<double>("DataCalibrationFactor", 1.)),
       fMCCalibrationFactor(extra_options.get<double>("MCCalibrationFactor", 1.)),
       fNThreads(extra_options.get<int>("NThreads", 1)),
@@ -155,7 +156,12 @@ protoana::AbsCexDriver::AbsCexDriver(
     fBeamShiftCovRoutineActive = true;
     OpenBeamShiftInput();
     GenerateBeamShiftUniverse();
+  }
 
+
+  fOutgoingSystActive = extra_options.get<bool>("DoOutgoingSyst", false);
+  if (fOutgoingSystActive) {
+    SetupOutgoingVarSyst();
   }
 }
 
@@ -167,6 +173,7 @@ void protoana::AbsCexDriver::FillMCEvents(
   std::cout << "Filling MC Events" << std::endl;
 
   int sample_ID, selection_ID, event, run, subrun;
+  int cal_up_selection_ID, cal_down_selection_ID;
   int true_beam_PDG;
   double true_beam_interactingEnergy, reco_beam_interactingEnergy, reco_beam_alt_len;
   double true_beam_endP, true_beam_mass, true_beam_endZ;
@@ -176,6 +183,7 @@ void protoana::AbsCexDriver::FillMCEvents(
   int vertex_nhits;
   double beam_inst_P;
   double leading_p_costheta, leading_piplus_costheta, leading_pi0_costheta;
+  double leading_p_momentum, leading_piplus_momentum, leading_pi0_momentum;
   std::vector<double> * reco_beam_incidentEnergies = 0x0,
                       * true_beam_incidentEnergies = 0x0,
                       * true_beam_traj_Z = 0x0,
@@ -197,6 +205,8 @@ void protoana::AbsCexDriver::FillMCEvents(
     tree->SetBranchAddress("inclusive_topology", &sample_ID);
     tree->SetBranchAddress("selection_ID_inclusive", &selection_ID);
   }
+  tree->SetBranchAddress("cal_up_selection_ID", &cal_up_selection_ID);
+  tree->SetBranchAddress("cal_down_selection_ID", &cal_down_selection_ID);
   tree->SetBranchAddress("true_beam_interactingEnergy", //good
                          &true_beam_interactingEnergy);
   tree->SetBranchAddress("true_beam_endP", &true_beam_endP); //good
@@ -272,6 +282,9 @@ void protoana::AbsCexDriver::FillMCEvents(
   tree->SetBranchAddress("leading_p_costheta", &leading_p_costheta);//good
   tree->SetBranchAddress("leading_piplus_costheta", &leading_piplus_costheta);//good
   tree->SetBranchAddress("leading_pi0_costheta", &leading_pi0_costheta);//good
+  tree->SetBranchAddress("leading_p_momentum", &leading_p_momentum);//good
+  tree->SetBranchAddress("leading_piplus_momentum", &leading_piplus_momentum);//good
+  tree->SetBranchAddress("leading_pi0_momentum", &leading_pi0_momentum);//good
   bool is_beam_scraper;
   tree->SetBranchAddress("true_beam_is_scraper", &is_beam_scraper);//good
 
@@ -284,6 +297,8 @@ void protoana::AbsCexDriver::FillMCEvents(
                          &reco_daughter_chi2_nhits);
   tree->SetBranchAddress("reco_daughter_allTrack_truncLibo_dEdX_pos",
                          &reco_daughter_truncated_dEdX);
+  int true_n_neutrons;
+  tree->SetBranchAddress("true_daughter_nNeutron", &true_n_neutrons);
 
   int nentries = (max_entries < 0 ? tree->GetEntries() : max_entries);
   if (max_entries > tree->GetEntries()) {
@@ -500,6 +515,8 @@ void protoana::AbsCexDriver::FillMCEvents(
     events.back().SetMCStatVarWeight(fRNG.Poisson(1));
     events.back().SetSampleID(sample_ID);
     events.back().SetSelectionID(selection_ID);
+    events.back().SetCalUpSelectionID(cal_up_selection_ID);
+    events.back().SetCalDownSelectionID(cal_down_selection_ID);
     events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
     if (fDoEnergyByLen) {
       events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
@@ -530,6 +547,7 @@ void protoana::AbsCexDriver::FillMCEvents(
        true_beam_incidentEnergies->at(0) : -999.));
     events.back().SetTrueTrajZ(*true_beam_traj_Z);
     events.back().SetTrueTrajKE(*true_beam_traj_KE);
+    events.back().SetTrueNNeutrons(true_n_neutrons);
     //events.back().SetTrueSlices(*true_beam_slices);
     //events.back().SetdQdXCalibrated(*calibrated_dQdX);
     //events.back().SetEField(*beam_EField);
@@ -542,6 +560,9 @@ void protoana::AbsCexDriver::FillMCEvents(
     events.back().SetLeadingPCostheta(leading_p_costheta);
     events.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
     events.back().SetLeadingPi0Costheta(leading_pi0_costheta);
+    events.back().SetLeadingPMomentum(leading_p_momentum);
+    events.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
+    events.back().SetLeadingPi0Momentum(leading_pi0_momentum);
     events.back().SetIsBeamScraper(is_beam_scraper);
 
     for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
@@ -620,6 +641,8 @@ void protoana::AbsCexDriver::FillMCEvents(
       fake_data_events.back().SetMCStatVarWeight(fRNG.Poisson(1));
       fake_data_events.back().SetSampleID(sample_ID);
       fake_data_events.back().SetSelectionID(selection_ID);
+      fake_data_events.back().SetCalUpSelectionID(cal_up_selection_ID);
+      fake_data_events.back().SetCalDownSelectionID(cal_down_selection_ID);
       fake_data_events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
       //fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
       if (fDoEnergyByLen) {
@@ -661,9 +684,13 @@ void protoana::AbsCexDriver::FillMCEvents(
       fake_data_events.back().SetLeadingPCostheta(leading_p_costheta);
       fake_data_events.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
       fake_data_events.back().SetLeadingPi0Costheta(leading_pi0_costheta);
+      fake_data_events.back().SetLeadingPMomentum(leading_p_momentum);
+      fake_data_events.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
+      fake_data_events.back().SetLeadingPi0Momentum(leading_pi0_momentum);
       fake_data_events.back().SetIsBeamScraper(is_beam_scraper);
 
       fake_data_events.back().SetTrueID(true_beam_ID);
+      fake_data_events.back().SetTrueNNeutrons(true_n_neutrons);
       fake_data_events.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
 
       //fake_data_events.back().MakeG4RWBranch("g4rw_alt_primary_plus_sigma_weight",
@@ -769,6 +796,13 @@ void protoana::AbsCexDriver::BuildMCSamples(
 
     int sample_ID = event.GetSampleID();
     int selection_ID = event.GetSelectionID();
+    if (fVaryMCCalibration && fVaryMCCalSelection) { 
+      selection_ID = (
+        (fMCCalibrationFactor > 1.) ?
+        event.GetCalUpSelectionID() :
+        event.GetCalDownSelectionID()
+      );
+    }
 
     double true_beam_interactingEnergy = event.GetTrueInteractingEnergy();
     double reco_beam_interactingEnergy = event.GetRecoInteractingEnergy();
@@ -908,8 +942,16 @@ void protoana::AbsCexDriver::BuildMCSamples(
         for (size_t k = 1; k < reco_beam_incidentEnergies.size(); ++k) {
           double deltaE = ((reco_beam_incidentEnergies)[k-1] -
                            (reco_beam_incidentEnergies)[k]);
-          if (deltaE > fEnergyFix) {
-            energy[0] += deltaE; 
+          if (fVaryMCCalibration) {
+            energy[0] += deltaE;
+            if (deltaE*fMCCalibrationFactor < fEnergyFix) {
+              energy[0] -= deltaE*fMCCalibrationFactor;
+            }
+          }
+          else {
+            if (deltaE > fEnergyFix) {
+              energy[0] += deltaE; 
+            }
           }
         }
       }
@@ -950,6 +992,96 @@ void protoana::AbsCexDriver::BuildMCSamples(
       }
     }
   }
+}
+
+
+void protoana::AbsCexDriver::SetupOutgoingVarSyst() {
+  std::cout << "Setting up outgoing var syst" << std::endl;
+  fhicl::ParameterSet options
+      = fExtraOptions.get<fhicl::ParameterSet>("OutgoingVarSyst");
+
+  fOutgoingSystVaryMomentum = options.get<bool>("VaryMomentum", false);
+
+  TFile * ratio_file = TFile::Open(options.get<std::string>("RatioFile").c_str());
+  std::string ratio_name = options.get<std::string>("RatioName");
+
+  //auto temp_ratio_names
+  //    = options.get<std::vector<std::pair<int, std::vector<std::string>>>>
+  //        ("RatioNames");
+  //std::map<int, std::vector<std::string>> ratio_names(
+  //    temp_ratio_names.begin(), temp_ratio_names.end());
+
+  auto temp_limits = options.get<std::vector<std::pair<int, std::vector<double>>>>("Limits");
+  fOutgoingSystLimits.insert(temp_limits.begin(), temp_limits.end());
+
+  for (int i = 1; i < 4; ++i) {
+    fOutgoingSystRatios[i] = std::vector<TH1D *>();
+    for (size_t j = 0; j < fOutgoingSystLimits[i].size()-1; ++j)  {
+    //for (auto n : ratio_names[i]) {
+      //std::string name = n + "_" + std::to_string(i);
+      std::string name = ratio_name + std::to_string(j) + "_" +
+                         std::to_string(i);
+      fOutgoingSystRatios[i].push_back((TH1D*)ratio_file->Get(name.c_str()));
+      fOutgoingSystRatios[i].back()->SetDirectory(0);
+    }
+  }
+  ratio_file->Close();
+  fOutgoingSystCheckPDG = options.get<int>("PDG");
+}
+
+double protoana::AbsCexDriver::GetEndKE(const ThinSliceEvent & event) {
+  double p = event.GetTrueEndP();
+  return sqrt(p*p*1.e6 + 139.57*139.57) - 139.57;
+}
+
+double protoana::AbsCexDriver::GetOutgoingVarWeight(
+    const ThinSliceEvent & event) { 
+
+  int sample_ID = event.GetSampleID();
+  if (sample_ID > 3) return 1.;
+
+  double leading_value = 0.;
+  if (fOutgoingSystCheckPDG == 2212) {
+    leading_value = (
+      fOutgoingSystVaryMomentum ?
+      event.GetLeadingPMomentum() :
+      event.GetLeadingPCostheta()
+    );
+  }
+  else if (fOutgoingSystCheckPDG == 211) {
+    leading_value = (
+      fOutgoingSystVaryMomentum ?
+      event.GetLeadingPiPlusMomentum() :
+      event.GetLeadingPiPlusCostheta()
+    );
+  }
+  else if (fOutgoingSystCheckPDG == 111) {
+    leading_value = (
+      fOutgoingSystVaryMomentum ?
+      event.GetLeadingPi0Momentum() :
+      event.GetLeadingPi0Costheta()
+    );
+  } 
+
+  if (leading_value < -100) return 1.;
+
+  TH1D * h = 0x0;
+  double ke = GetEndKE(event);
+  if (ke >= fOutgoingSystLimits[sample_ID].back()) {
+    return 1.;
+  }
+  else {
+    for (size_t j = 1; j < fOutgoingSystLimits[sample_ID].size(); ++j) {
+      if (ke >= fOutgoingSystLimits[sample_ID][j-1] &&
+          ke < fOutgoingSystLimits[sample_ID][j]) {
+        h = fOutgoingSystRatios[sample_ID][j-1];
+        break;
+      }
+    }
+  }
+
+  int bin = h->FindBin(leading_value);
+  return h->GetBinContent(bin);
 }
 
 void protoana::AbsCexDriver::RefillSampleLoop(
@@ -1142,6 +1274,16 @@ void protoana::AbsCexDriver::RefillSampleLoop(
     double val[1] = {0};
     
     int new_selection = selection_ID;
+
+    //Change the selection here
+    if (fVaryMCCalibration && !fFakeDataActive && fVaryMCCalSelection) { 
+      new_selection = (
+        (fMCCalibrationFactor > 1.) ?
+        event.GetCalUpSelectionID() :
+        event.GetCalDownSelectionID()
+      );
+    }
+
     TH1D * selected_hist
         = (TH1D*)this_sample->GetSelectionHists().at(new_selection);
     //if (new_selection == 4) {
@@ -1177,6 +1319,12 @@ void protoana::AbsCexDriver::RefillSampleLoop(
               energy[0] += deltaE;
               if (deltaE*fDataCalibrationFactor < fEnergyFix) {
                 energy[0] -= deltaE*fDataCalibrationFactor;
+              }
+            }
+            else if (fVaryMCCalibration && !fFakeDataActive) {
+              energy[0] += deltaE;
+              if (deltaE*fMCCalibrationFactor < fEnergyFix) {
+                energy[0] -= deltaE*fMCCalibrationFactor;
               }
             }
             else {
@@ -1251,6 +1399,11 @@ void protoana::AbsCexDriver::RefillSampleLoop(
     if (fUseMCStatVarWeight) {
       //std::cout << event.GetMCStatVarWeight() << std::endl;
       weight *= event.GetMCStatVarWeight();
+    }
+
+    if (fOutgoingSystActive) {
+      weight *= GetOutgoingVarWeight(event);
+      //std::cout << "Outgoing syst weight " << weight << std::endl;
     }
 
     std::lock_guard<std::mutex> guard(fRefillMutex);
@@ -2597,12 +2750,12 @@ void protoana::AbsCexDriver::BuildDataHists(
                   energy -= deltaE*fDataCalibrationFactor;
                 }
               }
-              else if (fVaryMCCalibration) {
+              /*else if (fVaryMCCalibration) {
                 energy += deltaE;
                 if (deltaE*fMCCalibrationFactor < fEnergyFix) {
                   energy -= deltaE*fMCCalibrationFactor;
                 }
-              }
+              }*/
               else {
                 if (deltaE > fEnergyFix) {
                   energy += deltaE; 
@@ -3658,8 +3811,12 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
     bool norm_to_data_beam_P) {
 
   //Build the map for fake data scales
-  fhicl::ParameterSet options 
+  fhicl::ParameterSet options
       = fExtraOptions.get<fhicl::ParameterSet>("FakeDataAngleVar");
+
+  bool do_ke = options.get<bool>("DoKE", false);
+  bool vary_momentum = options.get<bool>("VaryMomentum", false);
+  bool vary_n_products = options.get<bool>("VaryNProducts", false);
 
   TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
@@ -3719,14 +3876,32 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
     //const std::vector<double> & true_beam_incidentEnergies
     //    = event.GetTrueIncidentEnergies();
     double leading_costheta = 0.;
-    if (check_PDG == 2212) {
-      leading_costheta = event.GetLeadingPCostheta();
+
+    if (vary_n_products) {
+      leading_costheta = event.GetTrueNNeutrons();
     }
-    else if (check_PDG == 211) {
-      leading_costheta = event.GetLeadingPiPlusCostheta();
-    }
-    else if (check_PDG == 111) {
-      leading_costheta = event.GetLeadingPi0Costheta();
+    else {
+      if (check_PDG == 2212) {
+        leading_costheta = (
+          vary_momentum ?
+          event.GetLeadingPMomentum() :
+          event.GetLeadingPCostheta()
+        );
+      }
+      else if (check_PDG == 211) {
+        leading_costheta = (
+          vary_momentum ?
+          event.GetLeadingPiPlusMomentum() :
+          event.GetLeadingPiPlusCostheta()
+        );
+      }
+      else if (check_PDG == 111) {
+        leading_costheta = (
+          vary_momentum ?
+          event.GetLeadingPi0Momentum() :
+          event.GetLeadingPi0Costheta()
+        );
+      }
     }
 
     if (samples.find(sample_ID) == samples.end())
@@ -3760,7 +3935,12 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
       }
     }
 
-    double end_p = true_beam_endP*1.e3;
+    //Switch to KE here if necessary
+    double end_p = (
+        do_ke ?
+        sqrt(true_beam_endP*true_beam_endP*1.e6 + 139.57*139.57) - 139.57 :
+        true_beam_endP*1.e3
+    );
     if (sample_ID < 4 &&
         ((check_PDG == 211 && n_piplus > 0) ||
          (check_PDG == 2212 && n_p > 0) ||
@@ -3786,6 +3966,8 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
 
       int bin = h->FindBin(leading_costheta);
       scale *= h->GetBinContent(bin);
+      std::cout << leading_costheta << " " << bin << " " <<
+                   h->GetBinContent(bin) << std::endl;
       //std::cout << scale << std::endl;
     }
     all_scales.push_back(scale);
@@ -5905,9 +6087,6 @@ int protoana::AbsCexDriver::RecalculateSelectionID(
       const std::vector<double> & res_range
           =event.GetRecoDaughterTrackResRanges()[i];
       for (size_t j = 0; j < calibrated_dQdX.size(); ++j) {
-      //std::cout << C_cal << " " << (calibrated_dQdX)[j] << " " << fBetaP << " "
-      //          << fRho << " " << daughter_EField[j] << " " << fWion << " "
-      //          << fAlpha << std::endl;
         if (calibrated_dQdX[j] < 0)
           continue;
           //std::cout << "Warning dqdx < 0: " << calibrated_dQdX[j] << std::endl;

@@ -2,7 +2,7 @@
 DoFakeSel: false 
 FakeSel: 0. #.05
 
-DoNewFakeSel: true
+DoNewFakeSel: false #true
 
 DoFakeRes: true
 Resolution: 10.

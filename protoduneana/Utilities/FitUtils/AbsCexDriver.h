@@ -572,7 +572,7 @@ class AbsCexDriver : public ThinSliceDriver {
    std::vector<int> fERecoSelections, fEndZSelections, fOneBinSelections;
    double fBeamInstPScale/*, fMCBeamInstPShift*/;
    bool fRestrictBeamInstP, fDebugRestrictBeamP;
-   bool fVaryDataCalibration, fVaryMCCalibration, fThrowCalibration,
+   bool fVaryDataCalibration, fVaryMCCalibration, fVaryMCCalSelection, fThrowCalibration,
         fVaryCalibrationFakeData;
    double fDataCalibrationFactor, fMCCalibrationFactor;
    bool fBarlowBeeston;
@@ -642,6 +642,14 @@ class AbsCexDriver : public ThinSliceDriver {
                 fStartXDataSigma, fStartXMCSigma, 
                 fStartYDataSigma, fStartYMCSigma,
                 fStartZDataSigma, fStartZMCSigma;
+
+  void SetupOutgoingVarSyst();
+  double GetEndKE(const ThinSliceEvent & event);
+  double GetOutgoingVarWeight(const ThinSliceEvent & event);
+  bool fOutgoingSystVaryMomentum, fOutgoingSystActive;
+  std::map<int, std::vector<TH1D*>> fOutgoingSystRatios;
+  std::map<int, std::vector<double>> fOutgoingSystLimits;
+  int fOutgoingSystCheckPDG;
 };
 }
 #endif

@@ -1345,4 +1345,36 @@ G4RWFitAbsCexPars: [
   @local::g4rw_full_grid_abscex_coeff_other_900_2000
 ]
 
+##Effs
+piplus_costheta_eff: {
+  Name: "piplus_costheta_eff"
+  Central: 1.
+  LowerLimit: 0.0
+  UpperLimit: 1.447
+  ThrowLimit: 0.0
+  ThrowLimitUp: 1.447
+  GenThrowLimit: 0.00
+  GenThrowLimitUp: 1.447
+  Sigma: .2
+  IsCosThetaEff: true
+
+  Options: {
+    PDG: 211 
+    Frac:  0.691
+    Range: [0.5, 1.0]
+    ID: 3
+    Sel: 3
+  }
+}
+
+pi0_costheta_eff: @local::piplus_costheta_eff
+pi0_costheta_eff.Name: "pi0_costheta_eff"
+pi0_costheta_eff.Options: {
+  PDG: 111
+    Frac:  0.4
+    Range: [-.34, 0.82]
+    ID: 2
+    Sel: 2
+}
+
 END_PROLOG

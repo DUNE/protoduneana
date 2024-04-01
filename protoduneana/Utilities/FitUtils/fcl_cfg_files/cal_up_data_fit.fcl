@@ -1,5 +1,12 @@
+###cHECK ME
 #include "standard_data_fit.fcl"
 
+AnalysisOptions.UseBeamShift: false
+DoSysts: false
+AddSystTerm: false
+FitType: "None"
+MaxEntries: 40000
+MaxDataEntries: 40000
 DoThrows: false
 AnalysisOptions.VaryDataCalibration: true
 AnalysisOptions.DataCalibrationFactor: 1.03

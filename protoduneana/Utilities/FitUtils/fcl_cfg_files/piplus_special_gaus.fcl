@@ -27,3 +27,5 @@ AnalysisOptions.FakeDataAngleVar: {
   ]
   PDG: 211 
 }
+DoSysts: false
+AddSystTerm: false
