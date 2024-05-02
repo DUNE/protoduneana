@@ -4,15 +4,4 @@ MaxEntries: 100000
 MaxDataEntries: @local::MaxEntries
 
 AnalysisOptions.DoEnergyFix: false
-#standard_reco_bins: [[
-#  0.,
-#  300., 350., 400., 450.,
-#  500., 550., 600., 650.,
-#  700., 750., 800., 850.,
-#  900., 1200.
-#]]
-#
-#Selections[0].RecoBins: @local::standard_reco_bins
-#Selections[1].RecoBins: @local::standard_reco_bins
-#Selections[2].RecoBins: @local::standard_reco_bins
 FitFlux: false

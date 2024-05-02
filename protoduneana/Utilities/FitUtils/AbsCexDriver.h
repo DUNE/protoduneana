@@ -114,6 +114,11 @@ class AbsCexDriver : public ThinSliceDriver {
     ThinSliceDataSet & data_set, double & flux,
     std::map<int, std::vector<double>> & sample_scales,
     int split_val = 0);
+  void FakeDataMuonVar(
+    const std::vector<ThinSliceEvent> & events,
+    std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
+    ThinSliceDataSet & data_set, double & flux,
+    std::vector<double> & beam_fluxes);
 
   void FakeDataLowP(
     const std::vector<ThinSliceEvent> & events,
@@ -568,7 +573,7 @@ class AbsCexDriver : public ThinSliceDriver {
    PDSPSystematics * fSystematics = 0x0;
    PDSPSystematics * fG4RWPars = 0x0;
 
-   bool fInclusive;
+   bool fInclusive, fAltFluxVar, fNewFVSelection;
    std::vector<int> fERecoSelections, fEndZSelections, fOneBinSelections;
    double fBeamInstPScale/*, fMCBeamInstPShift*/;
    bool fRestrictBeamInstP, fDebugRestrictBeamP;
@@ -646,10 +651,25 @@ class AbsCexDriver : public ThinSliceDriver {
   void SetupOutgoingVarSyst();
   double GetEndKE(const ThinSliceEvent & event);
   double GetOutgoingVarWeight(const ThinSliceEvent & event);
-  bool fOutgoingSystVaryMomentum, fOutgoingSystActive;
-  std::map<int, std::vector<TH1D*>> fOutgoingSystRatios;
+  double GetPartialOutgoingWeight(
+    double leading_value, double ke, 
+    const std::vector<TH1D*> & ratios, const std::vector<double> & limits);
+  bool fOutgoingSystVaryMomentum, fOutgoingSystCombine, fOutgoingSystActive;
+  std::map<std::pair<int, int>, std::vector<TH1D*>> fOutgoingAngleRatios,
+                                                    fOutgoingMomentumRatios;
   std::map<int, std::vector<double>> fOutgoingSystLimits;
-  int fOutgoingSystCheckPDG;
+  std::vector<int> fOutgoingSystCheckPDGs;
+
+
+  void SetupMultiplicitySyst();
+  double GetMultiplicityWeight(const ThinSliceEvent & event);
+  bool fMultiplicitySystActive;
+  std::map<int, std::vector<TH1D*>> fMultiplicityRatios;
+  int fMultiplicityPDG;
+  std::vector<int> fMultiplicitySamples;
+  std::map<int, std::vector<double>> fMultiplicityLimits;
+  bool fPreScaleSelection;
+  double fNoBeamPreScale, fNoBeamFrac;
 };
 }
 #endif

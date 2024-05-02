@@ -10,7 +10,7 @@ parser = ap()
 parser.add_argument('-o', type=str, required=True)
 parser.add_argument('--total', action='store_true')
 parser.add_argument('-f', type=str, required=True)
-parser.add_argument('-x', type=str, required=True)
+parser.add_argument('-x', type=str, default='/exp/dune/data/users/calcuttj/old_data2/PiAnalysis_G4Prediction/thresh_abscex_xsecs.root')
 parser.add_argument('--genie', type=str, default=None)
 parser.add_argument('--xt', type=str, default=None)
 parser.add_argument('--al', type=int, default=0)
@@ -165,6 +165,8 @@ for i in [0, 1, 2]:
   result_xsecs[i].SetMarkerColor(RT.kBlack)
   if i == 0:
     leg = RT.TLegend()
+    leg.SetFillStyle(0)
+    leg.SetLineWidth(0)
     if args.xt:
       leg.AddEntry(g4_xsecs[i], 'Geant4 10.6 Thresholds', 'l')
     elif args.v:

@@ -76,7 +76,7 @@ namespace protoana {
     double min_length = 5., double min_x = -200.,
     double max_x = 0., double min_y = 200., double max_y = 500.,
     double min_z = 25., bool check_wire = true, double check_x = 0,
-    double check_y = 0., double check_z = 0.);
+    double check_y = 0., double check_z = 0., bool check_fv_len=false);
   std::pair<double, double> GetVertexMichelScore_weight_by_charge(
       const recob::Track & track, const art::Event & evt,
       const std::string trackModule, const std::string hitModule,

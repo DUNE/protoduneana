@@ -42,8 +42,9 @@ args = parser.parse_args()
 ##Begin fife_launch cmd 
 cmd = ['fife_launch', '-c', args.config]
 
+fit_type = args.type.replace('.fcl', '')
 
-output_str = '*%s.root'%args.type
+output_str = '*%s.root'%fit_type
 print('output_str:', output_str)
 cmd += ['-Ojob_output.addoutput=%s'%output_str]
 
@@ -68,8 +69,8 @@ cmd += ['-Oglobal.protoduneana_version=%s'%os.getenv('PROTODUNEANA_VERSION')]
 #  cmd += ['-Oglobal.cov_name=%s'%args.cov.split('/')[-1]]
 
 ##Miscellanea
-cmd += ['-Oglobal.output_name=%(process)s_' + '%s.root'%args.type]
-cmd += ['-Oglobal.fcl_name=%s.fcl'%args.type]
+cmd += ['-Oglobal.output_name=%(process)s_' + '%s.root'%fit_type]
+cmd += ['-Oglobal.fcl_name=%s.fcl'%fit_type]
 cmd += ['-Oexecutable.arg_2=%(fcl_name)s']
 cmd += ['-Osubmit.expected-lifetime=%s'%args.lifetime]
 
@@ -77,7 +78,7 @@ input_file = args.input_file.replace('/pnfs/', 'root://fndca1.fnal.gov:1094//pnf
 cmd += ['-Oglobal.input_file=%s'%input_file]
 
 
-if 'toy' in args.type or 'alt_sce' in args.type or args.multiple:
+if 'toy' in fit_type or 'alt_sce' in fit_type or args.multiple:
   cmd += ['-Osubmit.N=%i'%args.N]
 
 arg_count = 7

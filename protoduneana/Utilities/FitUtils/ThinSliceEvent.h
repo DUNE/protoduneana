@@ -41,6 +41,7 @@ class ThinSliceEvent {
     has_pi0_shower = false;
     true_daughter_PDGs = std::vector<int>();
     true_n_neutrons = -999;
+    true_n_protons = -999;
     reco_beam_origin = -999;
     reco_daughter_truncated_dEdX = std::vector<double>();
     reco_daughter_chi2s_perhit = std::vector<double>();
@@ -511,6 +512,20 @@ class ThinSliceEvent {
   void SetTrueNNeutrons(int i) {true_n_neutrons = i;};
   double GetTrueNNeutrons() const {return true_n_neutrons;};
 
+  void SetTrueNProtons(int i) {true_n_protons = i;};
+  double GetTrueNProtons() const {return true_n_protons;};
+
+  void SetTrueNPiPlus(int i) {true_n_piplus = i;};
+  double GetTrueNPiPlus() const {return true_n_piplus;};
+
+  void SetTrueNPiMinus(int i) {true_n_piminus = i;};
+  double GetTrueNPiMinus() const {return true_n_piminus;};
+
+  void SetTrueNPi0(int i) {true_n_pi0 = i;};
+  double GetTrueNPi0() const {return true_n_pi0;};
+
+
+
  private:
   int event_ID, subrun_ID, run_ID;
   int sample_ID;
@@ -557,7 +572,8 @@ class ThinSliceEvent {
   int vertex_nhits;
   double stored_reco_energy = -999.;
   double mc_stat_var_weight = 1.;
-  int true_n_neutrons = -999;
+  int true_n_neutrons = -999, true_n_protons = -999, true_n_piplus = -999,
+      true_n_piminus = -999, true_n_pi0 = -999;
 };
 }
 #endif

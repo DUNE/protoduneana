@@ -155,6 +155,48 @@ class selection_ID {
   }
 };
 
+class selection_ID_FV {
+ private:
+  bool fDoMichel;
+ public:
+  selection_ID_FV(bool do_michel) : fDoMichel(do_michel) {};
+
+  int operator()(bool beam_is_track, bool ends_in_APA3,
+                 bool no_pion_daughter,
+                 bool reach_FV,
+                 bool beam_cuts, bool has_shower, bool michel_cut) {
+
+    if (!beam_is_track) {
+      return 6;
+    }
+    if (!reach_FV) {
+      return 8;
+    }
+    if (!beam_cuts) {
+      return 5;
+    }
+    
+    if (!ends_in_APA3) {
+      return 4;
+    }
+
+    if (fDoMichel && michel_cut) {
+      return 7;
+    }
+
+    if (!no_pion_daughter) {
+      return 3;
+    }
+
+    if (has_shower) {
+      return 2;
+    }
+    else {
+      return 1;
+    }
+  }
+};
+
 class recalc_chi2_proton {
   private:
     TProfile * fTemplate;
@@ -803,6 +845,13 @@ class FV_values {
     }
 };
 
+class reach_FV {
+  private:
+    double fZMin;
+  public:
+    reach_FV(double zmin) : fZMin(zmin) {};
+    bool operator()(double calo_endZ) {return (calo_endZ >= fZMin);}
+};
 class beam_cut_FV {
   private:
     double fZMin;
@@ -1099,7 +1148,7 @@ class fake_selection {
 
     int operator()(int true_id, int sel_ID) {
       double r = fRNG.Uniform(0., 1.);
-      if (sel_ID == 5 || sel_ID == 6) return 6;
+      //if (sel_ID == 5 || sel_ID == 6) return 6;
 
       if (true_id > 4)
         return 4;

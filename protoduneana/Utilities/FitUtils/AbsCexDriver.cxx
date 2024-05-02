@@ -55,6 +55,8 @@ protoana::AbsCexDriver::AbsCexDriver(
       fEndZCut(extra_options.get<double>("EndZCut")),
       fSliceMethod(extra_options.get<std::string>("SliceMethod")),
       fInclusive(extra_options.get<bool>("Inclusive", false)),
+      fAltFluxVar(extra_options.get<bool>("AltFluxVar", false)),
+      fNewFVSelection(extra_options.get<bool>("NewFVSelection", false)),
       fERecoSelections(extra_options.get<std::vector<int>>("ERecoSelections", {})),
       fEndZSelections(extra_options.get<std::vector<int>>("EndZSelections", {})),
       fOneBinSelections(extra_options.get<std::vector<int>>("OneBinSelections", {})),
@@ -163,6 +165,21 @@ protoana::AbsCexDriver::AbsCexDriver(
   if (fOutgoingSystActive) {
     SetupOutgoingVarSyst();
   }
+
+  fMultiplicitySystActive = extra_options.get<bool>(
+      "DoMultiplicitySyst", false);
+  if (fMultiplicitySystActive) {
+    SetupMultiplicitySyst();
+  }
+
+  //For pre scaling SCE Off no-beam rate to better match SCE on
+  fPreScaleSelection = extra_options.get<bool>("PreScaleSelection", false);
+  if (fPreScaleSelection) {
+    fNoBeamPreScale = extra_options.get<double>("NoBeamPreScale", 1.);
+    fNoBeamFrac = extra_options.get<double>("NoBeamFrac", 0.);
+    std::cout << "PreScaleSelection: " << fNoBeamPreScale << " " <<
+                 fNoBeamFrac << std::endl;
+  }
 }
 
 void protoana::AbsCexDriver::FillMCEvents(
@@ -199,7 +216,13 @@ void protoana::AbsCexDriver::FillMCEvents(
 
   if (!fInclusive) { //good
     tree->SetBranchAddress("new_interaction_topology", &sample_ID);
-    tree->SetBranchAddress("selection_ID", &selection_ID);
+
+    if (fNewFVSelection) {
+      tree->SetBranchAddress("selection_ID_FV", &selection_ID);
+    }
+    else {
+      tree->SetBranchAddress("selection_ID", &selection_ID);
+    }
   }
   else {
     tree->SetBranchAddress("inclusive_topology", &sample_ID);
@@ -297,8 +320,13 @@ void protoana::AbsCexDriver::FillMCEvents(
                          &reco_daughter_chi2_nhits);
   tree->SetBranchAddress("reco_daughter_allTrack_truncLibo_dEdX_pos",
                          &reco_daughter_truncated_dEdX);
-  int true_n_neutrons;
+  int true_n_neutrons, true_n_protons, true_n_piplus, true_n_piminus,
+      true_n_pi0;
   tree->SetBranchAddress("true_daughter_nNeutron", &true_n_neutrons);
+  tree->SetBranchAddress("true_daughter_nProton", &true_n_protons);
+  tree->SetBranchAddress("true_daughter_nPiPlus", &true_n_piplus);
+  tree->SetBranchAddress("true_daughter_nPiMinus", &true_n_piminus);
+  tree->SetBranchAddress("true_daughter_nPi0", &true_n_pi0);
 
   int nentries = (max_entries < 0 ? tree->GetEntries() : max_entries);
   if (max_entries > tree->GetEntries()) {
@@ -548,6 +576,10 @@ void protoana::AbsCexDriver::FillMCEvents(
     events.back().SetTrueTrajZ(*true_beam_traj_Z);
     events.back().SetTrueTrajKE(*true_beam_traj_KE);
     events.back().SetTrueNNeutrons(true_n_neutrons);
+    events.back().SetTrueNProtons(true_n_protons);
+    events.back().SetTrueNPiPlus(true_n_piplus);
+    events.back().SetTrueNPiMinus(true_n_piminus);
+    events.back().SetTrueNPi0(true_n_pi0);
     //events.back().SetTrueSlices(*true_beam_slices);
     //events.back().SetdQdXCalibrated(*calibrated_dQdX);
     //events.back().SetEField(*beam_EField);
@@ -691,6 +723,10 @@ void protoana::AbsCexDriver::FillMCEvents(
 
       fake_data_events.back().SetTrueID(true_beam_ID);
       fake_data_events.back().SetTrueNNeutrons(true_n_neutrons);
+      fake_data_events.back().SetTrueNProtons(true_n_protons);
+      fake_data_events.back().SetTrueNPiPlus(true_n_piplus);
+      fake_data_events.back().SetTrueNPiMinus(true_n_piminus);
+      fake_data_events.back().SetTrueNPi0(true_n_pi0);
       fake_data_events.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
 
       //fake_data_events.back().MakeG4RWBranch("g4rw_alt_primary_plus_sigma_weight",
@@ -1001,32 +1037,89 @@ void protoana::AbsCexDriver::SetupOutgoingVarSyst() {
       = fExtraOptions.get<fhicl::ParameterSet>("OutgoingVarSyst");
 
   fOutgoingSystVaryMomentum = options.get<bool>("VaryMomentum", false);
+  fOutgoingSystCombine = options.get<bool>("Combine", false);
 
   TFile * ratio_file = TFile::Open(options.get<std::string>("RatioFile").c_str());
   std::string ratio_name = options.get<std::string>("RatioName");
 
-  //auto temp_ratio_names
-  //    = options.get<std::vector<std::pair<int, std::vector<std::string>>>>
-  //        ("RatioNames");
-  //std::map<int, std::vector<std::string>> ratio_names(
-  //    temp_ratio_names.begin(), temp_ratio_names.end());
-
   auto temp_limits = options.get<std::vector<std::pair<int, std::vector<double>>>>("Limits");
   fOutgoingSystLimits.insert(temp_limits.begin(), temp_limits.end());
 
-  for (int i = 1; i < 4; ++i) {
-    fOutgoingSystRatios[i] = std::vector<TH1D *>();
-    for (size_t j = 0; j < fOutgoingSystLimits[i].size()-1; ++j)  {
-    //for (auto n : ratio_names[i]) {
-      //std::string name = n + "_" + std::to_string(i);
-      std::string name = ratio_name + std::to_string(j) + "_" +
-                         std::to_string(i);
-      fOutgoingSystRatios[i].push_back((TH1D*)ratio_file->Get(name.c_str()));
-      fOutgoingSystRatios[i].back()->SetDirectory(0);
+  std::vector<int> pdgs = {211, 111, 2212};
+  std::map<int, std::string> pdg_names = {
+    {211, "piplus"}, {111, "pi0"}, {2212, "p"}
+  };
+  ratio_name.replace(ratio_name.find("{value}"), 7, "costheta");
+  for (const auto & pdg : pdgs) {
+    std::string temp_name = ratio_name;
+    temp_name.replace(temp_name.find("{part}"), 6, pdg_names[pdg]);
+    for (int i = 1; i < 4; ++i) {
+      fOutgoingAngleRatios[{i, pdg}] = std::vector<TH1D *>();
+      for (size_t j = 0; j < fOutgoingSystLimits[i].size()-1; ++j)  {
+        std::string name = temp_name + std::to_string(j) + "_" +
+                           std::to_string(i);
+        fOutgoingAngleRatios[{i, pdg}].push_back((TH1D*)ratio_file->Get(name.c_str()));
+        std::cout << name << " " << fOutgoingAngleRatios[{i, pdg}].back() << std::endl;
+        fOutgoingAngleRatios[{i, pdg}].back()->SetDirectory(0);
+      }
     }
   }
+
+  ratio_name.replace(ratio_name.find("costheta"), 8, "momentum");
+  for (const auto & pdg : pdgs) {
+    std::string temp_name = ratio_name;
+    temp_name.replace(temp_name.find("{part}"), 6, pdg_names[pdg]);
+    for (int i = 1; i < 4; ++i) {
+      fOutgoingMomentumRatios[{i, pdg}] = std::vector<TH1D *>();
+      for (size_t j = 0; j < fOutgoingSystLimits[i].size()-1; ++j)  {
+        std::string name = temp_name + std::to_string(j) + "_" +
+                           std::to_string(i);
+        fOutgoingMomentumRatios[{i, pdg}].push_back(
+            (TH1D*)ratio_file->Get(name.c_str()));
+        fOutgoingMomentumRatios[{i, pdg}].back()->SetDirectory(0);
+      }
+    }
+  }
+
   ratio_file->Close();
-  fOutgoingSystCheckPDG = options.get<int>("PDG");
+  fOutgoingSystCheckPDGs = options.get<std::vector<int>>("PDGs");
+}
+
+void protoana::AbsCexDriver::SetupMultiplicitySyst() {
+  std::cout << "Setting up multiplicity syst" << std::endl;
+  fhicl::ParameterSet options
+      = fExtraOptions.get<fhicl::ParameterSet>("MultiplicitySyst");
+
+  fMultiplicityPDG = options.get<int>("PDG");
+  fMultiplicitySamples = options.get<std::vector<int>>("Topologies", {1,2,3});
+  TFile * ratio_file
+      = TFile::Open(options.get<std::string>("RatioFile").c_str());
+  std::string ratio_name = options.get<std::string>("RatioName");
+  std::cout << "Ratio name: " << ratio_name << std::endl;
+
+  auto temp_limits
+      = options.get<std::vector<std::pair<int, std::vector<double>>>>("Limits");
+  fMultiplicityLimits.insert(temp_limits.begin(), temp_limits.end());
+
+  for (int i = 1; i < 4; ++i) {
+    //fMultiplicityRatios[i] = std::vector<TH1D *>();
+    auto temp_name = ratio_name;
+    std::cout << temp_name << " replacing " <<
+                 temp_name.find("{topo}") << std::endl;
+    temp_name.replace(temp_name.find("{topo}"), 6, std::to_string(i));
+    //fMultiplicityRatios[i] = (TH1D*)ratio_file->Get(name.c_str());
+    //std::cout << name << " " << fMultiplicityRatios[i] << std::endl;
+    //fMultiplicityRatios[i]->SetDirectory(0);
+    for (size_t j = 0; j < fMultiplicityLimits[i].size()-1; ++j)  {
+      std::string name = temp_name;
+      name.replace(name.find("{ke}"), 4, std::to_string(j+1));
+      fMultiplicityRatios[i].push_back((TH1D*)ratio_file->Get(name.c_str()));
+      std::cout << name << " " << fMultiplicityRatios[i].back() << std::endl;
+      fMultiplicityRatios[i].back()->SetDirectory(0);
+    }
+  }
+
+  ratio_file->Close();
 }
 
 double protoana::AbsCexDriver::GetEndKE(const ThinSliceEvent & event) {
@@ -1034,47 +1127,22 @@ double protoana::AbsCexDriver::GetEndKE(const ThinSliceEvent & event) {
   return sqrt(p*p*1.e6 + 139.57*139.57) - 139.57;
 }
 
-double protoana::AbsCexDriver::GetOutgoingVarWeight(
-    const ThinSliceEvent & event) { 
-
-  int sample_ID = event.GetSampleID();
-  if (sample_ID > 3) return 1.;
-
-  double leading_value = 0.;
-  if (fOutgoingSystCheckPDG == 2212) {
-    leading_value = (
-      fOutgoingSystVaryMomentum ?
-      event.GetLeadingPMomentum() :
-      event.GetLeadingPCostheta()
-    );
-  }
-  else if (fOutgoingSystCheckPDG == 211) {
-    leading_value = (
-      fOutgoingSystVaryMomentum ?
-      event.GetLeadingPiPlusMomentum() :
-      event.GetLeadingPiPlusCostheta()
-    );
-  }
-  else if (fOutgoingSystCheckPDG == 111) {
-    leading_value = (
-      fOutgoingSystVaryMomentum ?
-      event.GetLeadingPi0Momentum() :
-      event.GetLeadingPi0Costheta()
-    );
-  } 
+double protoana::AbsCexDriver::GetPartialOutgoingWeight(
+  double leading_value, double ke,
+  const std::vector<TH1D*> & ratios, const std::vector<double> & limits) {
 
   if (leading_value < -100) return 1.;
 
   TH1D * h = 0x0;
-  double ke = GetEndKE(event);
-  if (ke >= fOutgoingSystLimits[sample_ID].back()) {
+  //double ke = GetEndKE(event);
+  if (ke >= limits.back()) {
     return 1.;
   }
   else {
-    for (size_t j = 1; j < fOutgoingSystLimits[sample_ID].size(); ++j) {
-      if (ke >= fOutgoingSystLimits[sample_ID][j-1] &&
-          ke < fOutgoingSystLimits[sample_ID][j]) {
-        h = fOutgoingSystRatios[sample_ID][j-1];
+    for (size_t j = 1; j < limits.size(); ++j) {
+      if (ke >= limits[j-1] &&
+          ke < limits[j]) {
+        h = ratios[j-1];
         break;
       }
     }
@@ -1082,6 +1150,97 @@ double protoana::AbsCexDriver::GetOutgoingVarWeight(
 
   int bin = h->FindBin(leading_value);
   return h->GetBinContent(bin);
+}
+
+double protoana::AbsCexDriver::GetOutgoingVarWeight(
+    const ThinSliceEvent & event) { 
+
+  int sample_ID = event.GetSampleID();
+  if (sample_ID > 3) return 1.;
+  double ke = GetEndKE(event);
+  if (ke >= fOutgoingSystLimits[sample_ID].back()) {
+    return 1.;
+  }
+
+  double weight = 1.;
+  for (auto & pdg : fOutgoingSystCheckPDGs) {
+    double leading_momentum = 0.;
+    double leading_costheta = 0.;
+    if (pdg == 2212) {
+      leading_momentum = event.GetLeadingPMomentum();
+      leading_costheta = event.GetLeadingPCostheta();
+    }
+    else if (pdg == 211) {
+      leading_momentum = event.GetLeadingPiPlusMomentum();
+      leading_costheta = event.GetLeadingPiPlusCostheta();
+    }
+    else if (pdg == 111) {
+      leading_momentum = event.GetLeadingPi0Momentum();
+      leading_costheta = event.GetLeadingPi0Costheta();
+    }
+
+    if (!fOutgoingSystVaryMomentum || fOutgoingSystCombine) {
+      weight *= GetPartialOutgoingWeight(
+        leading_costheta, ke,
+        fOutgoingAngleRatios[{sample_ID, pdg}],
+        fOutgoingSystLimits[sample_ID]
+      );
+    }
+    if (fOutgoingSystVaryMomentum || fOutgoingSystCombine) {
+      weight *= GetPartialOutgoingWeight(
+        leading_momentum, ke,
+        fOutgoingMomentumRatios[{sample_ID, pdg}],
+        fOutgoingSystLimits[sample_ID]
+      );
+    }
+  }
+
+  return weight;
+}
+
+double protoana::AbsCexDriver::GetMultiplicityWeight(
+    const ThinSliceEvent & event) {
+  int sample_ID = event.GetSampleID();
+  if (std::find(
+          fMultiplicitySamples.begin(),
+          fMultiplicitySamples.end(),
+          sample_ID
+      ) == fMultiplicitySamples.end()) {
+    return 1.; 
+  }
+  double ke = GetEndKE(event);
+  if (ke >= fMultiplicityLimits[sample_ID].back()) {
+    return 1.;
+  }
+
+  int n = 0;
+  if (fMultiplicityPDG == 2212) {
+    n = event.GetTrueNProtons();
+  }
+  else if (fMultiplicityPDG == 2112) {
+    n = event.GetTrueNNeutrons();
+  }
+  else if (fMultiplicityPDG == 211) {
+    n = event.GetTrueNPiPlus();
+  }
+  else if (fMultiplicityPDG == -211) {
+    n = event.GetTrueNPiMinus();
+  }
+  else if (fMultiplicityPDG == 111) {
+    n = event.GetTrueNPi0();
+  }
+
+
+  return GetPartialOutgoingWeight(n, ke, fMultiplicityRatios[sample_ID],
+                                  fMultiplicityLimits[sample_ID]);
+  /*auto * ratio = fMultiplicityRatios[sample_ID];
+  int bin = ratio->FindBin(n);
+  if (bin == 0 || bin > ratio->GetNbinsX()) {
+    return 1.;
+  }
+  else {
+    return ratio->GetBinContent(bin);
+  }*/
 }
 
 void protoana::AbsCexDriver::RefillSampleLoop(
@@ -1266,9 +1425,11 @@ void protoana::AbsCexDriver::RefillSampleLoop(
       }
     }
 
-    int flux_type = this_sample->GetFluxType();
-    if (flux_pars.find(flux_type) != flux_pars.end()) {
-      weight *= flux_pars.at(flux_type);
+    if (!fAltFluxVar) {
+      int flux_type = this_sample->GetFluxType();
+      if (flux_pars.find(flux_type) != flux_pars.end()) {
+        weight *= flux_pars.at(flux_type);
+      }
     }
 
     double val[1] = {0};
@@ -1404,6 +1565,20 @@ void protoana::AbsCexDriver::RefillSampleLoop(
     if (fOutgoingSystActive) {
       weight *= GetOutgoingVarWeight(event);
       //std::cout << "Outgoing syst weight " << weight << std::endl;
+    }
+
+    if (fMultiplicitySystActive) {
+      weight *= GetMultiplicityWeight(event);
+    }
+
+    //Implement here new prescale stuff after designing
+    if (fPreScaleSelection) {
+      if (new_selection == 6) {
+        weight *= fNoBeamPreScale;
+      }
+      else {
+        weight *= (1. - fNoBeamPreScale*fNoBeamFrac)/(1. - fNoBeamFrac);
+      }
     }
 
     std::lock_guard<std::mutex> guard(fRefillMutex);
@@ -2813,6 +2988,12 @@ void protoana::AbsCexDriver::BuildFakeData(
   else if (fFakeDataRoutine == "EffVar") {
     FakeDataEffVar(events, samples, signal_sample_checks, data_set, flux,
                  sample_scales, split_val);
+  }
+  else if (fFakeDataRoutine == "MuonVar") {
+    for (size_t i = 0; i < beam_energy_bins.size()-1; ++i) {
+      beam_fluxes.push_back(0.);
+    }
+    FakeDataMuonVar(events, samples, data_set, flux, beam_fluxes);
   }
   else if (fFakeDataRoutine == "LowP") {
     FakeDataLowP(events, samples, signal_sample_checks, data_set, flux,
@@ -4803,6 +4984,237 @@ void protoana::AbsCexDriver::FakeDataEffVar(
       it->second[i] = 1.;
     }
   }
+}
+
+void protoana::AbsCexDriver::FakeDataMuonVar(
+    const std::vector<ThinSliceEvent> & events,
+    std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
+    ThinSliceDataSet & data_set, double & flux,
+    std::vector<double> & beam_fluxes) {
+
+  //Build the map for fake data scales
+  fhicl::ParameterSet options 
+      = fExtraOptions.get<fhicl::ParameterSet>("FakeDataMuonVar");
+  double muon_scale = options.get<double>("MuonScale", 1.);
+
+
+  std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
+
+  flux = events.size();
+  
+  double pion_flux = 0., muon_flux = 0.;
+  std::vector<double> muon_fluxes(beam_fluxes.size(), 0.),
+                      pion_fluxes(beam_fluxes.size(), 0.);
+  for (auto & sample : samples) {
+    auto sample_ID = sample.first;
+    auto sample_vec2D = sample.second;
+    for (size_t i = 0; i < sample_vec2D.size(); ++i) {
+      for (size_t j = 0; j < sample_vec2D[i].size(); ++j) {
+        double this_flux = sample_vec2D[i][j].GetNominalFlux();
+        beam_fluxes[i] += this_flux;
+        if (sample_ID == 5) {
+          muon_fluxes[i] += this_flux;
+          muon_flux += this_flux;
+        }
+        else {
+          pion_fluxes[i] += this_flux;
+          pion_flux += this_flux;
+        }
+      }
+    }
+  }
+
+
+  std::vector<double> pion_scales(beam_fluxes.size(), 1.);
+  double total_scaled = 0.;
+  for (size_t i = 0; i < muon_fluxes.size(); ++i) {
+    std::cout << i << " mu: " << muon_fluxes[i] << " pi: " << pion_fluxes[i] <<
+                 " " << beam_fluxes[i] << std::endl;
+
+    double varied_pions = beam_fluxes[i] - muon_scale*muon_fluxes[i];
+    std::cout << varied_pions << std::endl;
+    pion_scales[i] = varied_pions/pion_fluxes[i];
+    total_scaled += varied_pions;
+  }
+  std::cout << "Varied pions: " << total_scaled;
+
+  std::cout << "Flux: " << flux << " pion: " << pion_flux << " muon: " <<
+               muon_flux << " both: " << pion_flux + muon_flux << std::endl;
+
+  double mu_frac = muon_flux/flux;
+  double scaled_muon = muon_scale*muon_flux;
+  double pion_scale = (1. - (scaled_muon/flux))/(1. - mu_frac);
+  double scaled_pion = pion_scale*pion_flux;
+  std::cout << "Flux: " << flux << " pion: " << scaled_pion << " muon: " <<
+               scaled_muon << " both: " << scaled_pion + scaled_muon <<
+               std::endl;
+  for (auto & bf : beam_fluxes) bf = 0.;
+  for (auto & sample : samples) {
+    auto sample_ID = sample.first;
+    auto sample_vec2D = sample.second;
+    for (size_t i = 0; i < sample_vec2D.size(); ++i) {
+      for (size_t j = 0; j < sample_vec2D[i].size(); ++j) {
+        auto & sample_ij = sample_vec2D[i][j];
+        std::cout << sample_ij.GetFactor() << " " << sample_ij.GetNominalFlux() << " " <<
+                     sample_ij.GetVariedFlux() << std::endl;
+        sample_ij.SetFactorAndScale(
+          //(sample_ID == 2 ? muon_scale : pion_scale)
+          (sample_ID == 5 ? muon_scale : pion_scales[i])
+        );
+        std::cout << sample_ij.GetFactor() << " " << sample_ij.GetNominalFlux() << " " <<
+                     sample_ij.GetVariedFlux() << std::endl;
+
+        beam_fluxes[i] += sample_ij.GetVariedFlux();
+
+        for (auto & selection_hist: selected_hists) {
+          auto * hist = selection_hist.second;
+          auto sel = selection_hist.first;
+          hist->Add(sample_ij.GetSelectionHist(sel));
+        }
+      }
+    }
+  }
+  /*for (size_t i = 0; i < events.size(); ++i) {
+    const ThinSliceEvent & event = events.at(i);
+
+    int sample_ID = event.GetSampleID();
+    int selection_ID = event.GetSelectionID();
+    double true_beam_interactingEnergy
+        = event.GetTrueInteractingEnergy();
+    double reco_beam_interactingEnergy
+        = event.GetRecoInteractingEnergy();
+    double true_beam_endP = event.GetTrueEndP();
+    const std::vector<double> & reco_beam_incidentEnergies
+        = event.GetRecoIncidentEnergies();
+    double reco_beam_endZ = event.GetRecoEndZ();
+    const std::vector<double> & true_beam_traj_Z = event.GetTrueTrajZ();
+    const std::vector<double> & true_beam_traj_KE = event.GetTrueTrajKE();
+    //const std::vector<int>    & true_beam_slices = event.GetTrueSlices();
+    //const std::vector<double> & true_beam_incidentEnergies
+    //    = event.GetTrueIncidentEnergies();
+
+    const std::vector<double> & daughter_Theta
+        = event.GetRecoDaughterTrackThetas();
+    //const std::vector<int> & daughter_true_PDG
+    //    = event.GetTrueDaughterPDGs();
+    const std::vector<double> & daughter_track_score
+        = event.GetRecoDaughterTrackThetas();
+
+    if (samples.find(sample_ID) == samples.end())
+      continue;
+
+    double end_energy = true_beam_interactingEnergy;
+    if (fSliceMethod == "Traj") {
+      end_energy = sqrt(true_beam_endP*true_beam_endP*1.e6 + 139.57*139.57) - 139.57;
+    }
+
+    double val = 0.;
+    if (selection_ID == 4) {
+      if (selected_hists[selection_ID]->FindBin(reco_beam_endZ) == 0) {
+        val = selected_hists[selection_ID]->GetBinCenter(1);
+      }
+      else if (selected_hists[selection_ID]->FindBin(reco_beam_endZ) >
+               selected_hists[selection_ID]->GetNbinsX()) {
+        val = selected_hists[selection_ID]->GetBinCenter(
+            selected_hists[selection_ID]->GetNbinsX());
+      }
+      else {
+        val = reco_beam_endZ;
+      }
+    }
+    else if (selection_ID > 4) {
+      val = .5;
+    }
+    else if (reco_beam_incidentEnergies.size()) {
+      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
+        incident_hist.Fill(reco_beam_incidentEnergies[j]);
+      }
+      if (selected_hists.find(selection_ID) != selected_hists.end()) {
+        if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
+          double energy = reco_beam_interactingEnergy;
+          if (fDoEnergyFix) {
+            for (size_t k = 1; k < reco_beam_incidentEnergies.size(); ++k) {
+              double deltaE = (reco_beam_incidentEnergies[k-1] -
+                               reco_beam_incidentEnergies[k]);
+              if (deltaE > fEnergyFix) {
+                energy += deltaE; 
+              }
+            }
+          }
+          if (selected_hists[selection_ID]->FindBin(energy) == 0) {
+            val = selected_hists[selection_ID]->GetBinCenter(1);
+          }
+          else if (selected_hists[selection_ID]->FindBin(energy) >
+                   selected_hists[selection_ID]->GetNbinsX()) {
+            val = selected_hists[selection_ID]->GetBinCenter(
+                selected_hists[selection_ID]->GetNbinsX());
+          }
+          else {
+            val = energy;
+          }
+        }
+      }
+    }
+    else {
+      val = selected_hists[selection_ID]->GetBinCenter(1);
+    }
+
+    bool is_signal = signal_sample_checks.at(sample_ID);
+    ThinSliceSample * this_sample = 0x0;
+    if (is_signal) {
+      std::vector<ThinSliceSample> & samples_vec = samples[sample_ID][0];
+      //Get the samples vec from the first beam energy bin
+      bool found = false;
+      for (size_t j = 1; j < samples_vec.size()-1; ++j) {
+        ThinSliceSample & sample = samples_vec.at(j);
+        if (sample.CheckInSignalRange(end_energy)) {     
+          this_sample = &sample;
+          break;
+        }
+      }
+      if (!found) {
+        if (end_energy < samples_vec[1].RangeLowEnd()) {
+          this_sample = &samples_vec[0];
+        }
+        else if (end_energy >
+                 samples_vec[samples_vec.size()-2].RangeHighEnd()) {
+          this_sample = &samples_vec.back();
+        }
+      }
+    }
+    else {
+      this_sample = &samples[sample_ID][0][0];
+    }
+    this_sample->AddVariedFlux();
+    std::vector<double> good_true_incEnergies = MakeTrueIncidentEnergies(
+        true_beam_traj_Z, true_beam_traj_KE);
+    this_sample->AddIncidentEnergies(good_true_incEnergies);
+
+    if (selection_ID < 3) {
+      int new_selection = selection_ID;
+      for (size_t j = 0; j < daughter_Theta.size(); ++j) {
+        if ((daughter_track_score[j] < 1. && daughter_track_score[j] > .3) &&
+            (daughter_Theta[j] > -999) &&
+            (daughter_Theta[j]*180./TMath::Pi() < 20.)) {
+          double r = fRNG.Uniform();
+          if (r < check_val) {
+            new_selection = 3;
+            break;
+          }
+        }
+      }
+      selected_hists[new_selection]->Fill(val);
+    }
+    else {
+      selected_hists[selection_ID]->Fill(val);
+    }
+  }*/
+
+  /*for (auto it = sample_scales.begin(); it != sample_scales.end(); ++it) {
+    for (size_t i = 0; i < it->second.size(); ++i) {
+      it->second[i] = 1.;
+    }
+  }*/
 }
 
 void protoana::AbsCexDriver::FakeDataLowP(

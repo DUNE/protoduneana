@@ -654,22 +654,24 @@ std::pair<double, int> protoana::ProtoDUNETrackUtils::GetVertexMichelScore(
     const std::string trackModule, const std::string hitModule,
     double min_length, double min_x,
     double max_x, double min_y, double max_y, double min_z, bool check_wire,
-    double check_x, double check_y, double check_z) {
+    double check_x, double check_y, double check_z, bool check_fv_len) {
 
   art::ServiceHandle<geo::Geometry> geom;
   anab::MVAReader<recob::Hit, 4> hitResults(evt, "emtrkmichelid:emtrkmichel");
 
-  //Skip short tracks
-  //Skip tracks that start/end outside of interesting volume
-  auto start = track.Vertex();
-  auto end = track.End();
-  if ((TMath::Max(start.X(), end.X()) > max_x) ||
-      (TMath::Min(start.X(), end.X()) < min_x) ||
-      (TMath::Max(start.Y(), end.Y()) > max_y) ||
-      (TMath::Min(start.Y(), end.Y()) < min_y) ||
-      (TMath::Min(start.Z(), end.Z()) < min_z) ||
-      (track.Length() < min_length)) {
-    return {-1., 0};
+  if (check_fv_len) {
+    //Skip short tracks
+    //Skip tracks that start/end outside of interesting volume
+    auto start = track.Vertex();
+    auto end = track.End();
+    if ((TMath::Max(start.X(), end.X()) > max_x) ||
+        (TMath::Min(start.X(), end.X()) < min_x) ||
+        (TMath::Max(start.Y(), end.Y()) > max_y) ||
+        (TMath::Min(start.Y(), end.Y()) < min_y) ||
+        (TMath::Min(start.Z(), end.Z()) < min_z) ||
+        (track.Length() < min_length)) {
+      return {-1., 0};
+    }
   }
 
 

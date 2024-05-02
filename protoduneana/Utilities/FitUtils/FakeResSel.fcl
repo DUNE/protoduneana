@@ -1,8 +1,8 @@
 #include "EventSelection.fcl"
-DoFakeSel: false 
-FakeSel: 0. #.05
+DoFakeSel:  true
+FakeSel: .05
 
-DoNewFakeSel: false #true
+DoNewFakeSel:  false
 
 DoFakeRes: true
 Resolution: 10.

@@ -5785,7 +5785,7 @@ void pduneana::PDSPAnalyzer::CheckForCrossingCosmics(
     for (const auto * h : hits) {
       int tpc = h->WireID().TPC;
       int plane = h->WireID().planeID().Plane;
-      if (h->WireID().Wire > 45) std::cout << h->StartTick() << " " << h->EndTick() << std::endl;
+      //if (h->WireID().Wire > 45) std::cout << h->StartTick() << " " << h->EndTick() << std::endl;
       if (tpc == 1 && plane == 2) {
         if (!in_apa3) cosmics_in_apa3.push_back(c);
         in_apa3 = true;
