@@ -148,16 +148,19 @@ def filter_event_for_yz_corr(e, i, xmax, ymax, ymin, zmax, zmin):
 if __name__ == '__main__':
   parser = ap()
   
-  parser.add_argument('-o', type=str, required=True)
-  parser.add_argument('-c', type=str, required=True)
-  parser.add_argument('-i', type=str, required=True)
-  parser.add_argument('-e', type=str, required=True)
-  parser.add_argument('-n', type=int, default=100)
-  parser.add_argument('--nskip', type=int, default=0)
+  parser.add_argument('-o', type=str, required=True, help='Output name')
+  parser.add_argument('-c', type=str, required=True, help='Input yaml file')
+  parser.add_argument('-i', type=str, required=True, help='List of input files')
+  parser.add_argument('-e', type=str, required=True, help='EField file')
+  parser.add_argument('-n', type=int, default=100,
+                      help='Max number of events, -1 for all')
+  parser.add_argument('--nskip', type=int, default=0, help='Starting event')
   #parser.add_argument('--ymax', type=float, default=600.)
   #parser.add_argument('--zmax', type=float, default=695.)
-  parser.add_argument('--ywidth', type=float, default=5.)
-  parser.add_argument('--zwidth', type=float, default=5.)
+  parser.add_argument('--ywidth', type=float, default=5.,
+                      help='Width of voxel -- y dim')
+  parser.add_argument('--zwidth', type=float, default=5.,
+                      help='Width of voxel -- z dim')
   args = parser.parse_args()
   
   config = get_config(args) 

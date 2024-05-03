@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
     }
     if (!strcasecmp(argv[iArg],"-h")) {
       std::cout << "Usage: runPDSPThinSliceFit -c fclfile.fcl " << 
-                    "-o outputfile.root -i input_file.txt" << std::endl;
+                    "-o outputfile.root -i input_file.root" << std::endl;
       return 1;
     }
   }

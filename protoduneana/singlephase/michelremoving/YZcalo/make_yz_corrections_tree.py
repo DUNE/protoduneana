@@ -43,15 +43,18 @@ def get_config(args):
 
 if __name__ == '__main__':
   parser = ap()
-  parser.add_argument('-f', type=str, required=True)
-  parser.add_argument('-c', type=str, required=True)
-  parser.add_argument('-o', type=str, required=True)
-  parser.add_argument('--ny', type=int, default=120)
-  parser.add_argument('--nz', type=int, default=139)
-  parser.add_argument('--ymax', type=float, default=600.)
-  parser.add_argument('--zmax', type=float, default=695.)
-  parser.add_argument('--bin_max', type=int, default=10000)
-  parser.add_argument('-n', type=int, default=-1)
+  parser.add_argument('-f', type=str, required=True,
+                      help='List of pre-filtered inputs file')
+  parser.add_argument('-c', type=str, required=True, help='Input yaml file')
+  parser.add_argument('-o', type=str, required=True, help='Output file')
+  parser.add_argument('--ny', type=int, default=120) ##Can remove
+  parser.add_argument('--nz', type=int, default=139) ##Can Remove
+  parser.add_argument('--ymax', type=float, default=600.) ##Can remove
+  parser.add_argument('--zmax', type=float, default=695.) ##Can remove
+  parser.add_argument('--bin_max', type=int, default=10000,
+                      help='Max entries in bins')
+  parser.add_argument('-n', type=int, default=-1,
+                      help='Number of events to process -- -1 for all')
   args = parser.parse_args()
   config = get_config(args) 
   
@@ -66,9 +69,10 @@ if __name__ == '__main__':
     files = [l.strip() for l in f.readlines() if '#' not in l]
   print(files)
   for f in files:
+    print('Adding', f)
     for t in ts:
       t.AddFile(f)
-      print(t.GetEntries())
+      print(t.GetName(), t.GetEntries(), 'entries')
   
   neg_hists = [RT.TH2D('dqdx_ZvsY_negativeX_hist_%i'%i, '', nz, 0, zmax, ny, 0, ymax) for i in range(3)]
   pos_hists = [RT.TH2D('dqdx_ZvsY_positiveX_hist_%i'%i, '', nz, 0, zmax, ny, 0, ymax) for i in range(3)]
@@ -88,7 +92,7 @@ if __name__ == '__main__':
     n_cell_neg = []
     
     for j in range(nz):
-      print(j)
+      #print(j)
       dqdx_pos.append([])
       dqdx_neg.append([])
       n_cell_pos.append([])
@@ -144,7 +148,9 @@ if __name__ == '__main__':
   
     global_median_pos = median(all_dqdx_pos) if len(all_dqdx_pos) >= 5 else 1.
     global_median_neg = median(all_dqdx_neg) if len(all_dqdx_neg) >= 5 else 1.
-    print(global_median_pos, global_median_neg)
+    print(t.GetName(),
+          f'Global medians (+x/-x): {global_median_pos:.2f},'
+          f' {global_median_neg:.2f}')
   
     for j in range(nz):
       print(i, j, end='\r')

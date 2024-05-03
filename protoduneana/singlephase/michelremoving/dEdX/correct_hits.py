@@ -11,7 +11,7 @@ parser = ap()
 parser.add_argument('-f', type=str, required=True)
 parser.add_argument('-o', type=str, required=True)
 parser.add_argument('-x', type=str, required=True)
-parser.add_argument('-yz', type=str, required=True)
+parser.add_argument('--yz', type=str, required=True)
 args = parser.parse_args()
 
 x_corr_file = RT.TFile(args.x, 'open')
