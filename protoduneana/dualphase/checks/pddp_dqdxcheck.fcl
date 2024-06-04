@@ -6,12 +6,13 @@ services:
 {
   TFileService: { fileName: "crana_sum_results.root" }
   TimeTracker:       {}
-  RandomNumberGenerator: {} 
-  ExptGeoHelperInterface:         @local::dune_geometry_helper 
-  Geometry:                       @local::protodunedphase_geo
-  DetectorPropertiesService:      @local::protodunedphase_detproperties
-  DetectorClocksService:          @local::protodunedphase_detectorclocks
-  LArPropertiesService:           @local::dunefddphase_properties
+  RandomNumberGenerator: {}
+  WireReadout:               @local::dune_wire_readout
+  AuxDetGeometry:            @local::protodunedphase_auxdet_geo
+  Geometry:                  @local::protodunedphase_geo
+  DetectorPropertiesService: @local::protodunedphase_detproperties
+  DetectorClocksService:     @local::protodunedphase_detectorclocks
+  LArPropertiesService:      @local::dunefddphase_properties
 
 }
 
@@ -33,16 +34,16 @@ physics:
   {
     crana:
     {
-    	module_type:  "CosmicsdQdx"
-	LogLevel:     1
-	TrackModuleLabel:  "pandoraTrack"
-	TrackMinLen:   20.0
-	TrackDriftCut: 2.0 # cut from start of drift 
-	TrackWallCut:  2.0 # cut from the CRP border
-	TrackLemCut:   5.0 # cut from the LEM edge
-	MaxHitMultiplicity: 2
+        module_type:  "CosmicsdQdx"
+        LogLevel:     1
+        TrackModuleLabel:  "pandoraTrack"
+        TrackMinLen:   20.0
+        TrackDriftCut: 2.0 # cut from start of drift
+        TrackWallCut:  2.0 # cut from the CRP border
+        TrackLemCut:   5.0 # cut from the LEM edge
+        MaxHitMultiplicity: 2
      }
    }
-  analysis: [ crana ] 
+  analysis: [ crana ]
   end_paths: [ analysis ]
 }

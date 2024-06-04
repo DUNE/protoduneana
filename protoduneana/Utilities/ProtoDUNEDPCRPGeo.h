@@ -24,7 +24,7 @@
 ///////////////////////////////////////////////////////////////
 
 //#include "fhiclcpp/ParameterSet.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/fwd.h"
 
 #include <utility>
 //#include <vector>
@@ -57,7 +57,8 @@ namespace protoana {
       //int fLogLevel;
       int fLemsPerRow; //
       float fLemWidth; // cm
-      geo::Geometry const* fGeom;
+      geo::GeometryCore const* fGeom;
+      geo::WireReadoutGeom const* fWireReadoutGeom;
     };
 
 

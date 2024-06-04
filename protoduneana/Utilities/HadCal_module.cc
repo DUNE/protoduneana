@@ -12,7 +12,7 @@
 #include "larsim/Simulation/LArVoxelData.h"
 #include "larsim/Simulation/LArVoxelList.h"
 #include "larsim/Simulation/SimListUtils.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -126,7 +126,7 @@ private:
   
   void ResetVars();
   
-  geo::GeometryCore const * fGeometry;
+  geo::WireReadoutGeom const * fWireReadoutGeom;
   
   TTree *fTree;
   TTree *fTreeEntries;
@@ -171,7 +171,7 @@ proto::HadCal::HadCal(fhicl::ParameterSet const & p)
 {
 	reconfigure(p);
 	// get a pointer to the geometry service provider
-	fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+        fWireReadoutGeom = &art::ServiceHandle<geo::WireReadout>()->Get();
 	file.open("dump.txt");
 }
 
@@ -537,7 +537,7 @@ double proto::HadCal::GetEdepEM_MC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				if (fGeometry->View(channel.Channel()) == fBestView)
+                                if (fWireReadoutGeom->View(channel.Channel()) == fBestView)
 				{ 
 					// for every time slice in this channel:
 					auto const& timeSlices = channel.TDCIDEMap();
@@ -595,7 +595,7 @@ double proto::HadCal::GetEdepEMAtt_MC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				if (fGeometry->View(channel.Channel()) == fBestView)
+                                if (fWireReadoutGeom->View(channel.Channel()) == fBestView)
 				{ 
 					// for every time slice in this channel:
 					auto const& timeSlices = channel.TDCIDEMap();
@@ -664,7 +664,7 @@ double proto::HadCal::GetEdepEMhAtt_MC(art::Event const & e,
 		for (auto const & channel: channels)
 		{
 			if (channel.Channel() != hitChannelNumber) continue;
-			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+                        if (fWireReadoutGeom->View(channel.Channel()) != fBestView) continue;
 	
 			// for every time slice in this channel:
 			auto const& timeSlices = channel.TDCIDEMap();
@@ -738,7 +738,7 @@ double proto::HadCal::GetEdepHAD_MC(art::Event const & e) const
 	     
 		for (auto const & channel : (*simchannelHandle) )
 		{
-			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+                        if (fWireReadoutGeom->View(channel.Channel()) != fBestView) continue;
 
 			// for every time slice in this channel:
 			auto const& timeSlices = channel.TDCIDEMap();
@@ -790,7 +790,7 @@ double proto::HadCal::GetEdepHADAtt_MC(art::Event const & e) const
 	     
 		for (auto const & channel : (*simchannelHandle) )
 		{
-			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+                        if (fWireReadoutGeom->View(channel.Channel()) != fBestView) continue;
 
 			// for every time slice in this channel:
 			auto const& timeSlices = channel.TDCIDEMap();
@@ -852,7 +852,7 @@ double proto::HadCal::GetEdepHADhAtt_MC(art::Event const & e,
 		for (auto const & channel : channels)
 		{
 			if (channel.Channel() != hitChannelNumber) continue;
-			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+                        if (fWireReadoutGeom->View(channel.Channel()) != fBestView) continue;
 
 			// for every time slice in this channel:
 			auto const& timeSlices = channel.TDCIDEMap();

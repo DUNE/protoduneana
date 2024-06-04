@@ -40,7 +40,7 @@ outputs:
    fileName:    "mccnnproton.root"    #default file name, can override from command line with -o or --output
    dataTier: "reconstructed"
    fastCloning: false
- } 
+ }
 }
 
 physics:
@@ -49,7 +49,7 @@ physics:
 
   }
  #filters:  {
-    #f1: @local::standard_protodunebeamlinefilter_Proton_1GeV	
+    #f1: @local::standard_protodunebeamlinefilter_Proton_1GeV
  #}
  #fpath: [f1]
 
@@ -66,13 +66,13 @@ physics:
      GeneratorTag:            "generator"
      Verbose:                 true
      DataUtils:               @local::standard_protodunedatautils
-     NNetModuleLabel:         "vtxid:emtrack" 
+     NNetModuleLabel:         "vtxid:emtrack"
    }
  }
- 
+
  ana:  [ protonmccnn ]
  stream1:  [ out1 ]
- end_paths:     [  ana ] 
+ end_paths:     [  ana ]
 }
 
 #physics.analyzers.protonmccnn.TrackModuleLabel:        "pmtrack"
@@ -87,4 +87,5 @@ physics.analyzers.protonmccnn.CalorimetryModuleLabel:  "pandoracalo"
 #physics.analyzers.protonmccnn.HitsModuleLabel:  "linecluster"
 physics.analyzers.protonmccnn.HitsModuleLabel:  "hitpdune"
 physics.analyzers.protonmccnn.SaveTrackInfo: true
+services.AuxDetGeometry: @local::protodunev7_auxdet_geo
 services.Geometry: @local::protodunev7_geo

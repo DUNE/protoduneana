@@ -27,14 +27,15 @@
 #include "art_root_io/TFileService.h"
 
 // LArSoft includes
-#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" 
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/ArtDataHelper/TrackUtils.h" 
+#include "lardata/ArtDataHelper/TrackUtils.h"
 
 //
 #include "protoduneana/Utilities/ProtoDUNETrackUtils.h"
@@ -64,19 +65,19 @@ namespace {
   //from calo::TrackCalorimetryAlg
   class dist_projected{
   public:
-    dist_projected(recob::Hit const* h, geo::Geometry const* g):
-      hit(h), geom(g){}
+    dist_projected(recob::Hit const* h, geo::WireReadoutGeom const* cm):
+      hit(h), wireReadout(cm){}
     bool operator() (std::pair<geo::WireID,float> const& i, std::pair<geo::WireID,float> const& j)
     {
-      float dw_i = ((int)(i.first.Wire) - (int)(hit->WireID().Wire))*geom->WirePitch(i.first.asPlaneID());
-      float dw_j = ((int)(j.first.Wire) - (int)(hit->WireID().Wire))*geom->WirePitch(j.first.asPlaneID());
+      float dw_i = ((int)(i.first.Wire) - (int)(hit->WireID().Wire))*wireReadout->Plane(i.first).WirePitch();
+      float dw_j = ((int)(j.first.Wire) - (int)(hit->WireID().Wire))*wireReadout->Plane(j.first).WirePitch();
       float dt_i = i.second - hit->PeakTime();
       float dt_j = j.second - hit->PeakTime();
       return (std::sqrt(dw_i*dw_i + dt_i*dt_i) < std::sqrt(dw_j*dw_j + dt_j*dt_j));
     }
   private:
     recob::Hit const* hit;
-    geo::Geometry const* geom;
+    geo::WireReadoutGeom const* wireReadout;
   };
 }
 
@@ -110,13 +111,11 @@ private:
   float    fTrackLemCut;
   unsigned fMaxHitMultiplicity;
 
-  unsigned fDrift;
-
   unsigned fTotalTracks;
   unsigned fSelectedTracks;
   unsigned fHitCutTracks;
   unsigned fGeoCutTracks;
-  
+
   // summary tree
   TTree   *fTree;
 
@@ -139,7 +138,7 @@ private:
   float    fEndNy;
   float    fEndNz;
 
-  // 
+  //
   unsigned fPlane;
   float    fHitAdcSum;
   float    fHitIntegral;
@@ -151,7 +150,7 @@ private:
   float    fY;
   float    fZ;
   float    fQAsym;
-  
+
   // plane hits
   vector< vector< const recob::Hit* > > fPlaneHits;
 
@@ -163,6 +162,7 @@ private:
 
   // detector geometry
   const geo::Geometry* fGeom;
+  const geo::WireReadoutGeom* fWireReadoutGeom;
 
   bool checkCutsAndGetT0( const recob::Track& track, float &T0 );
   bool checkTrackHitInfo( const recob::Track& track, art::Event const& e);
@@ -180,12 +180,13 @@ pddpana::CosmicsdQdx::CosmicsdQdx(fhicl::ParameterSet const& p)
   fMaxHitMultiplicity( p.get< float  >("MaxHitMultiplicity") )
   {
     fGeom    = &*art::ServiceHandle<geo::Geometry>();
+    fWireReadoutGeom = &art::ServiceHandle<geo::WireReadout>()->Get();
 
     //auto const &tpc = ;
-    fDrift = (std::abs( fGeom->TPC().DetectDriftDirection() ));
-    if( fDrift != 1 ){
-      throw cet::exception("CosmicsdQdx") << "Drift direction "<<fDrift
-					  << " is not support\n";
+    auto const [axis, _] = fGeom->TPC().DriftAxisWithSign();
+    if( axis != geo::Coordinate::X ){
+      throw cet::exception("CosmicsdQdx") << "Drift direction "<<axis
+                                          << " is not support\n";
     }
   }
 
@@ -196,19 +197,19 @@ void pddpana::CosmicsdQdx::analyze(art::Event const& e)
 
   // get tracks
   auto Tracks   = e.getValidHandle<vector<recob::Track>>(fTrackModuleLabel);
-  fTotalTracks += Tracks->size();  
-  
+  fTotalTracks += Tracks->size();
+
   if( fLogLevel >= 2 ){
     cout<<myname<<"The event contains "<< Tracks->size() <<" tracks\n";
   }
-  
+
   //
   fEventNum = e.id().event();
 
   // loop over tracks
   for (unsigned itrk = 0; itrk < Tracks->size(); ++itrk) {
     const recob::Track& track = Tracks->at(itrk);
-    
+
     fTrackId     = itrk;
     fTrajPoints  = track.NumberTrajectoryPoints();
     fTrackLen    = track.Length();
@@ -221,7 +222,7 @@ void pddpana::CosmicsdQdx::analyze(art::Event const& e)
     fEndX    = track.End().X();
     fEndY    = track.End().Y();
     fEndZ    = track.End().Z();
-    
+
     fStartNx = track.VertexDirection().X();
     fStartNy = track.VertexDirection().Y();
     fStartNz = track.VertexDirection().Z();
@@ -229,12 +230,12 @@ void pddpana::CosmicsdQdx::analyze(art::Event const& e)
     fEndNx   = track.EndDirection().X();
     fEndNy   = track.EndDirection().Y();
     fEndNz   = track.EndDirection().Z();
-    
+
     fQAsym   = 0;
     if( !checkTrackHitInfo( track, e ) ){
       if( fLogLevel >= 2 ){
-	cout<<myname<<"Skipping track ID "<<fTrackId
-	    <<" due to hit plane mismatch "<<endl;
+        cout<<myname<<"Skipping track ID "<<fTrackId
+            <<" due to hit plane mismatch "<<endl;
       }
       fHitCutTracks++;
       continue;
@@ -243,35 +244,35 @@ void pddpana::CosmicsdQdx::analyze(art::Event const& e)
     fDriftOffset = 0;
     if( !checkCutsAndGetT0( track, fDriftOffset) ){
       if( fLogLevel >= 2 ){
-	cout<<myname<<"Skipping track ID "<<fTrackId<<" has "
-	    <<fTrajPoints<<" points and is "<<fTrackLen<<" cm long\n";
+        cout<<myname<<"Skipping track ID "<<fTrackId<<" has "
+            <<fTrajPoints<<" points and is "<<fTrackLen<<" cm long\n";
       }
       fGeoCutTracks++;
       continue;
     }
-    
+
     //
     if( fLogLevel >= 3 ){
       cout<<myname<<"Track ID "<<fTrackId<<" has "
-	  <<fTrajPoints<<" points and is "<<fTrackLen<<" cm long"
-	  << "\n  start at: ( " << track.Vertex().X()
-	  << " ; " << track.Vertex().Y()
-	  << " ; " << track.Vertex().Z()
-	  << "\n  end at:   ( " << track.End().X()
-	  << " ; " << track.End().Y()
-	  << " ; " << track.End().Z()<<" )"<<endl;
+          <<fTrajPoints<<" points and is "<<fTrackLen<<" cm long"
+          << "\n  start at: ( " << track.Vertex().X()
+          << " ; " << track.Vertex().Y()
+          << " ; " << track.Vertex().Z()
+          << "\n  end at:   ( " << track.End().X()
+          << " ; " << track.End().Y()
+          << " ; " << track.End().Z()<<" )"<<endl;
     }
 
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
-    // loop over the planes 
-    for(size_t i_plane=0; i_plane<fGeom->Nplanes(); i_plane++) {
+    // loop over the planes
+    for(size_t i_plane=0; i_plane<fWireReadoutGeom->Nplanes(); i_plane++) {
       fPlane = i_plane;
-      
+
       // get hits in this plane
       //auto hits = trackUtil.GetRecoTrackHitsFromPlane( track, e, fTrackModuleLabel, i_plane );
       auto hits = fPlaneHits[ i_plane ]; // loaded in checkTrackHitInfo
       if( fLogLevel >= 3 ){
-	cout<<myname<<"Hits in plane "<<i_plane<<" "<<hits.size()<<endl;
+        cout<<myname<<"Hits in plane "<<i_plane<<" "<<hits.size()<<endl;
       }
       //
 
@@ -279,100 +280,100 @@ void pddpana::CosmicsdQdx::analyze(art::Event const& e)
       vector< unsigned > traj_points_idx;
       vector< pair<geo::WireID,float> > traj_points_in_plane; //(track.NumberTrajectoryPoints());
       for(size_t i_trjpt=0; i_trjpt<track.NumberTrajectoryPoints(); i_trjpt++){
-	auto pnt        = track.LocationAtPoint(i_trjpt);
-	if( !track.HasValidPoint( i_trjpt ) ){
-	  if( fLogLevel>=4 ){
-	    cerr<<"track point "<<i_trjpt<<" has position ("
-		<<pnt.X()<<", "<<pnt.Y()<<", "<<pnt.Z()<<") \n"
-		<<" and is not a valid point "<<track.HasValidPoint( i_trjpt )<<endl;
-	  }
-	  continue;
-	}
-	
-	double x_pos    = pnt.X();
+        auto pnt        = track.LocationAtPoint(i_trjpt);
+        if( !track.HasValidPoint( i_trjpt ) ){
+          if( fLogLevel>=4 ){
+            cerr<<"track point "<<i_trjpt<<" has position ("
+                <<pnt.X()<<", "<<pnt.Y()<<", "<<pnt.Z()<<") \n"
+                <<" and is not a valid point "<<track.HasValidPoint( i_trjpt )<<endl;
+          }
+          continue;
+        }
+
+        double x_pos    = pnt.X();
         float tick      = detProp.ConvertXToTicks(x_pos,(int)i_plane,0,0);
-	try{
-	  auto tpcid = fGeom->PositionToTPCID(pnt);
-	  // if( tpcid.TPC >= fGeom->NTPC() ){
-	  //   if( fLogLevel>=3 ){
-	  //     cerr<<myname<<"tpc no "<<tpcid.TPC<<" is not valid \n"
-	  // 	  <<" track id "<<fTrackId<<" at ("
-	  // 	  <<pnt.X()<<", "<<pnt.Y()<<", "<<pnt.Z()<<") \n"
-	  // 	  <<" has valid point "<<track.HasValidPoint( i_trjpt )<<endl;
-	  //   }
-	  //   continue;
-	  // }
-	  geo::WireID wid = fGeom->NearestWireID(pnt, geo::PlaneID(tpcid, i_plane));
-	  //traj_points_in_plane[i_trjpt] = std::make_pair(wid, tick);
-	  traj_points_in_plane.push_back( std::make_pair(wid, tick) );
-	  traj_points_idx.push_back( i_trjpt );
-	}
-	catch(cet::exception &e){
-	  if( fLogLevel>=4 ){
-	    cout<<e;
-	  }
-	  continue;
-	}
+        try{
+          auto tpcid = fGeom->PositionToTPCID(pnt);
+          // if( tpcid.TPC >= fGeom->NTPC() ){
+          //   if( fLogLevel>=3 ){
+          //     cerr<<myname<<"tpc no "<<tpcid.TPC<<" is not valid \n"
+          //      <<" track id "<<fTrackId<<" at ("
+          //      <<pnt.X()<<", "<<pnt.Y()<<", "<<pnt.Z()<<") \n"
+          //      <<" has valid point "<<track.HasValidPoint( i_trjpt )<<endl;
+          //   }
+          //   continue;
+          // }
+          geo::WireID wid = fWireReadoutGeom->Plane(geo::PlaneID(tpcid, i_plane)).NearestWireID(pnt);
+          //traj_points_in_plane[i_trjpt] = std::make_pair(wid, tick);
+          traj_points_in_plane.push_back( std::make_pair(wid, tick) );
+          traj_points_idx.push_back( i_trjpt );
+        }
+        catch(cet::exception &e){
+          if( fLogLevel>=4 ){
+            cout<<e;
+          }
+          continue;
+        }
       }
-      
+
       //
       // from calo::TrackCalorimetryAlg::AnalyzeHit
       for(auto const &hit: hits ){
-	//skip high mulitplicity hits
-	if(hit->Multiplicity() > (int)fMaxHitMultiplicity) continue;
-	
-	//
-	size_t traj_iter = std::distance( traj_points_in_plane.begin(),
-					  std::min_element( traj_points_in_plane.begin(), 
-							    traj_points_in_plane.end(),
-							    dist_projected(hit, fGeom) ) );
-	size_t traj_pnt_idx = traj_points_idx[traj_iter];
-	try{
-	  // fGeom->View(hit->WireID().Plane) always returns 3 (geo::kY) for some reason
-	  //fPitch = lar::util::TrackPitchInView(track, fGeom->View(hit->WireID().Plane), traj_pnt_idx);
-	  fPitch = lar::util::TrackPitchInView(track, hit->View(), traj_pnt_idx);
-	}
-	catch(cet::exception &e){
-	  if( fLogLevel>=3 ){
-	    cout<<e;
-	  }
-	  continue;
-	}
+        //skip high mulitplicity hits
+        if(hit->Multiplicity() > (int)fMaxHitMultiplicity) continue;
 
-	// hit properties
-	fHitAdcSum   = hit->SummedADC();
-	fHitIntegral = hit->Integral();
-	fHitPeak     = hit->PeakAmplitude();
-	fHitTime     = hit->PeakTime();
-	fdQdx        = fHitAdcSum / fPitch;
+        //
+        size_t traj_iter = std::distance( traj_points_in_plane.begin(),
+                                          std::min_element( traj_points_in_plane.begin(),
+                                                            traj_points_in_plane.end(),
+                                                            dist_projected(hit, fWireReadoutGeom) ) );
+        size_t traj_pnt_idx = traj_points_idx[traj_iter];
+        try{
+          // fGeom->View(hit->WireID().Plane) always returns 3 (geo::kY) for some reason
+          //fPitch = lar::util::TrackPitchInView(track, fGeom->View(hit->WireID().Plane), traj_pnt_idx);
+          fPitch = lar::util::TrackPitchInView(track, hit->View(), traj_pnt_idx);
+        }
+        catch(cet::exception &e){
+          if( fLogLevel>=3 ){
+            cout<<e;
+          }
+          continue;
+        }
 
-	auto pnt = track.LocationAtPoint(traj_iter);
-	fX = pnt.X();
-	fY = pnt.Y();
-	fZ = pnt.Z();
+        // hit properties
+        fHitAdcSum   = hit->SummedADC();
+        fHitIntegral = hit->Integral();
+        fHitPeak     = hit->PeakAmplitude();
+        fHitTime     = hit->PeakTime();
+        fdQdx        = fHitAdcSum / fPitch;
 
-	// if( fEventNum == 11540 && fTrackId == 0 ){
-	//   auto dir1 = track.DirectionAtPoint(traj_iter);
-	//   cout<<i_plane<<" "<<fPitch<<" "<<fX<<" "<<fY<<" "<<fZ<<" "
-	//       <<dir1.X()<<" "<<dir1.Y()<<" "<<dir1.Z()<<endl;
-	//}
-	
-	fTree->Fill();
+        auto pnt = track.LocationAtPoint(traj_iter);
+        fX = pnt.X();
+        fY = pnt.Y();
+        fZ = pnt.Z();
+
+        // if( fEventNum == 11540 && fTrackId == 0 ){
+        //   auto dir1 = track.DirectionAtPoint(traj_iter);
+        //   cout<<i_plane<<" "<<fPitch<<" "<<fX<<" "<<fY<<" "<<fZ<<" "
+        //       <<dir1.X()<<" "<<dir1.Y()<<" "<<dir1.Z()<<endl;
+        //}
+
+        fTree->Fill();
       }// loop over track plane hits
 
     }// end plane loop
-    
+
     //
     fSelectedTracks++;
   }// end track loop
-    
+
 } // end analyze()
 
 //
 void pddpana::CosmicsdQdx::beginJob()
 {
-  fPlaneHits.resize( fGeom->Nplanes() );
-  
+  fPlaneHits.resize( fWireReadoutGeom->Nplanes() );
+
   fTotalTracks    = 0;
   fSelectedTracks = 0;
   fHitCutTracks   = 0;
@@ -400,7 +401,7 @@ void pddpana::CosmicsdQdx::beginJob()
   fTree->Branch("EndNz",  &fEndNz,  "EndNz/F");
 
   fTree->Branch("Plane", &fPlane, "Plane/i");
-  fTree->Branch("HitAdcSum", &fHitAdcSum, "HitAdcSum/F");  
+  fTree->Branch("HitAdcSum", &fHitAdcSum, "HitAdcSum/F");
   fTree->Branch("HitIntegral", &fHitIntegral, "HitIntegral/F");
   fTree->Branch("HitPeak", &fHitPeak, "HitPeak/F");
   fTree->Branch("HitTime", &fHitTime, "HitTime/F");
@@ -428,7 +429,7 @@ void pddpana::CosmicsdQdx::endJob()
 bool pddpana::CosmicsdQdx::checkCutsAndGetT0( const recob::Track& track, float &T0 )
 {
   const string myname = "pddpana::CosmicsdQdx::checkCutsAndGetT0: ";
-  
+
   //
   T0 = 0; // track distance in cm from the top
 
@@ -438,34 +439,34 @@ bool pddpana::CosmicsdQdx::checkCutsAndGetT0( const recob::Track& track, float &
     }
     return false;
   }
-  
+
   auto tstart = track.Vertex();
   auto tend   = track.End();
-  
+
   // cosmics are downward going and anode is at +300cm
   if( tstart.X() < tend.X() ){
     tstart = tend;
   }
-  
+
   auto crp_geo_info = crpGeoUtil.GetCRPGeoInfo( tstart );
   if( not crp_geo_info.valid ) return false;
-  
+
   // drift distance to the anode
   T0 = crp_geo_info.danode;
-  if( T0 < fTrackDriftCut ){ 
+  if( T0 < fTrackDriftCut ){
     if( fLogLevel>=3 ){
       cout<<myname<<"Failed to pass T0 cut "<<T0<<endl;
     }
     return false;
   }
-  
+
   // distance to CRP border
   if( crp_geo_info.dedge < fTrackWallCut ){
     if( fLogLevel>=3 ){
       cout<<myname<<"Failed to pass wall cut ("
-	  <<tstart.X()<<", "<<tstart.Y()<<", "<<tstart.Z()<<")"<<endl;
+          <<tstart.X()<<", "<<tstart.Y()<<", "<<tstart.Z()<<")"<<endl;
     }
-    
+
     return false;
   }
 
@@ -473,9 +474,9 @@ bool pddpana::CosmicsdQdx::checkCutsAndGetT0( const recob::Track& track, float &
   if( crp_geo_info.dlem < fTrackLemCut ){
     if( fLogLevel>=3 ){
       cout<<myname<<"Failed to pass LEM edge cut ("
-	  <<tstart.X()<<", "<<tstart.Y()<<", "<<tstart.Z()<<")"<<endl;
+          <<tstart.X()<<", "<<tstart.Y()<<", "<<tstart.Z()<<")"<<endl;
     }
-    
+
     return false;
   }
 
@@ -486,20 +487,20 @@ bool pddpana::CosmicsdQdx::checkCutsAndGetT0( const recob::Track& track, float &
 // check that hits associated to a track belong to the same CRP
 bool pddpana::CosmicsdQdx::checkTrackHitInfo( const recob::Track& track, art::Event const& e ){
   const string myname = "pddpana::CosmicsdQdx::checkTrackHitInfo: ";
-  
+
   //
   unsigned EventId = e.id().event();
-  
-  
+
+
   // loop over the planes and get all the hits
-  for(size_t i_plane = 0; i_plane<fGeom->Nplanes(); i_plane++) {
+  for(size_t i_plane = 0; i_plane<fWireReadoutGeom->Nplanes(); i_plane++) {
     // get hits in this plane
     auto hits = trackUtil.GetRecoTrackHitsFromPlane( track, e, fTrackModuleLabel, i_plane );
     fPlaneHits[i_plane] = hits;
   }
-  
+
   //
-  // calculate charge asymmetry 
+  // calculate charge asymmetry
   //
   // charge in view 0
   double v0 = 0;
@@ -513,13 +514,13 @@ bool pddpana::CosmicsdQdx::checkTrackHitInfo( const recob::Track& track, art::Ev
   }
   // charge asymmetry
   fQAsym = (v0 - v1)/(v0 + v1);
-  
+
   //
   //
   // check for TPC mismatches
-  vector<unsigned> hitsTpcId( fGeom->Nplanes() );
-  
-  for(size_t i_plane = 0; i_plane<fGeom->Nplanes(); i_plane++) {
+  vector<unsigned> hitsTpcId( fWireReadoutGeom->Nplanes() );
+
+  for(size_t i_plane = 0; i_plane<fWireReadoutGeom->Nplanes(); i_plane++) {
     auto hits = fPlaneHits[i_plane];
 
     vector<unsigned> plane_hits_tpcid( hits.size() );
@@ -527,7 +528,7 @@ bool pddpana::CosmicsdQdx::checkTrackHitInfo( const recob::Track& track, art::Ev
     for(size_t i_hit = 0; i_hit<hits.size(); i_hit++ ){
       plane_hits_tpcid[i_hit] = hits[i_hit]->WireID().TPC;
     }
-      
+
     int this_tpcid = -1;
     auto start = plane_hits_tpcid.begin();
     auto end   = plane_hits_tpcid.end();
@@ -536,7 +537,7 @@ bool pddpana::CosmicsdQdx::checkTrackHitInfo( const recob::Track& track, art::Ev
     } //
     else {
       if( fLogLevel>= 3){
-	cout<<myname<<"hits for the same plane have mixed TPC IDs. Skipping...\n";
+        cout<<myname<<"hits for the same plane have mixed TPC IDs. Skipping...\n";
       }
     }
     if( this_tpcid < 0 ){
@@ -547,13 +548,13 @@ bool pddpana::CosmicsdQdx::checkTrackHitInfo( const recob::Track& track, art::Ev
       hitsTpcId[i_plane] = (unsigned)this_tpcid;
     }
   }// end plane loop
-    
+
   if( hitsTpcId.empty() ) return true;
-  
+
   auto start = hitsTpcId.begin();
   auto end   = hitsTpcId.end();
   if( !std::equal(start + 1, end, start)) {
-    if( fLogLevel >= 3){ 
+    if( fLogLevel >= 3){
       cout<<myname<<"mismatch in TPC ID for the initial hits: ";
       cout<<" event ID "<<EventId<<"; hit TPC IDs ";
       for( auto const &v: hitsTpcId ){ cout<<v<<" ";}

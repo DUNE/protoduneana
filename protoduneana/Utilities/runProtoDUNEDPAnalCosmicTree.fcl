@@ -21,6 +21,7 @@ services:
   ChannelStatusService:         @local::pddp_channel_status
 }
 services.message.destinations.LogStandardOut.threshold: "INFO"
+services.AuxDetGeometry: @local::protodunedphase_auxdet_geo
 services.Geometry: @local::protodunedphase_geo
 services.DetectorPropertiesService: @local::protodunedphase_detproperties
 services.RawDigitPrepService:          @local::adcprep_with_tools_data
@@ -46,13 +47,11 @@ physics:
  {
   pdAnalCosmicTree:          @local::protodp_AnalCosmicTree
  }
- 
+
  ana:  [ pdAnalCosmicTree ]
- 
+
  end_paths:     [ ana ]
 
 }
 
 outputs: {}
-
-

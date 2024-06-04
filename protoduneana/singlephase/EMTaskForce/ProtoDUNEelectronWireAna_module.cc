@@ -22,7 +22,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/PFParticle.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
@@ -74,7 +74,7 @@ private:
   protoana::ProtoDUNEShowerUtils showerUtil;
   protoana::ProtoDUNETruthUtils truthUtil;
  
-  geo::GeometryCore const * fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
   std::string fShowerTag;
   std::string fPFParticleTag;
@@ -206,10 +206,10 @@ void ProtoDUNEelectronWireAna::analyze(art::Event const& evt)
       }
       for(auto & wire : * wires){
          int channel_no = wire.Channel();
-         int plane = fGeometry->View(wire.Channel()); 
+         int plane = fWireReadoutGeom.View(channel_no);
          if( plane != 2 ) continue;
-         std::vector< geo::WireID > wireID= fGeometry->ChannelToWire(channel_no);
-         const geo::WireGeo* pwire = fGeometry->WirePtr(wireID.at(0)); //for collection plane there is one wire per channel
+         std::vector< geo::WireID > wireID= fWireReadoutGeom.ChannelToWire(channel_no);
+         const geo::WireGeo* pwire = fWireReadoutGeom.WirePtr(wireID.at(0)); //for collection plane there is one wire per channel
          auto xyzWire = pwire->GetCenter();
          if( it_w == channel_no ){  
            double charge =0.0;
@@ -239,7 +239,7 @@ void ProtoDUNEelectronWireAna::analyze(art::Event const& evt)
           auto simchannelHandle = evt.getHandle< std::vector<sim::SimChannel> >("largeant");
           if (simchannelHandle){
             for(auto const& simchannel : (*simchannelHandle)){
-               if(fGeometry->View(simchannel.Channel()) != 2) continue;
+               if(fWireReadoutGeom.View(simchannel.Channel()) != 2) continue;
                auto const& alltimeslices = simchannel.TDCIDEMap();
                double EperCh=0;
                for(auto const& tslice : alltimeslices){

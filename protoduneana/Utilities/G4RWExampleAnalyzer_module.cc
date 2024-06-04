@@ -31,6 +31,7 @@
 
 #include "protoduneana/Utilities/ProtoDUNETruthUtils.h"
 #include "protoduneana/Utilities/ProtoDUNEPFParticleUtils.h"
+#include "larcore/Geometry/Geometry.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 
@@ -418,7 +419,7 @@ void protoana::G4RWExampleAnalyzer::analyze(art::Event const& e) {
 
     std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(
         *true_beam_particle, plist,
-        fGeometryService, event, "LAr");
+        *fGeometryService, event, "LAr");
     bool added = false;
     for (size_t i = 0; i < trajs.size(); ++i) {
       if (trajs[i]->GetNSteps() > 0) {
@@ -467,7 +468,7 @@ void protoana::G4RWExampleAnalyzer::analyze(art::Event const& e) {
       while (to_create.size()) {
         auto part = plist[to_create[0]];
         std::vector<G4ReweightTraj *> temp_trajs =
-            CreateNRWTrajs(*part, plist, fGeometryService,
+            CreateNRWTrajs(*part, plist, *fGeometryService,
                            event, "LAr");
         if (temp_trajs.size()) {
           auto last_traj = temp_trajs.back();

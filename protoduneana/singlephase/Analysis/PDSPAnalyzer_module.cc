@@ -28,6 +28,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
@@ -1091,6 +1092,7 @@ private:
   protoana::ProtoDUNETruthUtils truthUtil;
   protoana::ProtoDUNEPFParticleUtils pfpUtil;
   art::ServiceHandle<geo::Geometry> geom;
+  geo::WireReadoutGeom const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
   protoana::ProtoDUNECalibration calibration_SCE;
   protoana::ProtoDUNECalibration calibration_NoSCE;
   bool fSaveHits;
@@ -1274,8 +1276,8 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   }
 
   constexpr geo::PlaneID planeID{0, 1, 2};
-  fZ0 = geom->Wire( geo::WireID(planeID, 0) ).GetCenter().Z();
-  fPitch = geom->WirePitch(planeID);
+  fZ0 = wireReadout.Wire( geo::WireID(planeID, 0) ).GetCenter().Z();
+  fPitch = wireReadout.Plane(planeID).WirePitch();
 
 }
 
@@ -1346,21 +1348,20 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
 
   const sim::ParticleList & plist = pi_serv->ParticleList();
 
-  art::ServiceHandle < geo::Geometry > fGeometryService;
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
   auto const detProp =  art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
   trkf::TrackMomentumCalculator track_p_calc;
   ////////////////////////////////////////
 
 
-  //double z0 = geom->Wire( geo::WireID(0, 1, 2, 0) ).GetCenter().Z();
-  //double pitch = geom->WirePitch( 2, 1, 0);
+  //double z0 = wireReadout.Wire( geo::WireID(0, 1, 2, 0) ).GetCenter().Z();
+  //double pitch = wireReadout.WirePitch( 2, 1, 0);
 
   if (fVerbose) {
     std::cout << "Z0: " << fZ0 << std::endl;
     std::cout << "Pitch: " << fPitch << std::endl;
 
-    double z0_APA2 = geom->Wire(geo::WireID(0, 5, 2, 0)).GetCenter().Z();
+    double z0_APA2 = wireReadout.Wire(geo::WireID(0, 5, 2, 0)).GetCenter().Z();
     std::cout << "APA 2 Z0: " << z0_APA2 << std::endl;
   }
 
@@ -1608,7 +1609,7 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
   //just from the primary + downstreams) -- currently for piplus and proton
   if (!evt.isRealData() && fDoReweight) {
     std::vector<std::vector<G4ReweightTraj *>> piplus_hierarchy 
-        = BuildHierarchy(true_beam_ID, 211, plist, fGeometryService,
+        = BuildHierarchy(true_beam_ID, 211, plist, *geom,
                          event, "LAr", false);
 
     //std::cout << "Primary hierarchy" << std::endl; 
@@ -1679,7 +1680,7 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
 
     //Proton
     std::vector<std::vector<G4ReweightTraj *>> proton_hierarchy 
-        = BuildHierarchy(true_beam_ID, 2212, plist, fGeometryService,
+        = BuildHierarchy(true_beam_ID, 2212, plist, *geom,
                          event, "LAr", false);
     G4RWGridWeights(proton_hierarchy, ProtParSet, g4rw_full_grid_proton_weights,
                     ProtMultiRW);
@@ -1690,7 +1691,7 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
     }
 
     std::vector<std::vector<G4ReweightTraj *>> neutron_hierarchy 
-        = BuildHierarchy(true_beam_ID, 2112, plist, fGeometryService,
+        = BuildHierarchy(true_beam_ID, 2112, plist, *geom,
                          event, "LAr", false);
     G4RWGridWeights(neutron_hierarchy, ProtParSet,
                     g4rw_full_grid_neutron_weights, NeutronMultiRW);
@@ -1701,7 +1702,7 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
     }
 
     std::vector<std::vector<G4ReweightTraj *>> kplus_hierarchy 
-        = BuildHierarchy(true_beam_ID, 321, plist, fGeometryService,
+        = BuildHierarchy(true_beam_ID, 321, plist, *geom,
                          event, "LAr", false);
     G4RWGridWeights(kplus_hierarchy, ProtParSet, g4rw_full_grid_kplus_weights,
                     KPlusMultiRW);
@@ -1712,7 +1713,7 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
     }
 
     std::vector<std::vector<G4ReweightTraj *>> downstream_piplus_hierarchy 
-        = BuildHierarchy(true_beam_ID, 211, plist, fGeometryService,
+        = BuildHierarchy(true_beam_ID, 211, plist, *geom,
                          event, "LAr", true);
     G4RWGridWeights(downstream_piplus_hierarchy, ParSet,
                     g4rw_downstream_grid_piplus_weights, MultiRW);
@@ -1731,7 +1732,7 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
     std::cout << "Making trajs " << std::endl;
     std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(
         *true_beam_particle, plist,
-        fGeometryService, event);
+        *geom, event);
     std::cout << trajs.size() << std::endl;
 
     std::vector<std::vector<G4ReweightTraj *>> temp_hierarchy = {trajs};
@@ -3203,14 +3204,14 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
       calo_hit_indices.push_back( TpIndices[i] );
 
       reco_beam_calo_wire_z.push_back(
-          geom->Wire(theHit.WireID()).GetCenter().Z());
+          wireReadout.Wire(theHit.WireID()).GetCenter().Z());
       reco_beam_calo_X.push_back(theXYZPoints[i].X());
       reco_beam_calo_Y.push_back(theXYZPoints[i].Y());
       reco_beam_calo_Z.push_back(theXYZPoints[i].Z());
       if (fVerbose)
         std::cout << theXYZPoints[i].X() << " " << theXYZPoints[i].Y() << " " <<
                      theXYZPoints[i].Z() << " " << theHit.WireID().Wire << " " <<
-                     geom->Wire(theHit.WireID()).GetCenter().Z() << " " <<
+                     wireReadout.Wire(theHit.WireID()).GetCenter().Z() << " " <<
                      theHit.WireID().TPC << " " << std::endl;
 
       //truth infos
@@ -3581,7 +3582,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         reco_beam_calo_wire_NoSCE.push_back(theHit.WireID().Wire );
       }
       reco_beam_calo_wire_z_NoSCE.push_back(
-          geom->Wire(theHit.WireID()).GetCenter().Z());
+          wireReadout.Wire(theHit.WireID()).GetCenter().Z());
 
     }
 
@@ -5049,7 +5050,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
               theHit->WireID().Plane,
               theHit->WireID().TPC, 0);
 
-          double shower_hit_z = geom->Wire(theHit->WireID()).GetCenter().Z();
+          double shower_hit_z = wireReadout.Wire(theHit->WireID()).GetCenter().Z();
 
           x_vec.push_back(shower_hit_x);
           z_vec.push_back(shower_hit_z);
@@ -5429,7 +5430,7 @@ void pduneana::PDSPAnalyzer::BeamForcedTrackInfo(
           }
           //reco_beam_calo_tick_allTrack.push_back( theHit.PeakTime() );
           //calo_hit_indices_allTrack.push_back( TpIndices[i] );
-          //reco_beam_calo_wire_z_allTrack.push_back(geom->Wire(theHit.WireID()).GetCenter().Z());
+          //reco_beam_calo_wire_z_allTrack.push_back(wireReadout.Wire(theHit.WireID()).GetCenter().Z());
           
           reco_beam_calo_X_allTrack.push_back(theXYZPoints[i].X());
           reco_beam_calo_Y_allTrack.push_back(theXYZPoints[i].Y());

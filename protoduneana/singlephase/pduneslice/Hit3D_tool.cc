@@ -5,7 +5,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -39,7 +39,7 @@ namespace dnn {
   void Hit3D::saveImage(art::Event const& e, hep_hpc::hdf5::File& hdffile)
   {
 
-    art::ServiceHandle<geo::Geometry> geom;
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
 
 //    static Ntuple<unsigned int, unsigned int, unsigned int, double> evtids(
 //      hdffile, "evtids", {"run", "subrun", "event", "evttime"});
@@ -73,7 +73,7 @@ namespace dnn {
       int tpc = hits[i].WireID().TPC;
       int plane = hits[i].WireID().Plane;
       int wire = hits[i].WireID().Wire;
-      int channel = geom->PlaneWireToChannel(hits[i].WireID());
+      int channel = wireReadout.PlaneWireToChannel(hits[i].WireID());
       float charge = hits[i].Integral();
       float peakt = hits[i].PeakTime();
       float x = 0;

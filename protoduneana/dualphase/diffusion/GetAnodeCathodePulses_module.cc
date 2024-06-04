@@ -23,7 +23,7 @@
 #include "art_root_io/TFileService.h"
 
 //LArSoft
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -127,7 +127,7 @@ private:
   };
 
   // detector geometry
-  const geo::Geometry* fGeom;
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
   // Store good and bad tracks hits into TH2D
   vector<TH1F*> hAvgWire;
@@ -161,17 +161,13 @@ pddpana::GetAnodeCathodePulses::GetAnodeCathodePulses(fhicl::ParameterSet const&
   fTrackLenMax(   p.get< float  >("TrackLenMax") ),
   fTrackThetaMin( p.get< float  >("TrackThetaMin") ),
   fTrackThetaMax( p.get< float  >("TrackThetaMax") )
- 
-{
-  // Call appropriate consumes<>() for any products to be retrieved by this module.
-  fGeom    = &*art::ServiceHandle<geo::Geometry>();
-}
+{}
 
 void pddpana::GetAnodeCathodePulses::analyze(art::Event const& e)
 {
   if( fLogLevel >= 1 ) std::cout << "Start analysing file ..." << std::endl;
 
-  fNplanes = fGeom->Nplanes();
+  fNplanes = fWireReadoutGeom.Nplanes();
  
   bool point_set = false;
   Edge bot_edge;
@@ -391,19 +387,19 @@ void pddpana::GetAnodeCathodePulses::analyze(art::Event const& e)
 void pddpana::GetAnodeCathodePulses::beginJob()
 {
   if(fLogLevel >= 1){
-    std::cout << " #planes:       " << fGeom->Nplanes() << std::endl;
+    std::cout << " #planes:       " << fWireReadoutGeom.Nplanes() << std::endl;
     std::cout << " TrackMinLen:   " << fTrackLenMin << std::endl;
     std::cout << " TrackMaxLen:   " << fTrackLenMax << std::endl;
     std::cout << " TrackThetaMin: " << fTrackThetaMin << std::endl;
     std::cout << " TrackThetaMax: " << fTrackThetaMax << std::endl;
   }
 
-  hAvgWire.resize(fGeom->Nplanes());  
-  fNwf.resize(fGeom->Nplanes());
-  fRMS.resize(fGeom->Nplanes());
+  hAvgWire.resize(fWireReadoutGeom.Nplanes());  
+  fNwf.resize(fWireReadoutGeom.Nplanes());
+  fRMS.resize(fWireReadoutGeom.Nplanes());
 
   art::ServiceHandle<art::TFileService> tfs;
-  for (unsigned plane_i = 0; plane_i < fGeom->Nplanes(); plane_i++)
+  for (unsigned plane_i = 0; plane_i < fWireReadoutGeom.Nplanes(); plane_i++)
     hAvgWire[plane_i] = tfs->make<TH1F>(Form("hAvgWire_%d",plane_i),Form("Plane %d pulses",plane_i),100,-50,50);
 
   fTree = tfs->make<TTree>("DiffusionTree","Store anode and cathode pulses");

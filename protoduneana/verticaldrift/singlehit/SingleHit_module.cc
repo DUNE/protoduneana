@@ -25,7 +25,7 @@
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/ServicePack.h" 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
@@ -137,7 +137,7 @@ private:
   std::string fHitLabel;
 
   // geometry 
-  const geo::Geometry* fGeom;
+  const geo::WireReadoutGeom& fWireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
 
   int fChannelWdInt;
   int fChannelWdExt;
@@ -205,8 +205,6 @@ pdvdana::SingleHit::SingleHit(fhicl::ParameterSet const& p)
     fPitchMultiplier(p.get<float>("PitchMultiplier"))    
     // More initializers here.
 {
-  // Call appropriate consumes<>() for any products to be retrieved by this module.
-  fGeom    = &*art::ServiceHandle<geo::Geometry>();
 }
 
 void pdvdana::SingleHit::analyze(art::Event const& e)
@@ -673,7 +671,7 @@ void pdvdana::SingleHit::GetSpatialCoincidence( geo::WireID & WireCol , std::lis
       ++ch1;
       continue ;
     }
-    drap = fGeom->WireIDsIntersect( WireCol , elementInd1 , point);
+    drap = fWireReadout.WireIDsIntersect( WireCol , elementInd1 , point);
     if ( drap )
     {
       YInd1.push_back(point.Y());
@@ -690,7 +688,7 @@ void pdvdana::SingleHit::GetSpatialCoincidence( geo::WireID & WireCol , std::lis
       ++ch2; 
       continue ;
     }
-    drap = fGeom->WireIDsIntersect( WireCol , elementInd2 , point);
+    drap = fWireReadout.WireIDsIntersect( WireCol , elementInd2 , point);
     if ( drap ) 
     { 
       YInd2.push_back(point.Y());
