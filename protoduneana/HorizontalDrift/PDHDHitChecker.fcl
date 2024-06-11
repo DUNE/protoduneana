@@ -1,0 +1,6 @@
+BEGIN_PROLOG
+PDHDHitChecker: {
+  module_type: "PDHDHitChecker"
+  SpacePointTag: "reco3d"
+}
+END_PROLOG
