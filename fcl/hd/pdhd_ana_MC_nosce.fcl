@@ -70,6 +70,7 @@ source:
 physics:
 {
 
+ #### BIG TODO --       CHANGE ALL OF THE CALORIMETRIES TO THE CORRECT VERSIONS ONCE DUNESW FIX IN
  producers: { 
     pandora:            @local::protodunehd_pandora
     pandoraWriter:      @local::dune_pandorawriter
