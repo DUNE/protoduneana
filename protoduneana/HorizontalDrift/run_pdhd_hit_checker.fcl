@@ -68,4 +68,8 @@ source: {
   maxEvents: -1
   fileNames: ["input_file.root"]
 }
+
+physics.analyzers.hitchecker.SelectEvents: ["trigger_path"]
+services.DetectorPropertiesService.NumberTimeSamples: 8256 
+services.DetectorPropertiesService.ReadOutWindowSize: 8256 
 process_name: pdhdhitchecker 

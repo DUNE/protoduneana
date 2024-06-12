@@ -2,5 +2,6 @@ BEGIN_PROLOG
 PDHDHitChecker: {
   module_type: "PDHDHitChecker"
   SpacePointTag: "reco3d"
+  HitTag: "hitpdune"
 }
 END_PROLOG
