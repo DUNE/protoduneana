@@ -1,6 +1,6 @@
 #include "services_dune.fcl"
 #include "services_vdcoldbox.fcl" 
-#include "ProtoDUNECalibration.fcl"
+
 #include "tools_dune.fcl"	
 process_name: SingleHit
 
@@ -26,7 +26,7 @@ services:
                                   @table::protodune_data_reco_services
   LArPropertiesService:           @local::dunefd_properties
   IFDH:                           {}
-  #CalibrationServices:            @local::CalorimetryParameters_SPProd4_MC_SCE
+
 }
 services.Geometry.Name: "protodunev7"
 physics:
@@ -41,22 +41,23 @@ physics:
       SpacePointLabel:   "reco3d"
       ClusterLabel:      "pandora"
       TrackLabel:        "pandoroTrack"
-      HitLabel:          "gaushit"
+      HitLabel:          "hitpdune"
+      G4Label:           "largeant"
 
       HitMultiplicity:      3
 
-      RadiusInt:            3    # in cm
-      RadiusExt:            6    # in cm
+      RadiusInt:            0.5    # in cm
+      RadiusExt:            10    # in cm
       ElectronVelocity:     0.16 # in cm/mus
       TickTimeInMus:        0.4  # in mus/tt
-      CoincidenceWindow:    4    # in mus
-      TimePlane1ToPlane2:   2    # in mus
+      CoincidenceWindow:    7    # in mus
+      TimePlane1ToPlane2:   3    # in mus
       Pitch:                0.5  # in cm
       PitchMultiplier:      1.2
 
       #Cluster variables
       NumberInitClusters:   1
-      MaxSizeCluster:       4    # in cm
+      MaxSizeCluster:       1    # in cm
       MinSizeCluster:       0.5  # in cm
       ClusterSizeMulti:     1.2
       NumberConvStep:       200

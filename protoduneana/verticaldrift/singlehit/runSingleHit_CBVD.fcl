@@ -58,15 +58,27 @@ physics:
       TrackLabel:        "pandoroTrack"
       HitLabel:          "gaushit"
 
-      ChannelWindowInt:     1
-      ChannelWindowExt:     2
+      G4Label:           "largeant"
+
       HitMultiplicity:      3
-      PeakTimeWindowInt:    20
-      PeakTimeWindowExt:    20
-      CoincidenceWindow:    10
-      Pitch:                0.9 #in cm
+
+      RadiusInt:            3    # in cm
+      RadiusExt:            6    # in cm
+      ElectronVelocity:     0.16 # in cm/mus
+      TickTimeInMus:        0.4  # in mus/tt
+      CoincidenceWindow:    4    # in mus
+      TimePlane1ToPlane2:   2    # in mus
+      Pitch:                0.5  # in cm
       PitchMultiplier:      1.2
-      tagPD:                0 
+
+      #Cluster variables
+      NumberInitClusters:   1
+      MaxSizeCluster:       4    # in cm
+      MinSizeCluster:       0.5  # in cm
+      ClusterSizeMulti:     1.2
+      NumberConvStep:       200
+      Covering:             0.97
+      #tagPD:                1    # = 1 ->PDHD = 0 -> PDVD (for calib. factor)
     }
   }
 

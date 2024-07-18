@@ -1,6 +1,6 @@
 #include "services_dune.fcl"
 #include "services_vdcoldbox.fcl" 
-#include "ProtoDUNECalibration.fcl"
+
 #include "tools_dune.fcl"	
 process_name: SingleHit
 
@@ -27,10 +27,13 @@ services:
   FileCatalogMetadata:            @local::art_file_catalog_mc
                                   @table::protodunevd_reco_services
   LArPropertiesService:           @local::dunefd_properties
-  IFDH:                           {}
-  #CalibrationServices:            @local::CalorimetryParameters_SPProd4_MC_SCE
+
 }
-services.Geometry.Name: "protodunevd_v3"
+
+services.Geometry.Name: "protodunevd_v4"
+services.Geometry.GDLM: "protodunevd_v4_refactored.gdml"
+services.Geometry.ROOT: "protodunevd_v4_refactored.gdml"
+
 physics:
 {
   analyzers:
@@ -44,21 +47,22 @@ physics:
       ClusterLabel:      "pandora"
       TrackLabel:        "pandoroTrack"
       HitLabel:          "hitpdune"
+      G4Label:           "largeant"
 
       HitMultiplicity:      3
 
-      RadiusInt:            3    # in cm
-      RadiusExt:            6    # in cm
+      RadiusInt:            0.5    # in cm
+      RadiusExt:            10    # in cm
       ElectronVelocity:     0.16 # in cm/mus
       TickTimeInMus:        0.4  # in mus/tt
-      CoincidenceWindow:    4    # in mus
-      TimePlane1ToPlane2:   2    # in mus
+      CoincidenceWindow:    9    # in mus
+      TimePlane1ToPlane2:   0    # in mus
       Pitch:                0.5  # in cm
       PitchMultiplier:      1.2
 
       #Cluster variables
       NumberInitClusters:   1
-      MaxSizeCluster:       4    # in cm
+      MaxSizeCluster:       1    # in cm
       MinSizeCluster:       0.5  # in cm
       ClusterSizeMulti:     1.2
       NumberConvStep:       200
@@ -69,12 +73,7 @@ physics:
       #ChannelWindowInt:     1
       #ChannelWindowExt:     2
       #PeakTimeWindowInt:    20
-      #PeakTimeWindowExt:    2 
-
+      #PeakTimeWindowExt:    2
     }
   }
-
-  analysis: [ ana ]
-  end_paths: [ analysis ]
-}
 
