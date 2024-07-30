@@ -1097,6 +1097,7 @@ private:
   bool fSaveHitIDEInfo;
   bool fSaveRecoBeamAllTrack;
   bool fSkipMVA;
+  bool fVPlaneAsCollector;
   bool fTrueToReco;
   bool fDoReweight;
   bool fSaveG4RWWeights;
@@ -1161,6 +1162,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fSaveHitIDEInfo(p.get<bool>( "SaveHitIDEInfo", false)),
   fSaveRecoBeamAllTrack(p.get<bool>("SaveRecoBeamAllTrack", false)),
   fSkipMVA( p.get<bool>( "SkipMVA" ) ),
+  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", false)),
   fTrueToReco( p.get<bool>( "TrueToReco" ) ),
   fDoReweight(p.get<bool>("DoReweight")),
   fSaveG4RWWeights(p.get<bool>("SaveG4RWWeights", true)),
@@ -3136,7 +3138,9 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   bool found_calo = false;
   size_t index = 0;
   for ( index = 0; index < calo.size(); ++index) {
-    if (calo[index].PlaneID().Plane == 2) {
+    auto this_plane = calo[index].PlaneID().Plane;
+    if ((this_plane == 2 && !fVPlaneAsCollector) ||
+        (this_plane == 1 && fVPlaneAsCollector)) {
       found_calo = true;
       break; 
     }
