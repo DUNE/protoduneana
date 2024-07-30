@@ -342,7 +342,7 @@ table_fragment_end
 # Add the dependent product and version
 
 product          version
-duneprototypes   v09_90_01d00
+duneprototypes   v09_91_02d01
 cetmodules	 v3_24_01	-	only_for_build
 geant4reweight   v01_20_08
 end_product_list
