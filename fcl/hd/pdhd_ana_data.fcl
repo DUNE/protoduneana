@@ -80,11 +80,11 @@ physics:
 
  }
 
- #reco: []
- reco: [ 
-         pandora2Track, pandora2calo, pandora2calonosce, pandora2pid,
-         pandora2Shower, pandora2Showercalo,
-         pandora2Showercalonosce ]
+ reco: []
+ #reco: [ 
+ #        pandora2Track, pandora2calo, pandora2calonosce, pandora2pid,
+ #        pandora2Shower, pandora2Showercalo,
+ #        pandora2Showercalonosce ]
 
 
  analyzers:
