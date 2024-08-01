@@ -180,6 +180,22 @@ protoana::AbsCexDriver::AbsCexDriver(
     std::cout << "PreScaleSelection: " << fNoBeamPreScale << " " <<
                  fNoBeamFrac << std::endl;
   }
+  fSCERatioSystActive = extra_options.get<bool>(
+      "DoSCERatioSyst", false);
+  if (fSCERatioSystActive) {
+    SetupSCERatioSyst();
+  }
+
+
+  fMCFrontUpSelection = extra_options.get<bool>("MCFrontUpSelection", false);
+  fMCBackUpSelection = extra_options.get<bool>("MCBackUpSelection", false);
+  fMCFrontDownSelection = extra_options.get<bool>("MCFrontDownSelection", false);
+  fMCBackDownSelection = extra_options.get<bool>("MCBackDownSelection", false);
+
+  std::cout << "Front Up: " << fMCFrontUpSelection << std::endl;
+  std::cout << "Front Down: " << fMCFrontDownSelection << std::endl;
+  std::cout << "Back Up: " << fMCBackUpSelection << std::endl;
+  std::cout << "Back Down: " << fMCBackDownSelection << std::endl;
 }
 
 void protoana::AbsCexDriver::FillMCEvents(
@@ -191,6 +207,8 @@ void protoana::AbsCexDriver::FillMCEvents(
 
   int sample_ID, selection_ID, event, run, subrun;
   int cal_up_selection_ID, cal_down_selection_ID;
+  int selection_ID_front_shift_up, selection_ID_front_shift_down,
+      selection_ID_back_shift_up, selection_ID_back_shift_down;
   int true_beam_PDG;
   double true_beam_interactingEnergy, reco_beam_interactingEnergy, reco_beam_alt_len;
   double true_beam_endP, true_beam_mass, true_beam_endZ;
@@ -230,6 +248,17 @@ void protoana::AbsCexDriver::FillMCEvents(
   }
   tree->SetBranchAddress("cal_up_selection_ID", &cal_up_selection_ID);
   tree->SetBranchAddress("cal_down_selection_ID", &cal_down_selection_ID);
+
+  tree->SetBranchAddress("selection_ID_front_shift_up",
+                         &selection_ID_front_shift_up);
+  tree->SetBranchAddress("selection_ID_front_shift_down",
+                         &selection_ID_front_shift_down);
+
+  tree->SetBranchAddress("selection_ID_back_shift_up",
+                         &selection_ID_back_shift_up);
+  tree->SetBranchAddress("selection_ID_back_shift_down",
+                         &selection_ID_back_shift_down);
+
   tree->SetBranchAddress("true_beam_interactingEnergy", //good
                          &true_beam_interactingEnergy);
   tree->SetBranchAddress("true_beam_endP", &true_beam_endP); //good
@@ -545,6 +574,12 @@ void protoana::AbsCexDriver::FillMCEvents(
     events.back().SetSelectionID(selection_ID);
     events.back().SetCalUpSelectionID(cal_up_selection_ID);
     events.back().SetCalDownSelectionID(cal_down_selection_ID);
+
+    events.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
+    events.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
+    events.back().SetBackUpSelectionID(selection_ID_back_shift_up);
+    events.back().SetBackDownSelectionID(selection_ID_back_shift_down);
+
     events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
     if (fDoEnergyByLen) {
       events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
@@ -675,6 +710,12 @@ void protoana::AbsCexDriver::FillMCEvents(
       fake_data_events.back().SetSelectionID(selection_ID);
       fake_data_events.back().SetCalUpSelectionID(cal_up_selection_ID);
       fake_data_events.back().SetCalDownSelectionID(cal_down_selection_ID);
+
+      fake_data_events.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
+      fake_data_events.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
+      fake_data_events.back().SetBackUpSelectionID(selection_ID_back_shift_up);
+      fake_data_events.back().SetBackDownSelectionID(selection_ID_back_shift_down);
+
       fake_data_events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
       //fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
       if (fDoEnergyByLen) {
@@ -832,12 +873,24 @@ void protoana::AbsCexDriver::BuildMCSamples(
 
     int sample_ID = event.GetSampleID();
     int selection_ID = event.GetSelectionID();
-    if (fVaryMCCalibration && fVaryMCCalSelection) { 
+    if (fVaryMCCalibration && fVaryMCCalSelection) {
       selection_ID = (
         (fMCCalibrationFactor > 1.) ?
         event.GetCalUpSelectionID() :
         event.GetCalDownSelectionID()
       );
+    }
+    else if (fMCBackUpSelection) {
+      selection_ID = event.GetBackUpSelectionID();
+    }
+    else if (fMCBackDownSelection) {
+      selection_ID = event.GetBackDownSelectionID();
+    }
+    else if (fMCFrontUpSelection) {
+      selection_ID = event.GetFrontUpSelectionID();
+    }
+    else if (fMCFrontDownSelection) {
+      selection_ID = event.GetFrontDownSelectionID();
     }
 
     double true_beam_interactingEnergy = event.GetTrueInteractingEnergy();
@@ -1122,6 +1175,45 @@ void protoana::AbsCexDriver::SetupMultiplicitySyst() {
   ratio_file->Close();
 }
 
+void protoana::AbsCexDriver::SetupSCERatioSyst() {
+  std::cout << "Setting up SCERatio syst" << std::endl;
+  fhicl::ParameterSet options
+      = fExtraOptions.get<fhicl::ParameterSet>("SCERatioSyst");
+
+  TFile * ratio_file
+      = TFile::Open(options.get<std::string>("RatioFile").c_str());
+  std::string ratio_name = options.get<std::string>("RatioName");
+  std::cout << "Ratio name: " << ratio_name << std::endl;
+
+  auto temp_limits
+      = options.get<std::vector<std::pair<int, std::vector<double>>>>("Limits");
+  fSCERatioLimits.insert(temp_limits.begin(), temp_limits.end());
+
+  std::vector<int> topos = {1, 2, 3, 5, 6, 7};
+  std::vector<int> sels = {1, 2, 3, 7};
+  for (auto & topo : topos) {
+    auto temp_name = ratio_name;
+    std::cout << temp_name << " replacing " <<
+                 temp_name.find("{topo}") << std::endl;
+    temp_name.replace(temp_name.find("{topo}"), 6, std::to_string(topo));
+
+    for (auto & sel : sels) {
+      auto sel_name = temp_name;
+      sel_name.replace(sel_name.find("{sel}"), 5, std::to_string(sel));
+      for (size_t j = 0; j < fSCERatioLimits[topo].size()+1; ++j) {
+        std::string name = sel_name;
+        name.replace(name.find("{ke}"), 4, std::to_string(j));
+
+        fSCESystRatios[{topo, sel}].push_back((TH1D*)ratio_file->Get(name.c_str()));
+        std::cout << name << " " << fSCESystRatios[{topo, sel}].back() << std::endl;
+        fSCESystRatios[{topo, sel}].back()->SetDirectory(0);
+      }
+    }
+  }
+
+  ratio_file->Close();
+}
+
 double protoana::AbsCexDriver::GetEndKE(const ThinSliceEvent & event) {
   double p = event.GetTrueEndP();
   return sqrt(p*p*1.e6 + 139.57*139.57) - 139.57;
@@ -1241,6 +1333,49 @@ double protoana::AbsCexDriver::GetMultiplicityWeight(
   else {
     return ratio->GetBinContent(bin);
   }*/
+}
+
+double protoana::AbsCexDriver::GetSCERatioWeight(
+    const ThinSliceEvent & event, double val) {
+
+  int sel_ID = event.GetSelectionID();
+  int sample_ID = event.GetSampleID();
+
+  if ((sample_ID == 4) || (sel_ID > 3 && sel_ID < 7)) {
+    return 1.;
+  }
+
+  const auto & limits = fSCERatioLimits.at(sample_ID);
+  size_t ke_id = 0;
+  if (limits.size() > 0) {
+    double ke = GetEndKE(event);
+    if (ke < limits[0]) {
+      ke_id = 0;
+    }
+    else if (ke > limits.back()) {
+      ke_id = limits.size();
+    }
+    else {
+      for (size_t i = 1; i < limits.size(); ++i) {
+        if (ke > limits[i-1] && ke < limits[i]) {
+          ke_id = i;
+          break;
+        }
+      }
+    }
+  }
+
+  auto * ratio = fSCESystRatios[{sample_ID, sel_ID}][ke_id];
+  /*std::cout << "SCE Syst " << sample_ID << " " << sel_ID << " " << ke_id <<
+               " " << ratio << std::endl;*/
+
+  if (sel_ID == 7) {
+    return ratio->GetBinContent(1);
+  }
+  else {
+    int bin = ratio->FindBin(val);
+    return ratio->GetBinContent(bin);
+  }
 }
 
 void protoana::AbsCexDriver::RefillSampleLoop(
@@ -1437,12 +1572,26 @@ void protoana::AbsCexDriver::RefillSampleLoop(
     int new_selection = selection_ID;
 
     //Change the selection here
-    if (fVaryMCCalibration && !fFakeDataActive && fVaryMCCalSelection) { 
-      new_selection = (
-        (fMCCalibrationFactor > 1.) ?
-        event.GetCalUpSelectionID() :
-        event.GetCalDownSelectionID()
-      );
+    if (!fFakeDataActive) {
+      if (fVaryMCCalibration && fVaryMCCalSelection) { 
+        new_selection = (
+          (fMCCalibrationFactor > 1.) ?
+          event.GetCalUpSelectionID() :
+          event.GetCalDownSelectionID()
+        );
+      }
+      else if (fMCBackUpSelection) {
+        new_selection = event.GetBackUpSelectionID(); 
+      }
+      else if (fMCBackDownSelection) {
+        new_selection = event.GetBackDownSelectionID(); 
+      }
+      else if (fMCFrontUpSelection) {
+        new_selection = event.GetFrontUpSelectionID(); 
+      }
+      else if (fMCFrontDownSelection) {
+        new_selection = event.GetFrontDownSelectionID(); 
+      }
     }
 
     TH1D * selected_hist
@@ -1569,6 +1718,10 @@ void protoana::AbsCexDriver::RefillSampleLoop(
 
     if (fMultiplicitySystActive) {
       weight *= GetMultiplicityWeight(event);
+    }
+
+    if (fSCERatioSystActive) {
+      weight *= GetSCERatioWeight(event, val[0]);
     }
 
     //Implement here new prescale stuff after designing

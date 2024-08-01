@@ -116,6 +116,44 @@ class inclusive_topology {
   }
 };*/
 
+/*class selection_sequence {
+ private:
+  bool fDoMichel;
+ public:
+  selection_sequence(bool do_michel) : fDoMichel(do_michel) {};
+
+  std::vector<int> operator()(bool beam_is_track, bool ends_in_APA3,
+                 bool no_pion_daughter,
+                 bool beam_cuts, bool has_shower, bool michel_cut) {
+
+    if (!beam_is_track) {
+      return 6;
+    }
+
+    if (!beam_cuts) {
+      return 5;
+    }
+    
+    if (!ends_in_APA3) {
+      return 4;
+    }
+
+    if (fDoMichel && michel_cut) {
+      return 7;
+    }
+
+    if (!no_pion_daughter) {
+      return 3;
+    }
+
+    if (has_shower) {
+      return 2;
+    }
+    else {
+      return 1;
+    }
+  }
+};*/
 class selection_ID {
  private:
   bool fDoMichel;
@@ -260,6 +298,9 @@ auto daughter_PDG_types(const std::vector<int> bt_PDGs) {
     else if (abs(PDG) == 11) {
       results.push_back(6);
     }
+    else if (abs(PDG) == 321) {
+      results.push_back(8);
+    }
     else {
       results.push_back(7);
     }
@@ -276,31 +317,34 @@ auto categorize_daughters = [](
     const std::vector<int> true_grand_daughters) {
   std::vector<int> results;
   for (size_t i = 0; i < bt_origins.size(); ++i) {
-    if (bt_IDs[i] == beam_ID) {
+    if (bt_IDs[i] == beam_ID) { //Self
       results.push_back(1);
     }
-    else if (bt_origins[i] == 2) {
+    else if (bt_origins[i] == 2) { //Cosmic
       results.push_back(2);
     }
-    else if (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) {
+    else if (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) { //??
       results.push_back(10); 
     }
     else if (std::find(true_daughters.begin(), true_daughters.end(), bt_IDs[i]) !=
-             true_daughters.end()) {
-      if (abs(bt_PDGs[i]) == 211) {
+             true_daughters.end()) { //Coming out of the interaction
+      if (abs(bt_PDGs[i]) == 211) {//Pion
         results.push_back(3);
       }
-      else if (abs(bt_PDGs[i]) == 13) {
+      else if (abs(bt_PDGs[i]) == 13) {//Muon
         results.push_back(4);
       }
-      else if (bt_PDGs[i] == 2212) {
+      else if (bt_PDGs[i] == 2212) {//P
         results.push_back(5);
       }
-      else if (bt_PDGs[i] == 22) {
+      else if (bt_PDGs[i] == 22) {//gamma 
         results.push_back(6);
       }
-      else if (bt_PDGs[i] > 2212) {
+      else if (bt_PDGs[i] > 2212) {//Nuc
         results.push_back(7);
+      }
+      else if (abs(bt_PDGs[i]) == 321) {//K
+        results.push_back(9);
       }
       else {
         //std::cout << bt_PDGs[i] << " " << bt_ParPDGs[i] << " " << (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) << std::endl;
@@ -310,17 +354,17 @@ auto categorize_daughters = [](
     else if (std::find(true_grand_daughters.begin(), 
                        true_grand_daughters.end(), bt_IDs[i]) !=
              true_grand_daughters.end()) {
-      if ((bt_PDGs[i] == 22 || abs(bt_PDGs[i]) == 11) && bt_ParPDGs[i] == 111) {
+      if ((bt_PDGs[i] == 22 || abs(bt_PDGs[i]) == 11) && bt_ParPDGs[i] == 111) {//Pi0 decay
         results.push_back(11);
       }
-      else {
+      else {//Grand daughters
         results.push_back(8);
       }
-    }
+    }//
     else if (std::find(true_grand_daughters.begin(), 
                        true_grand_daughters.end(), bt_ParIDs[i]) !=
-             true_grand_daughters.end()) {
-        results.push_back(9);
+             true_grand_daughters.end()) {//
+        results.push_back(8);
     }
     else {
         //std::cout << bt_PDGs[i] << " " << bt_ParPDGs[i] << " " << (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) << std::endl;

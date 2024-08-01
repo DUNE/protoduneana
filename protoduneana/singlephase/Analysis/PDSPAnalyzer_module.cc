@@ -577,6 +577,7 @@ private:
   void CheckEff(const art::Event & evt, int rightTrackID);
   void TrueBeamInfo(const art::Event & evt,
                     const simb::MCParticle* true_beam_particle,
+                    //const recob::PFParticle * reco_beam_part,
                     detinfo::DetectorClocksData const& clockData,
                     const sim::ParticleList & plist,
                     std::map<int, std::vector<int>> & trueToPFPs,
@@ -4343,7 +4344,13 @@ void pduneana::PDSPAnalyzer::TrueBeamInfo(
 
       }
     }
+    //auto daughter_hits = 
     true_beam_daughter_nHits.push_back( truthUtil.GetMCParticleHits( clockData, *part, evt, fHitTag ).size() );
+    /*New field: number of daugher hits in beam reco  PFP
+    double  = truthUtil.GetMCParticleHits( clockData, *part, evt, fHitTag).size();
+    double sharedHits = truthUtil.GetSharedHits( clockData, *part, *reco_beam_part, evt, fPFParticleTag).size();
+    * true_beam_daughter_
+    */
 
   }
 }

@@ -7,8 +7,8 @@ from glob import glob as ls
 
 parser = argparse.ArgumentParser(description = 'Submission script for fits')
 parser.add_argument('--config', type=str, help='Which config',
-                    #default='/dune/app/users/calcuttj/larsoft-protoduneana/srcs/protoduneana/protoduneana/Utilities/FitUtils/fcl_cfg_files/asimov.cfg')
-                    default='%s/cfg_files/asimov.cfg'%(os.environ['PROTODUNEANA_DIR']))
+                    default='/exp/dune/app/users/calcuttj/larsoft-protoduneana/srcs/protoduneana/protoduneana/Utilities/FitUtils/fcl_cfg_files/asimov.cfg')
+                    #default='%s/cfg_files/asimov.cfg'%(os.environ['PROTODUNEANA_DIR']))
 parser.add_argument('--type', type=str, help='Which type', default='asimov')
 
 parser.add_argument('--output_dir', type=str, help='Output top dir', default=None)

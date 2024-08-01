@@ -579,6 +579,8 @@ class AbsCexDriver : public ThinSliceDriver {
    bool fRestrictBeamInstP, fDebugRestrictBeamP;
    bool fVaryDataCalibration, fVaryMCCalibration, fVaryMCCalSelection, fThrowCalibration,
         fVaryCalibrationFakeData;
+   bool fMCFrontUpSelection, fMCFrontDownSelection,
+        fMCBackUpSelection, fMCBackDownSelection;
    double fDataCalibrationFactor, fMCCalibrationFactor;
    bool fBarlowBeeston;
    std::vector<int> fToSkip;
@@ -670,6 +672,13 @@ class AbsCexDriver : public ThinSliceDriver {
   std::map<int, std::vector<double>> fMultiplicityLimits;
   bool fPreScaleSelection;
   double fNoBeamPreScale, fNoBeamFrac;
+
+
+  bool fSCERatioSystActive;
+  std::map<int, std::vector<double>> fSCERatioLimits;
+  void SetupSCERatioSyst();
+  std::map<std::pair<int, int>, std::vector<TH1D*>> fSCESystRatios;
+  double GetSCERatioWeight(const ThinSliceEvent & event, double val);
 };
 }
 #endif

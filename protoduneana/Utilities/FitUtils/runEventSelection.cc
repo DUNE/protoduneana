@@ -46,6 +46,12 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
            .Define("primary_ends_inAPA3",
                    endAPA3(pset.get<double>("EndZHigh")),
                    {(use_FV_beamcut ? "reco_beam_calo_endZ" : "reco_beam_endZ")})
+           .Define("primary_ends_inAPA3_shift_up",
+                   endAPA3(pset.get<double>("EndZHigh") + .239),
+                   {(use_FV_beamcut ? "reco_beam_calo_endZ" : "reco_beam_endZ")})
+           .Define("primary_ends_inAPA3_shift_down",
+                   endAPA3(pset.get<double>("EndZHigh") - .239),
+                   {(use_FV_beamcut ? "reco_beam_calo_endZ" : "reco_beam_endZ")})
            .Define("shower_dists",
                    shower_dists(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
@@ -53,13 +59,13 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "reco_daughter_allShower_startY",
                     "reco_daughter_allShower_startZ",
                     "reco_beam_endX", "reco_beam_endY", "reco_beam_endZ"})
-           .Define("shower_dists_SCE",
+           /*.Define("shower_dists_SCE",
                    shower_dists(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
                     "reco_daughter_allShower_startX_SCE",
                     "reco_daughter_allShower_startY_SCE",
                     "reco_daughter_allShower_startZ_SCE",
-                    "reco_beam_calo_endX", "reco_beam_calo_endY", "reco_beam_calo_endZ"})
+                    "reco_beam_calo_endX", "reco_beam_calo_endY", "reco_beam_calo_endZ"})*/
            .Define("has_shower_dist_energy",
                    has_shower_dist_energy(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
@@ -205,8 +211,26 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "reco_beam_calo_Z", "reco_beam_calo_endZ",
                     "beam_inst_X", "beam_inst_Y",
                     "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"})
+           .Define("FV_vals_shift_up",
+                   FV_values(pset.get<double>("EndZCutFV", 30.) + 1.751),
+                   {"reco_beam_calo_X", "reco_beam_calo_Y",
+                    "reco_beam_calo_Z", "reco_beam_calo_endZ",
+                    "beam_inst_X", "beam_inst_Y",
+                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"})
+           .Define("FV_vals_shift_down",
+                   FV_values(pset.get<double>("EndZCutFV", 30.) - 1.751),
+                   {"reco_beam_calo_X", "reco_beam_calo_Y",
+                    "reco_beam_calo_Z", "reco_beam_calo_endZ",
+                    "beam_inst_X", "beam_inst_Y",
+                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"})
            .Define("reach_FV",
                    reach_FV(pset.get<double>("EndZCutFV", 30.)),
+                   {"reco_beam_calo_endZ"})
+           .Define("reach_FV_shift_up",
+                   reach_FV(pset.get<double>("EndZCutFV", 30.) + 1.751),
+                   {"reco_beam_calo_endZ"})
+           .Define("reach_FV_shift_down",
+                   reach_FV(pset.get<double>("EndZCutFV", 30.) - 1.751),
                    {"reco_beam_calo_endZ"})
            .Define("passBeamCutFV",
                    beam_cut_FV(
@@ -218,10 +242,29 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                        pset.get<double>("MCSigmaX"),
                        pset.get<double>("MCSigmaY"),
                        pset.get<double>("MCSigmaR")),
-                   {/*"reco_beam_calo_X", "reco_beam_calo_Y",
-                    "reco_beam_calo_Z",*/"FV_vals", "reco_beam_calo_endZ"/*,
-                    "beam_inst_X", "beam_inst_Y", "beam_inst_Z",
-                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"*/});
+                   {"FV_vals", "reco_beam_calo_endZ"})
+           .Define("passBeamCutFV_shift_up",
+                   beam_cut_FV(
+                       pset.get<double>("EndZCutFV", 30.) + 1.751,
+                       pset.get<double>("MCCosLow", .95),
+                       pset.get<double>("MCMeanX"),
+                       pset.get<double>("MCMeanY"),
+                       pset.get<double>("MCMeanR"),
+                       pset.get<double>("MCSigmaX"),
+                       pset.get<double>("MCSigmaY"),
+                       pset.get<double>("MCSigmaR")),
+                   {"FV_vals_shift_up", "reco_beam_calo_endZ"})
+           .Define("passBeamCutFV_shift_down",
+                   beam_cut_FV(
+                       pset.get<double>("EndZCutFV", 30.) - 1.751,
+                       pset.get<double>("MCCosLow", .95),
+                       pset.get<double>("MCMeanX"),
+                       pset.get<double>("MCMeanY"),
+                       pset.get<double>("MCMeanR"),
+                       pset.get<double>("MCSigmaX"),
+                       pset.get<double>("MCSigmaY"),
+                       pset.get<double>("MCSigmaR")),
+                   {"FV_vals_shift_down", "reco_beam_calo_endZ"});
 
   if(pset.get<bool>("UseBI")) {
     mc = mc.Define(
@@ -271,6 +314,26 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                   "reach_FV",
                   "passBeamCutFV",
                   "has_shower_dist_energy", "vertex_cut"}) 
+          .Define("selection_ID_back_shift_up", selection_ID(pset.get<bool>("DoMichel")),
+                 {"primary_isBeamType", "primary_ends_inAPA3_shift_up",
+                  "has_noPion_daughter_simple",
+                  "passBeamCutFV",
+                  "has_shower_dist_energy", "vertex_cut"}) 
+          .Define("selection_ID_back_shift_down", selection_ID(pset.get<bool>("DoMichel")),
+                 {"primary_isBeamType", "primary_ends_inAPA3_shift_down",
+                  "has_noPion_daughter_simple",
+                  "passBeamCutFV",
+                  "has_shower_dist_energy", "vertex_cut"})
+          .Define("selection_ID_front_shift_up", selection_ID(pset.get<bool>("DoMichel")),
+                 {"primary_isBeamType", "primary_ends_inAPA3",
+                  "has_noPion_daughter_simple",
+                  "passBeamCutFV_shift_up",
+                  "has_shower_dist_energy", "vertex_cut"}) 
+          .Define("selection_ID_front_shift_down", selection_ID(pset.get<bool>("DoMichel")),
+                 {"primary_isBeamType", "primary_ends_inAPA3",
+                  "has_noPion_daughter_simple",
+                  "passBeamCutFV_shift_down",
+                  "has_shower_dist_energy", "vertex_cut"})
          .Define("cal_up_selection_ID", selection_ID(pset.get<bool>("DoMichel")),
              {"primary_isBeamType", "primary_ends_inAPA3",
               "cal_up_has_noPion_daughter_simple",
@@ -345,13 +408,13 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "reco_daughter_allShower_startY",
                     "reco_daughter_allShower_startZ",
                     "reco_beam_endX", "reco_beam_endY", "reco_beam_endZ"})
-           .Define("shower_dists_SCE",
+           /*.Define("shower_dists_SCE",
                    shower_dists(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
                     "reco_daughter_allShower_startX_SCE",
                     "reco_daughter_allShower_startY_SCE",
                     "reco_daughter_allShower_startZ_SCE",
-                    "reco_beam_calo_endX", "reco_beam_calo_endY", "reco_beam_calo_endZ"})
+                    "reco_beam_calo_endX", "reco_beam_calo_endY", "reco_beam_calo_endZ"})*/
            .Define("has_shower_dist_energy",
                    has_shower_dist_energy(pset.get<double>("TrackScoreCut")),
                    {track_score_string,
@@ -394,7 +457,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                    make_simple_chi2, 
                    {"reco_daughter_allTrack_Chi2_proton",
                     "reco_daughter_allTrack_Chi2_ndof"})
-           .Define("cal_up_has_noPion_daughter_simple",
+           /*.Define("cal_up_has_noPion_daughter_simple",
                    secondary_noPion_simple(
                        pset.get<double>("TrackScoreCut"),
                        pset.get<double>("Chi2Cut"),
@@ -419,7 +482,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                    {track_score_string,
                     "reco_daughter_allTrack_ID", 
                     "reco_daughter_allTrack_truncLibo_dEdX_pos",
-                    "cal_down_daughter_chi2_proton"})
+                    "cal_down_daughter_chi2_proton"})*/
            .Define("has_noPion_daughter_simple",
                    secondary_noPion_simple(
                        pset.get<double>("TrackScoreCut"),
@@ -463,10 +526,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                        pset.get<double>("DataSigmaX"),
                        pset.get<double>("DataSigmaY"),
                        pset.get<double>("DataSigmaR")),
-                   {/*"reco_beam_calo_X", "reco_beam_calo_Y",
-                    "reco_beam_calo_Z",*/ "FV_vals", "reco_beam_calo_endZ"/*,
-                    "beam_inst_X", "beam_inst_Y", "beam_inst_Z",
-                    "beam_inst_dirX", "beam_inst_dirY", "beam_inst_dirZ"*/});
+                   {"FV_vals", "reco_beam_calo_endZ"});
            /*.Define("beam_inst_P_scaled", beam_inst_P_scaled())*/;
 
   if(pset.get<bool>("UseBI")) {
@@ -514,7 +574,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                   "has_noPion_daughter",
                   (use_FV_beamcut ? "passBeamCutFV" : "passBeamCut"),
                   "has_shower_dist_energy", "vertex_cut"})
-             .Define("cal_up_selection_ID", selection_ID(pset.get<bool>("DoMichel")),
+             /*.Define("cal_up_selection_ID", selection_ID(pset.get<bool>("DoMichel")),
                  {"primary_isBeamType", "primary_ends_inAPA3",
                   "cal_up_has_noPion_daughter",
                   (use_FV_beamcut ? "passBeamCutFV" : "passBeamCut"),
@@ -523,7 +583,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                  {"primary_isBeamType", "primary_ends_inAPA3",
                   "cal_down_has_noPion_daughter",
                   (use_FV_beamcut ? "passBeamCutFV" : "passBeamCut"),
-                  "cal_down_has_shower_dist_energy", "vertex_cut"})
+                  "cal_down_has_shower_dist_energy", "vertex_cut"})*/
              .Define("selection_ID_inclusive",
                      selection_ID_inclusive(pset.get<bool>("DoMichel")),
                      {"primary_isBeamType", "primary_ends_inAPA3",

@@ -89,6 +89,32 @@ class ThinSliceEvent {
     cal_up_selection_ID = s;
   };
 
+  int GetBackUpSelectionID() const {
+    return back_up_selection_ID;
+  };
+  void SetBackUpSelectionID(int s) {
+    back_up_selection_ID = s;
+  };
+  int GetBackDownSelectionID() const {
+    return back_down_selection_ID;
+  };
+  void SetBackDownSelectionID(int s) {
+    back_down_selection_ID = s;
+  };
+  int GetFrontUpSelectionID() const {
+    return front_up_selection_ID;
+  };
+  void SetFrontUpSelectionID(int s) {
+    front_up_selection_ID = s;
+  };
+  int GetFrontDownSelectionID() const {
+    return front_down_selection_ID;
+  };
+  void SetFrontDownSelectionID(int s) {
+    front_down_selection_ID = s;
+  };
+
+
   int GetCalDownSelectionID() const {
     return cal_down_selection_ID;
   };
@@ -530,6 +556,8 @@ class ThinSliceEvent {
   int event_ID, subrun_ID, run_ID;
   int sample_ID;
   int selection_ID, cal_up_selection_ID, cal_down_selection_ID;
+  int back_up_selection_ID, back_down_selection_ID, front_up_selection_ID,
+      front_down_selection_ID;
   int pdg;
   double true_beam_interactingEnergy, reco_beam_interactingEnergy;
   double true_beam_initEnergy;
