@@ -1,3 +1,4 @@
+#include "BeamEvent.fcl"
 #include "services_refactored_pdune.fcl"
 #include "caldata_dune.fcl"
 #include "wirecell_dune.fcl"
@@ -52,6 +53,7 @@ services:
   }
   FileCatalogMetadataDUNE: { }
   TFileMetadataDUNE: @local::dune_tfile_metadata
+  IFBeam:            {}
 }
 services.TFileMetadataDUNE.dataTier: "root-tuple-virtual"
 
@@ -78,9 +80,10 @@ physics:
     pandora2Showercalo:    @local::pdune_sp_allshowercalomcsce
     pandora2Showercalonosce:    @local::pdune_sp_allshowercalomcnosce
 
+    beamevent:          @local::pdhd_beamevent
  }
 
- reco: []
+ reco: [beamevent]
  #reco: [ 
  #        pandora2Track, pandora2calo, pandora2calonosce, pandora2pid,
  #        pandora2Shower, pandora2Showercalo,
@@ -154,3 +157,4 @@ physics.producers.pandora2Showercalonosce.ShowerModuleLabel: "pandora2Shower"
 physics.analyzers.pduneana.VPlaneAsCollector: true
 physics.analyzers.pduneana.CalorimetryTagSCE: "pandoraGnocchiCalonosce"
 physics.analyzers.pduneana.CalorimetryTagNoSCE: "pandoraGnocchiCalonosce"
+physics.producers.beamevent.MatchTime:            true
