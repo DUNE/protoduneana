@@ -72,6 +72,16 @@ physics:
 
  #### BIG TODO --       CHANGE ALL OF THE CALORIMETRIES TO THE CORRECT VERSIONS ONCE DUNESW FIX IN
  producers: { 
+    wclsdatahd:         @local::protodunehd_nfsp
+    # Hit finder
+    gaushit:            @local::protodunespmc_gaushitfinder
+    # space point solver
+    reco3d:             @local::pdhd_data_spacepointsolver
+    # actual disambiguation
+    hitpdune:           @local::pdune_disambigfromsp
+    # event feature labeling
+    emtrkmichelid:      @local::protodune_emtrkmichelid
+
     pandora:            @local::protodunehd_pandora
     pandoraWriter:      @local::dune_pandorawriter
     pandoraTrack:       @local::dune_pandoraTrackCreation
@@ -100,7 +110,8 @@ physics:
  }
 
  #reco: []
- reco: [ fTruth, pandora, pandoraWriter, pandoraTrack, pandoraShower,
+ reco: [ fTruth, wclsdatahd, gaushit, reco3d, hitpdune, emtrkmichelid,
+         pandora, pandoraWriter, pandoraTrack, pandoraShower,
          pandoracalo, pandoracalonosce, pandorapid, pandoracali, pandoracalipid,
          pandoraShowercalo, pandoraShowercalonosce, anodepiercerst0,
          pandora2Track, pandora2calo, pandora2calonosce, pandora2pid,
@@ -172,6 +183,8 @@ services.SpaceCharge.EnableCalSpatialSCE: false
 services.SpaceCharge.EnableCorrSCE: false
 services.SpaceCharge.EnableSimEfieldSCE: false
 services.SpaceCharge.EnableSimSpatialSCE: false
+
+physics.producers.gaushit.CalDataModuleLabel: "wclsdatahd"
 
 physics.producers.pandora.HitFinderModuleLabel:             "hitpdune"
 physics.producers.pandora.GeantModuleLabel:                 "tpcrawdecoder:simpleSC"
