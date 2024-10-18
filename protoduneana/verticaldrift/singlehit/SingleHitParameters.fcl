@@ -3,7 +3,7 @@ BEGIN_PROLOG
 SingleHitParams:
 {
   module_type: "SingleHit"
-  LogLevel:     3
+  LogLevel:     0
 
   SpacePointLabel:   "reco3d"
   ClusterLabel:      "pandora"
@@ -14,26 +14,28 @@ SingleHitParams:
 
   HitMultiplicity:      3
 
-  RadiusInt:            0.5   # in cm
-  RadiusExt:            10    # in cm
-  ElectronVelocity:     0.16 # in cm/mus
-  TickTimeInMus:        0.4  # in mus/tt
-  CoincidenceWindow:    7   # in mus
-  TimePlane1ToPlane2:   4    # in mus
+  RadiusInt:            1   # in cm
+  RadiusExt:            20    # in cm
+
+  CoincidenceWindow1_right:   5   # in mus
+  CoincidenceWindow1_left:    5    # in mus
+  CoincidenceWindow2_left:    5    # in mus
+  CoincidenceWindow2_right:   5   # in mus
+
   Pitch:                0.5  # in cm
   PitchMultiplier:      1.2
   Is3ViewsCoincidence:  false #if false then only 2 views coincidence is imposed
-  HitTree:              true #if you want the hit tree or not
+  HitTree:              false #if you want the hit tree or not
   IsPDVD:               false
   IsPDHD:               false
 
   #Cluster variables
-  NumberInitClusters:   1
-  MaxSizeCluster:       1    # in cm
-  MinSizeCluster:       0.5  # in cm
+  NumberInitClusters:   20
+  MaxSizeCluster:       3    # in cm
+  MinSizeCluster:       1  # in cm
   ClusterSizeMulti:     1.2
-  NumberConvStep:       200
-  Covering:             0.97
+  NumberConvStep:       300
+  Covering:             0.99
 
 }
 

@@ -28,7 +28,7 @@ services:
 }
 
 services.Geometry.Name: "protodunevd_v4"
-services.Geometry.GDML: "protodunevd_v4_refactored.gdml"
+services.Geometry.GDLM: "protodunevd_v4_refactored.gdml"
 services.Geometry.ROOT: "protodunevd_v4_refactored.gdml"
 
 physics:

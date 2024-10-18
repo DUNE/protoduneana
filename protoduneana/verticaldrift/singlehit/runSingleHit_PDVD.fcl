@@ -40,7 +40,7 @@ physics:
 {
   analyzers:
   {
-    ana:@Local::SingleHitParams
+    ana:@local::SingleHitParams
   }
 
   analysis: [ ana ]
