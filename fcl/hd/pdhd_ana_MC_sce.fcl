@@ -1,4 +1,5 @@
 #include "pdhd_ana_MC_nosce.fcl"
+#### BIG TODO --       CHANGE ALL OF THE CALORIMETRIES TO THE CORRECT VERSIONS ONCE DUNESW FIX IN
 physics.producers.pandoracalo:           @local::pdune_sp_calomcsce
 physics.producers.pandoraShowercalo:     @local::pdune_sp_showercalomcsce
 physics.producers.pandora2calo:          @local::pdune_sp_alltrackcalomcsce

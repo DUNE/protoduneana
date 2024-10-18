@@ -1,0 +1,866 @@
+#include "filters.fcl"
+#include "triggeralgo_service.fcl"
+#include "ProtoDUNEBeamCuts.fcl"
+#include "ProtoDUNEBeamlineUtils.fcl"
+#include "ProtoDUNEEmptyEventFinder.fcl"
+
+BEGIN_PROLOG
+
+pdhdanalysis:
+{
+  module_type: "PDSPAnalyzer"
+  SpacePointModuleLabel:  "reco3d" #Remove?
+  TrackModuleLabel:       "pandoraTrack"
+
+  CalorimetryTagSCE:      "pandoracalo"
+  CalorimetryTagNoSCE:    "pandoracalonosce"
+  Shower2CalorimetryTag:  "pandora2Showercalo"
+  Pandora2CaloSCE:        "pandora2calo"
+  TrackerTag:             "pandoraTrack"
+  HitTag:                 "hitpdune"
+  ShowerTag:              "pandoraShower"
+  PFParticleTag:          "pandora"
+  GeneratorTag:           "generator"
+  dEdX_template_name:     "dEdxrestemplates.root"
+  BeamModuleLabel:        "beamevent"
+  BeamlineUtils: @local::standard_protodunebeamlineutils
+  BeamPIDMomentum: 1.
+  Verbose:                false 
+
+  BeamCuts: @local::Prod2BeamCuts  #Remove?
+  EmptyEventFinder: @local::standard_protoduneemptyeventfinder
+
+  SaveHits: false
+  SkipMVA: false
+  TrueToReco: false
+  DoReweight: false
+  DoProtReweight: false 
+  GetTrackMichel: true
+
+  FracsFile: "/pnfs/dune/resilient/users/calcuttj/Prod4_G4RW/LAr_PiPlus_cascade.root"
+  PiMFracsFile: "/pnfs/dune/resilient/users/calcuttj/Prod4_G4RW/LAr_PiMinus_cascade.root"
+  ProtFracsFile: "/dune/data2/users/calcuttj/GeantReweight/FlatTree/proton_cascade.root"
+  Material: {
+    Name: "liquidArgon"
+    Density: 1.400
+    Components: [
+      {
+        Z:    18
+        Mass: 39.948
+        Fraction: 1.
+      }
+    ]
+  }
+
+  # Parameters for the SparseNet
+  SpacePointLabel:     "pandora"
+  NeighbourRadii:     [3.0,10.,30.] # Distance in cm
+  ChargeRadii:        [3.0,10.,30.] # Distance in cm
+
+  ParameterSet: [
+    { 
+      Cut:    "reac"
+      Name: "fReac"
+      Range: [000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    {
+      Cut:  "abs"
+      Name: "fAbs1"
+      Range: [000., 300.]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut:  "abs"
+      Name: "fAbs2"
+      Range: [300., 1200.]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut:  "cex"
+      Name: "fCex"
+      Range: [000., 1200.]
+      Nominal: 1.0
+      Sigma: .2
+    }
+  ]
+
+  FineParameterSet: [
+    {
+      Cut: "reac"
+      Name: "fReac1"
+      Range: [0., 128.2848393225014]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac2"
+      Range: [128.2848393225014, 194.7151766041877]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac3"
+      Range: [194.7151766041877, 253.71440637062767]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac4"
+      Range: [253.71440637062767, 309.5609794531604]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac5"
+      Range: [309.5609794531604, 363.7100493525028]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac6"
+      Range: [363.7100493525028, 416.8237037405622]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac7"
+      Range: [416.8237037405622, 469.25366274542813]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac8"
+      Range: [469.25366274542813, 521.2062931316159]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac9"
+      Range: [521.2062931316159, 572.8114873149804]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac10"
+      Range: [572.8114873149804, 624.1554293603476]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac11"
+      Range: [624.1554293603476, 675.2977121240674]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac12"
+      Range: [675.2977121240674, 726.280937378918]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac13"
+      Range: [726.280937378918, 777.1364101623343]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac14"
+      Range: [777.1364101623343, 827.8876735403178]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac15"
+      Range: [827.8876735403178, 878.5527872586825]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac16"
+      Range: [878.5527872586825, 929.1458443107841]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac17"
+      Range: [929.1458443107841, 979.6780083272258]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac18"
+      Range: [979.6780083272258, 1030.1582402718525]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac19"
+      Range: [1030.1582402718525, 1080.5938182314387]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "reac"
+      Name: "fReac20"
+      Range: [1080.5938182314387, 1130.9907161422677]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs1"
+      Range: [0., 128.2848393225014]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs2"
+      Range: [128.2848393225014, 194.7151766041877]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs3"
+      Range: [194.7151766041877, 253.71440637062767]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs4"
+      Range: [253.71440637062767, 309.5609794531604]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs5"
+      Range: [309.5609794531604, 363.7100493525028]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs6"
+      Range: [363.7100493525028, 416.8237037405622]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs7"
+      Range: [416.8237037405622, 469.25366274542813]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs8"
+      Range: [469.25366274542813, 521.2062931316159]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs9"
+      Range: [521.2062931316159, 572.8114873149804]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs10"
+      Range: [572.8114873149804, 624.1554293603476]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs11"
+      Range: [624.1554293603476, 675.2977121240674]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs12"
+      Range: [675.2977121240674, 726.280937378918]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs13"
+      Range: [726.280937378918, 777.1364101623343]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs14"
+      Range: [777.1364101623343, 827.8876735403178]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs15"
+      Range: [827.8876735403178, 878.5527872586825]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs16"
+      Range: [878.5527872586825, 929.1458443107841]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs17"
+      Range: [929.1458443107841, 979.6780083272258]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs18"
+      Range: [979.6780083272258, 1030.1582402718525]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs19"
+      Range: [1030.1582402718525, 1080.5938182314387]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "abs"
+      Name: "fAbs20"
+      Range: [1080.5938182314387, 1130.9907161422677]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex1"
+      Range: [0., 128.2848393225014]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex2"
+      Range: [128.2848393225014, 194.7151766041877]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex3"
+      Range: [194.7151766041877, 253.71440637062767]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex4"
+      Range: [253.71440637062767, 309.5609794531604]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex5"
+      Range: [309.5609794531604, 363.7100493525028]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex6"
+      Range: [363.7100493525028, 416.8237037405622]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex7"
+      Range: [416.8237037405622, 469.25366274542813]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex8"
+      Range: [469.25366274542813, 521.2062931316159]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex9"
+      Range: [521.2062931316159, 572.8114873149804]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex10"
+      Range: [572.8114873149804, 624.1554293603476]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex11"
+      Range: [624.1554293603476, 675.2977121240674]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex12"
+      Range: [675.2977121240674, 726.280937378918]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex13"
+      Range: [726.280937378918, 777.1364101623343]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex14"
+      Range: [777.1364101623343, 827.8876735403178]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex15"
+      Range: [827.8876735403178, 878.5527872586825]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex16"
+      Range: [878.5527872586825, 929.1458443107841]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex17"
+      Range: [929.1458443107841, 979.6780083272258]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex18"
+      Range: [979.6780083272258, 1030.1582402718525]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex19"
+      Range: [1030.1582402718525, 1080.5938182314387]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut: "cex"
+      Name: "fCex20"
+      Range: [1080.5938182314387, 1130.9907161422677]
+      Nominal: 1.0
+      Sigma: .2
+    }
+  ]
+
+  FakeDataParameterSet: [
+    { ##0
+      Cut:    "reac"
+      Name: "fReac1"
+      Range: [000., 200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##1
+      Cut:    "reac"
+      Name: "fReac2"
+      Range: [200., 400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    {  ##2
+      Cut:    "reac"
+      Name: "fReac3"
+      Range: [400., 600.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##3
+      Cut:    "reac"
+      Name: "fReac4"
+      Range: [600., 800.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##4
+      Cut:    "reac"
+      Name: "fReac5"
+      Range: [800., 1000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##5
+      Cut:    "reac"
+      Name: "fReac6"
+      Range: [1000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##6
+      Cut:    "reac"
+      Name: "fReac7"
+      Range: [1200., 1400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+
+    { ##7
+      Cut:    "abs"
+      Name: "fAbs1"
+      Range: [000., 200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##8
+      Cut:    "abs"
+      Name: "fAbs2"
+      Range: [200., 400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##9
+      Cut:    "abs"
+      Name: "fAbs3"
+      Range: [400., 600.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##10
+      Cut:    "abs"
+      Name: "fAbs4"
+      Range: [600., 800.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##11
+      Cut:    "abs"
+      Name: "fAbs5"
+      Range: [800., 1000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##12
+      Cut:    "abs"
+      Name: "fAbs6"
+      Range: [1000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##13
+      Cut:    "abs"
+      Name: "fAbs7"
+      Range: [1200., 1400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+
+    { ##14
+      Cut:    "cex"
+      Name: "fCex1"
+      Range: [000., 200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##15
+      Cut:    "cex"
+      Name: "fCex2"
+      Range: [200., 400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##16
+      Cut:    "cex"
+      Name: "fCex3"
+      Range: [400., 600.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##17
+      Cut:    "cex"
+      Name: "fCex4"
+      Range: [600., 800.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##18
+      Cut:    "cex"
+      Name: "fCex5"
+      Range: [800., 1000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##19
+      Cut:    "cex"
+      Name: "fCex6"
+      Range: [1000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##20
+      Cut:    "cex"
+      Name: "fCex7"
+      Range: [1200., 1400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##21
+      Cut:    "dcex"
+      Name: "fDCex1"
+      Range: [000., 200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##22
+      Cut:    "dcex"
+      Name: "fDCex2"
+      Range: [200., 400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##23
+      Cut:    "dcex"
+      Name: "fDCex3"
+      Range: [400., 600.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##24
+      Cut:    "dcex"
+      Name: "fDCex4"
+      Range: [600., 800.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##25
+      Cut:    "dcex"
+      Name: "fDCex5"
+      Range: [800., 1000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##26
+      Cut:    "dcex"
+      Name: "fDCex6"
+      Range: [1000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##27
+      Cut:    "dcex"
+      Name: "fDCex7"
+      Range: [1200., 1400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##28
+      Cut:    "prod"
+      Name: "fProd1"
+      Range: [000., 200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##29
+      Cut:    "prod"
+      Name: "fProd2"
+      Range: [200., 400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##30
+      Cut:    "prod"
+      Name: "fProd3"
+      Range: [400., 600.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##31
+      Cut:    "prod"
+      Name: "fProd4"
+      Range: [600., 800.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##32
+      Cut:    "prod"
+      Name: "fProd5"
+      Range: [800., 1000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##33
+      Cut:    "prod"
+      Name: "fProd6"
+      Range: [1000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##34
+      Cut:    "prod"
+      Name: "fProd7"
+      Range: [1200., 1400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##35
+      Cut:    "inel"
+      Name: "fQE1"
+      Range: [000., 200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##36
+      Cut:    "inel"
+      Name: "fQE2"
+      Range: [200., 400.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##37
+      Cut:    "inel"
+      Name: "fQE3"
+      Range: [400., 600.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##38
+      Cut:    "inel"
+      Name: "fQE4"
+      Range: [600., 800.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##39
+      Cut:    "inel"
+      Name: "fQE5"
+      Range: [800., 1000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##40
+      Cut:    "inel"
+      Name: "fQE6"
+      Range: [1000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    { ##41
+      Cut:    "inel"
+      Name: "fQE7"
+      Range: [1200., 1400.]
+      Nominal: 1.0 
+      Sigma: .2
+    }
+]
+
+  PiMParameterSet: [
+    { 
+      Cut:    "reac"
+      Name: "fReac"
+      Range: [000., 1200.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    {
+      Cut:  "abs"
+      Name: "fAbs1"
+      Range: [000., 300.]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut:  "abs"
+      Name: "fAbs2"
+      Range: [300., 1200.]
+      Nominal: 1.0
+      Sigma: .2
+    },
+    {
+      Cut:  "cex"
+      Name: "fCex"
+      Range: [000., 1200.]
+      Nominal: 1.0
+      Sigma: .2
+    }
+  ]
+  ProtParameterSet: [
+    { 
+      Cut:    "reac"
+      Name: "fReac"
+      Range: [000., 9000.]
+      Nominal: 1.0 
+      Sigma: .2
+    },
+    {
+      Cut: "elast"
+      Name: "fElast"
+      Range: [000., 9000.]
+      Nominal: 1.0
+      Sigma: .2
+    }
+  ]
+  
+  ParameterGridStart: 0.1
+  ParameterGridDelta:   0.1
+  ParameterGridN:     20
+
+}
+
+END_PROLOG
