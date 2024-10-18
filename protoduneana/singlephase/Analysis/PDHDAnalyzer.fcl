@@ -30,7 +30,6 @@ pdhdanalysis:
   BeamCuts: @local::Prod2BeamCuts  #Remove?
   EmptyEventFinder: @local::standard_protoduneemptyeventfinder
 
-  Recalibrate: false
   SaveHits: false
   SkipMVA: false
   TrueToReco: false
