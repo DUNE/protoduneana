@@ -125,7 +125,7 @@ services.SpaceCharge.EnableSimSpatialSCE: false
 services.ExptGeoHelperInterface.ChannelMapClass: "DuneApaChannelMapAlg"
 #Forcing Pandora to create either all tracks or all showers on each PFParticle object
 ####The above line forces pandora to fit a track to all PFParticles
-physics.analyzers.pduneana.NoBeamInst: true
+physics.analyzers.pduneana.NoBeamInst: false
 #physics.analyzers.pduneana.SkipMVA: true
 physics.analyzers.pduneana.VPlaneAsCollector: true
 physics.analyzers.pduneana.CalorimetryTagSCE: "pandoraGnocchiCalonosce"
