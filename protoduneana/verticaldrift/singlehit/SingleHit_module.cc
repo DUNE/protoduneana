@@ -214,12 +214,12 @@ private:
   // geometry 
   const geo::WireReadoutGeom& fWireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
 
-  int fChannelWdInt;
-  int fChannelWdExt;
+  //int fChannelWdInt;  // commented out to make clang happy
+  //int fChannelWdExt;  // commented out to make clang happy
   int fMultiplicity;
 
-  float fPeakTimeWdInt;
-  float fPeakTimeWdExt;
+  //float fPeakTimeWdInt;  // commented out to make clang happy
+  //float fPeakTimeWdExt;  // commented out to make clang happy
   int   LogLevel;
   float fTickTimeInMus;
 
