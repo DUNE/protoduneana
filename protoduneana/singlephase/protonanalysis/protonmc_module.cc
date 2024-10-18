@@ -984,7 +984,7 @@ void protoana::protonmc::analyze(art::Event const & evt){
 			std::cout << "Doing reweight" << std::endl;
 			if (true_beam_PDG == RW_PDG) { //if PDG=RW_PDG
 				std::cout<<"Got particle with PDG="<<RW_PDG<<std::endl;
-				G4ReweightTraj theTraj(true_beam_ID, true_beam_PDG, 0, fevent, {0,0});
+				G4ReweightTraj theTraj(true_beam_ID, true_beam_PDG, 0);
 				bool created = CreateRWTraj(*geantGoodParticle, pi_serv->ParticleList(),
 						fGeometryService_rw, fevent, &theTraj);
 				if (created && theTraj.GetNSteps()) {

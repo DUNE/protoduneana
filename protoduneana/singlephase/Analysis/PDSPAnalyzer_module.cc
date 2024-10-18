@@ -66,6 +66,8 @@
 #include "geant4reweight/src/ReweightBase/G4MultiReweighter.hh"
 #include "geant4reweight/src/ReweightBase/G4ReweightManager.hh"
 
+#include "geant4reweight/src/ReweightBase/G4ReweightSuite.hh"
+
 #include "cetlib/search_path.h"
 #include "cetlib/filesystem.h"
 
@@ -106,6 +108,8 @@ namespace pduneana {
   using recob::Hit;
   using recob::SpacePoint;
 
+  using PDGMatParam_t = std::tuple<int, std::string, std::string>;
+  using WeightMap_t = std::map<PDGMatParam_t, std::vector<std::vector<double>>>;
 
   // Get the angle and the dot product between the vector from the base node to its neighbours
   void GetAngleAndDotProduct(const SpacePoint &baseNode,
@@ -840,6 +844,7 @@ private:
                       g4rw_full_grid_kplus_exp_fit_chi2,
                       g4rw_downstream_grid_piplus_exp_fit_chi2,
                       g4rw_full_fine_piplus_exp_fit_chi2;
+  WeightMap_t fSuiteWeightMap;
 
   //EDIT: STANDARDIZE
   //EndProcess --> endProcess ?
@@ -1135,6 +1140,7 @@ private:
                     * KPlusMultiRW, * NeutronMultiRW, * FakeDataMultiRW,
                     * FineMultiRW, * fAbsCexMultiRW;
   G4ReweightManager * RWManager;
+  G4ReweightSuite fReweightSuite;
 };
 
 
@@ -1182,8 +1188,8 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fNeighbourRadii (p.get<std::vector<float>>("NeighbourRadii")),
   fChargeRadii (p.get<std::vector<float>>("ChargeRadii")),
 
-
-  fSCE(p.get<bool>("SCE", true)){
+  fSCE(p.get<bool>("SCE", true))
+  {
 
   dEdX_template_file = OpenFile(dEdX_template_name);
   templates[ 211 ]  = (TProfile*)dEdX_template_file->Get( "dedx_range_pi"  );
@@ -1271,6 +1277,10 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
       start += delta;
     }
     fGridPair = p.get<std::pair<double, double>>("GridPair");
+
+
+    fReweightSuite = G4ReweightSuite(
+        p.get<fhicl::ParameterSet>("ReweightSuite"));
   }
 
   constexpr geo::PlaneID planeID{0, 1, 2};
@@ -1620,12 +1630,12 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
       for (auto * traj : traj_vec) {
         //std::cout << "Part " << ipart << " Traj " << itraj << std::endl;
         for (size_t istep = 0; istep < traj->GetNSteps(); ++istep) {
-          auto * step = traj->GetStep(istep);
+          const auto & step = traj->GetStep(istep);
           /*std::cout << "\t" << step->GetStepLength() << " " <<
                        step->GetFullPreStepP() <<
                        " " << " "  << std::endl;*/
-          g4rw_piplus_traj_ps.back().push_back(step->GetFullPreStepP());
-          g4rw_piplus_traj_lens.back().push_back(step->GetStepLength());
+          g4rw_piplus_traj_ps.back().push_back(step.GetFullPreStepP());
+          g4rw_piplus_traj_lens.back().push_back(step.GetStepLength());
         }
         /*std::cout << "\t" << traj->HasChild(211).size() << " " <<
                      traj->HasChild(-211).size() << " " <<
@@ -2380,6 +2390,38 @@ void pduneana::PDSPAnalyzer::beginJob() {
     fTree->Branch( "sparsenet_features_charge_distance_30", &sparsenet_features_charge_distance_30 );
  
   }
+
+  if (fDoReweight) {
+
+
+    std::map<int, std::string> PDGStrings {
+      {211, "piplus"},
+      {-211, "piminus"},
+      {2212, "proton"},
+      {2112, "neutron"},
+      {321, "kplus"},
+      {-321, "kminus"}
+    };
+
+    for (const auto & [part_mat, par_names] :
+         reweight_suite.GetParameterNames()) {
+      int pdg = part_mat.first;
+      auto material = part_mat.second;
+
+      for (const auto & name : par_names) {
+        auto part_mat_param = std::make_tuple(pdg, material, name);
+
+        fSuiteWeightMap[part_mat_param] = {};
+
+        std::string branch_name = PDGStrings[pdg] + "_" + material + "_" + name
+                                  + "_weights";
+
+        fTree.Branch(branch_name.c_str(),
+                     &fSuiteWeightMap[part_mat_param]);
+      }
+    }
+  }
+
 
 }
 

@@ -36,10 +36,10 @@ std::string AbsCexReweighter::GetInteractionSubtype(
 
       double momentum = DBL_MAX;
       if (child->GetNSteps() > 0) {
-        auto * step = child->GetStep(0);
-        momentum = sqrt(step->GetPreStepPx()*step->GetPreStepPx() +
-                        step->GetPreStepPy()*step->GetPreStepPy() +
-                        step->GetPreStepPz()*step->GetPreStepPz());
+        const auto & step = child->GetStep(0);
+        momentum = sqrt(step.GetPreStepPx()*step.GetPreStepPx() +
+                        step.GetPreStepPy()*step.GetPreStepPy() +
+                        step.GetPreStepPz()*step.GetPreStepPz());
       }
       //std::cout << pdg << " " << momentum << std::endl;
       if (momentum > fThreshold) {

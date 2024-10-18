@@ -24,6 +24,7 @@
 #include "geant4reweight/src/ReweightBase/G4ReweighterFactory.hh"
 #include "geant4reweight/src/ReweightBase/G4Reweighter.hh"
 #include "geant4reweight/src/ReweightBase/G4ReweightTraj.hh"
+#include "geant4reweight/src/ReweightBase/G4ReweightStep.hh"
 #include "geant4reweight/src/PropBase/G4ReweightParameterMaker.hh"
 #include "geant4reweight/src/ReweightBase/G4MultiReweighter.hh"
 #include "geant4reweight/src/ReweightBase/G4ReweightManager.hh"
@@ -374,7 +375,7 @@ void protoana::G4RWExampleAnalyzer::analyze(art::Event const& e) {
   subrun = e.subRun();
 
   if (true_beam_PDG == RW_PDG) {
-    G4ReweightTraj theTraj(true_beam_ID, true_beam_PDG, 0, event, {0,0});
+    G4ReweightTraj theTraj(true_beam_ID, true_beam_PDG, 0);
     /*
     bool created = CreateRWTraj(*true_beam_particle, plist,
                                 fGeometryService, event, &theTraj);

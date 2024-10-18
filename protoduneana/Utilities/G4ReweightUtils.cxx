@@ -14,8 +14,7 @@ bool protoana::G4ReweightUtils::CreateRWTraj(
     int d_PDG = d_part->PdgCode();
     int d_ID = d_part->TrackId();
 
-    theTraj->AddChild(new G4ReweightTraj(d_ID, d_PDG, part.TrackId(),
-                      event, {0,0}));
+    theTraj->AddChild(new G4ReweightTraj(d_ID, d_PDG, part.TrackId()));
   }
 
   //Create process map
@@ -103,9 +102,9 @@ bool protoana::G4ReweightUtils::CreateRWTraj(
       theTraj->SetEnergy(sqrt(p_squared + mass*mass));
     }
 
-    G4ReweightStep * step = new G4ReweightStep(part.TrackId(), part.PdgCode(),
-                                               0, event, preStepP, postStepP,
-                                               len, proc);
+    G4ReweightStep step(part.TrackId(), part.PdgCode(),
+                        0, event, preStepP, postStepP,
+                        len, proc);
     theTraj->AddStep(step);
   }
 
@@ -221,7 +220,7 @@ std::vector<G4ReweightTraj *> protoana::G4ReweightUtils::CreateNRWTrajs(
 
   for (size_t i = 0; i < ranges.size(); ++i) {
     //std::cout << ranges[i].first << " " << ranges[i].second << std::endl;
-    G4ReweightTraj * theTraj = new G4ReweightTraj(i, part.PdgCode(), 0, event, {0,0});
+    G4ReweightTraj * theTraj = new G4ReweightTraj(i, part.PdgCode(), 0);
     
     for (size_t j = ranges[i].first; j < ranges[i].second; ++j) {
       double dx = part.Position(j+1).X() - part.Position(j).X();
@@ -258,9 +257,9 @@ std::vector<G4ReweightTraj *> protoana::G4ReweightUtils::CreateNRWTrajs(
         proc = part.EndProcess();
       }
       //std::cout << j << " Proc: " << proc << std::endl;
-      G4ReweightStep * step = new G4ReweightStep(i, part.PdgCode(),
-                                                 0, event, preStepP, postStepP,
-                                                 len, proc);
+      G4ReweightStep step(i, part.PdgCode(),
+                          0, event, preStepP, postStepP,
+                          len, proc);
       theTraj->AddStep(step);
     }
 
@@ -279,7 +278,7 @@ std::vector<G4ReweightTraj *> protoana::G4ReweightUtils::CreateNRWTrajs(
       if (IsSkippable(d_PDG)) continue;
 
       results.back()->AddChild(new G4ReweightTraj(d_ID, d_PDG,
-                               results.size() - 1, event, {0,0}));
+                               results.size() - 1));
 
       auto * child = results.back()->GetChildren().back();
       const auto & pos0 = d_part->Position(0);
@@ -298,7 +297,7 @@ std::vector<G4ReweightTraj *> protoana::G4ReweightUtils::CreateNRWTrajs(
                      sqrt(d_p0[0]*d_p0[0] + d_p0[1]*d_p0[1] + d_p0[2]*d_p0[2]) <<
                      " " << d_len << std::endl;*/
       child->AddStep(
-          new G4ReweightStep(i, d_PDG, 0, event, d_p0, d_p1, d_len, "default"));
+          G4ReweightStep(i, d_PDG, 0, event, d_p0, d_p1, d_len, "default"));
     }
   }
   return results;

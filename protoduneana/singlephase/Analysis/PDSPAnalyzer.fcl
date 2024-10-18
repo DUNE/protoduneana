@@ -869,6 +869,51 @@ pdspanalysis:
   GridPair: [1, 2]
 
   FakeVariable: true
+
+  ReweightSuite: {
+    MaterialSets: {
+      LAr: {
+        Name: "LAr"
+        Density: 1.390 # Standardize this
+        Components: [
+          {
+            Z:    18
+            Mass: 39.95
+            Fraction: 1.
+          }
+        ]
+      }
+    }
+    
+    PiPlusReweight: {
+    
+      Name: "PiPlusReweight"
+      PDG: 211
+      Material: @local::Materials.LAr
+      FracsFile: "Geant4ReweightInput/LAr_PiPlus_cascade_0_9000.root"
+      ParameterSet: [
+        { 
+          Cut: "reac"
+          Name: "fReac"
+          Range: [000., 2000.]
+        },
+        { 
+          Cut: "abs"
+          Name: "fAbs"
+          Range: [000., 2000.]
+        }
+      ]
+    
+    }
+    
+    Reweights: [
+      @local::PiPlusReweight
+    ]
+    
+    Materials: [
+      @local::MaterialSets.LAr
+    ]
+  }
 }
 
 END_PROLOG
