@@ -39,7 +39,6 @@
 #include "protoduneana/Utilities/ProtoDUNETruthUtils.h"
 #include "protoduneana/Utilities/ProtoDUNEPFParticleUtils.h"
 #include "protoduneana/Utilities/ProtoDUNEBeamlineUtils.h"
-#include "protoduneana/Utilities/ProtoDUNEBeamCuts.h"
 #include "protoduneana/Utilities/ProtoDUNEEmptyEventFinder.h"
 
 #include "protoduneana/Utilities/G4ReweightUtils.h"
@@ -713,7 +712,7 @@ private:
 
   //Matched to vertex/slice?
   //
-  int reco_beam_vertex_slice;
+  //int reco_beam_vertex_slice;
   ////////////////////////
 
 
@@ -749,7 +748,7 @@ private:
 
   std::vector<double> reco_beam_dEdX_SCE, reco_beam_dQdX_SCE, reco_beam_EField_SCE, reco_beam_resRange_SCE, reco_beam_TrkPitch_SCE;
   std::vector<double> reco_beam_TrkPitch_SCE_allTrack;
-  std::vector<double> reco_beam_calibrated_dEdX_SCE, reco_beam_calibrated_dQdX_SCE, reco_beam_dQ;
+  std::vector<double> reco_beam_dQ;
 
   std::vector<std::vector<int>> reco_beam_hit_IDE_IDs, reco_beam_hit_IDE_origins;
   std::vector<std::vector<double>> reco_beam_hit_IDE_electrons, reco_beam_hit_IDE_energies;
@@ -757,7 +756,6 @@ private:
   std::vector<double> reco_beam_hit_IDE_cosmic_energies, reco_beam_hit_IDE_beam_energies;
 
   std::vector<double> reco_beam_dEdX_NoSCE, reco_beam_dQdX_NoSCE, reco_beam_resRange_NoSCE, reco_beam_TrkPitch_NoSCE;
-  std::vector<double> reco_beam_calibrated_dEdX_NoSCE;
 
   std::vector<double> reco_beam_calo_wire, reco_beam_calo_tick, reco_beam_calo_wire_z;
   std::vector<double> reco_beam_calo_wire_allTrack;
@@ -769,9 +767,6 @@ private:
   std::vector<int> beam_track_IDs;
   std::vector<double> beam_particle_scores;
   bool reco_beam_flipped;
-
-  //fix
-  bool reco_beam_passes_beam_cuts;              
 
   int reco_beam_type;
   double reco_beam_Chi2_proton, reco_beam_Chi2_muon;
@@ -786,22 +781,8 @@ private:
   std::vector<int> reco_track_ID, reco_track_nHits;
 
 
-  //GeantReweight stuff
-  // -- Maybe think of new naming scheme?
-  //std::vector<double> g4rw_primary_plus_sigma_weight;
-  //std::vector<double> g4rw_primary_minus_sigma_weight;
-  //std::vector<std::string> g4rw_primary_var;
-
-  //std::vector<double> g4rw_alt_primary_plus_sigma_weight;
-  //std::vector<double> g4rw_alt_primary_minus_sigma_weight;
-  //std::vector<double> g4rw_full_primary_plus_sigma_weight;
-  //std::vector<double> g4rw_full_primary_minus_sigma_weight;
-
-  //std::vector<std::vector<double>> g4rw_full_grid_weights,
-  //                                 g4rw_full_grid_coeffs;
   std::vector<std::vector<double>> g4rw_primary_grid_weights,
                                    g4rw_primary_grid_coeffs;
-  //std::vector<double> g4rw_primary_grid_pair_weights;
 
   std::vector<std::vector<double>> g4rw_piplus_traj_ps,
                                    g4rw_piplus_traj_lens;
@@ -900,14 +881,14 @@ private:
   double reco_beam_PFP_michelScore_collection, reco_beam_PFP_michelScore_collection_weight_by_charge;
 
   int    reco_beam_allTrack_ID;
-  bool   reco_beam_allTrack_beam_cuts, reco_beam_allTrack_flipped;
+  bool reco_beam_allTrack_flipped;
   double reco_beam_allTrack_len;
   double reco_beam_allTrack_startX, reco_beam_allTrack_startY, reco_beam_allTrack_startZ;
   double reco_beam_allTrack_endX, reco_beam_allTrack_endY, reco_beam_allTrack_endZ;
   double reco_beam_allTrack_trackDirX, reco_beam_allTrack_trackDirY, reco_beam_allTrack_trackDirZ;
   double reco_beam_allTrack_trackEndDirX, reco_beam_allTrack_trackEndDirY, reco_beam_allTrack_trackEndDirZ;
   std::vector< double > reco_beam_allTrack_resRange;
-  std::vector< double > reco_beam_allTrack_calibrated_dEdX;
+  std::vector< double > reco_beam_allTrack_dEdX;
   double reco_beam_allTrack_Chi2_proton;
   int    reco_beam_allTrack_Chi2_ndof;
 
@@ -993,15 +974,15 @@ private:
   std::vector<double> reco_daughter_allTrack_startDirX,
                       reco_daughter_allTrack_startDirY,
                       reco_daughter_allTrack_startDirZ;
-  std::vector< std::vector< double > > reco_daughter_allTrack_dQdX_SCE, reco_daughter_allTrack_dEdX_SCE, reco_daughter_allTrack_resRange_SCE;
-  std::vector< std::vector< double > > reco_daughter_allTrack_calibrated_dEdX_SCE, reco_daughter_allTrack_calibrated_dQdX_SCE, reco_daughter_allTrack_EField_SCE, reco_daughter_allTrack_calo_X, reco_daughter_allTrack_calo_Y, reco_daughter_allTrack_calo_Z;
+  std::vector< std::vector< double > > /*reco_daughter_allTrack_dQdX_SCE, reco_daughter_allTrack_dEdX_SCE, */reco_daughter_allTrack_resRange_SCE;
+  std::vector< std::vector< double > > reco_daughter_allTrack_dEdX_SCE, reco_daughter_allTrack_dQdX_SCE, reco_daughter_allTrack_EField_SCE, reco_daughter_allTrack_calo_X, reco_daughter_allTrack_calo_Y, reco_daughter_allTrack_calo_Z;
   std::vector< double > reco_daughter_allTrack_Chi2_proton, reco_daughter_allTrack_Chi2_muon, reco_daughter_allTrack_Chi2_pion;
   std::vector< int >    reco_daughter_allTrack_Chi2_ndof, reco_daughter_allTrack_Chi2_ndof_muon, reco_daughter_allTrack_Chi2_ndof_pion;
 
   //New: calorimetry + chi2 for planes 0 and 1
   std::vector<std::vector<double>>
-      reco_daughter_allTrack_calibrated_dEdX_SCE_plane0,
-      reco_daughter_allTrack_calibrated_dEdX_SCE_plane1;
+      reco_daughter_allTrack_dEdX_SCE_plane0,
+      reco_daughter_allTrack_dEdX_SCE_plane1;
 
   std::vector<std::vector<double>>
       reco_daughter_allTrack_resRange_plane0,
@@ -1031,8 +1012,7 @@ private:
                       reco_daughter_allShower_dirX,
                       reco_daughter_allShower_dirY,
                       reco_daughter_allShower_dirZ,
-                      reco_daughter_allShower_energy,
-                      reco_daughter_allShower_calibrated_energy;
+                      reco_daughter_allShower_energy;
 
 
   std::vector<double> reco_daughter_allTrack_momByRange_proton;
@@ -1082,9 +1062,6 @@ private:
   std::string dEdX_template_name;
   TFile * dEdX_template_file;
   bool fVerbose;    
-  fhicl::ParameterSet BeamPars;
-  fhicl::ParameterSet BeamCuts;
-  protoana::ProtoDUNEBeamCuts beam_cuts;
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
   protoana::ProtoDUNETrackUtils trackUtil;
@@ -1099,15 +1076,15 @@ private:
   bool fSaveHitIDEInfo;
   bool fSaveRecoBeamAllTrack;
   bool fSkipMVA;
+  bool fVPlaneAsCollector;
   bool fTrueToReco;
   bool fDoReweight;
   bool fSaveG4RWWeights;
   bool fDoProtReweight;
   bool fGetTrackMichel;
   bool fMCHasBI;
-  bool fRecalibrate;
   bool fGetCalibratedShowerEnergy;
-  bool fGetUncalibratedShowerEnergy;
+  //bool fGetUncalibratedShowerEnergy;
   bool fCheckSlicesForBeam;
   bool fCheckTruncation;
   double fBeamInstPFix = 1.;
@@ -1119,7 +1096,7 @@ private:
   /// Radii for calculating charge over distance
   std::vector<float> fChargeRadii;
 
-  bool fSCE;
+  bool fNoBeamInst;
 
   double fZ0, fPitch;
 
@@ -1129,7 +1106,6 @@ private:
   std::vector<fhicl::ParameterSet> ParSet, FakeDataParSet, ProtParSet,
                                    fAbsCexPars, FineParSet;//, PiMinusParSet;
   std::vector<double> fGridPoints;
-  std::pair<double, double> fGridPair;
   //G4ReweightParameterMaker ParMaker, FakeDataParameterMaker, ProtParMaker;//, PiMinusParMaker;
   G4ReweightParameterMaker ParMaker;
   AbsCexReweighter * fAbsCex_reweighter;
@@ -1158,22 +1134,18 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   dEdX_template_name(p.get<std::string>("dEdX_template_name")),
   //dEdX_template_file( dEdX_template_name.c_str(), "OPEN" ),
   fVerbose(p.get<bool>("Verbose")),
-  BeamPars(p.get<fhicl::ParameterSet>("BeamPars")),
-  BeamCuts(p.get<fhicl::ParameterSet>("BeamCuts")),
-  calibration_SCE(p.get<fhicl::ParameterSet>("CalibrationParsSCE")),
-  calibration_NoSCE(p.get<fhicl::ParameterSet>("CalibrationParsNoSCE")),
   fSaveHits( p.get<bool>( "SaveHits" ) ),
   fSaveHitIDEInfo(p.get<bool>( "SaveHitIDEInfo", false)),
   fSaveRecoBeamAllTrack(p.get<bool>("SaveRecoBeamAllTrack", false)),
   fSkipMVA( p.get<bool>( "SkipMVA" ) ),
+  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", false)),
   fTrueToReco( p.get<bool>( "TrueToReco" ) ),
   fDoReweight(p.get<bool>("DoReweight")),
   fSaveG4RWWeights(p.get<bool>("SaveG4RWWeights", true)),
   fDoProtReweight(p.get<bool>("DoProtReweight")),
   fGetTrackMichel(p.get<bool>("GetTrackMichel")),
-  fRecalibrate(p.get<bool>("Recalibrate", true)),
   fGetCalibratedShowerEnergy(p.get<bool>("GetCalibratedShowerEnergy", false)),
-  fGetUncalibratedShowerEnergy(p.get<bool>("GetUncalibratedShowerEnergy", true)),
+  //fGetUncalibratedShowerEnergy(p.get<bool>("GetUncalibratedShowerEnergy", true)),
   fCheckSlicesForBeam(p.get<bool>("CheckSlicesForBeam", false)),
   fCheckTruncation(p.get<bool>("CheckTruncation", false)),
 
@@ -1182,23 +1154,14 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   // SparseNet params
   fSpacePointLabel (p.get<std::string>    ("SpacePointLabel")), 
   fNeighbourRadii (p.get<std::vector<float>>("NeighbourRadii")),
-  fChargeRadii (p.get<std::vector<float>>("ChargeRadii")),
-
-
-  fSCE(p.get<bool>("SCE", true)){
+  fChargeRadii (p.get<std::vector<float>>("ChargeRadii"))
+  ,fNoBeamInst(p.get<bool>("NoBeamInst", false)) {
 
   dEdX_template_file = OpenFile(dEdX_template_name);
   templates[ 211 ]  = (TProfile*)dEdX_template_file->Get( "dedx_range_pi"  );
   templates[ 321 ]  = (TProfile*)dEdX_template_file->Get( "dedx_range_ka"  );
   templates[ 13 ]   = (TProfile*)dEdX_template_file->Get( "dedx_range_mu"  );
   templates[ 2212 ] = (TProfile*)dEdX_template_file->Get( "dedx_range_pro" );
-
-  beam_cuts = protoana::ProtoDUNEBeamCuts( BeamCuts );
-
-  if (fRecalibrate) {
-    calibration_SCE = p.get<fhicl::ParameterSet>("CalibrationParsSCE");
-    calibration_NoSCE = p.get<fhicl::ParameterSet>("CalibrationParsNoSCE");
-  }
 
 
   if (fDoReweight) {
@@ -1272,7 +1235,6 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
       fGridPoints.push_back(start);
       start += delta;
     }
-    fGridPair = p.get<std::pair<double, double>>("GridPair");
   }
 
   constexpr geo::PlaneID planeID{0, 1, 2};
@@ -1388,7 +1350,8 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
   ////////////////////////////
 
   //Get the beam instrumentation from the event
-  BeamInstInfo(evt);
+  if (!fNoBeamInst) 
+    BeamInstInfo(evt);
 
 
   // Helper to get hits and the 4 associated CNN outputs
@@ -1528,82 +1491,6 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
   if( !evt.isRealData() ){
     TrueBeamInfo(evt, true_beam_particle, clockData, plist, trueToPFPs, hitResults);
   }
-
-  //New geant4reweight stuff
-  //To do: put in its own function
-  /*
-  if (!evt.isRealData() && fDoReweight) {
-    if (fVerbose) std::cout << "Doing reweight" << std::endl;
-
-    //Doing reweighting if the primary is a piplus
-    if (true_beam_PDG == 211) {
-
-      std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(
-          *true_beam_particle, plist,
-          fGeometryService, event);
-      
-      bool added = false;
-      for (size_t i = 0; i < trajs.size(); ++i) {
-        if (trajs[i]->GetNSteps() > 0) {
-          for (size_t j = 0; j < ParSet.size(); ++j) {
-            std::pair<double, double> pm_weights =
-                MultiRW->GetPlusMinusSigmaParWeight((*trajs[i]), j);
-
-            if (!added) {
-              g4rw_alt_primary_plus_sigma_weight.push_back(pm_weights.first);
-              g4rw_alt_primary_minus_sigma_weight.push_back(pm_weights.second);
-            }
-            else {
-              g4rw_alt_primary_plus_sigma_weight[j] *= pm_weights.first;
-              g4rw_alt_primary_minus_sigma_weight[j] *= pm_weights.second;
-            }
-          }
-          added = true;
-        }
-      }
-
-      //Weighting according to the full heirarchy
-      std::vector<std::vector<G4ReweightTraj *>> new_full_created
-          = BuildHierarchy(true_beam_ID, 211, plist, fGeometryService,
-                           event, "LAr", false);
-      if (fVerbose) {
-        std::cout << "Created " << new_full_created.size() << " reweightable pi+"
-                  << std::endl;
-      }
-
-      bool new_added = false;
-      for (size_t i = 0; i < new_full_created.size(); ++i) {
-        std::vector<G4ReweightTraj *> temp_trajs = new_full_created[i];
-        if (fVerbose) std::cout << i << " n trajs: " << temp_trajs.size() << std::endl;
-        for (size_t j = 0; j < temp_trajs.size(); ++j) {
-          G4ReweightTraj * this_traj = temp_trajs[j];
-          if (this_traj->GetNSteps() > 0) {
-            for (size_t k = 0; k < ParSet.size(); ++k) {
-              std::pair<double, double> pm_weights =
-                  MultiRW->GetPlusMinusSigmaParWeight((*this_traj), k);
-
-              if (!new_added) {
-                g4rw_full_primary_plus_sigma_weight.push_back(pm_weights.first);
-                g4rw_full_primary_minus_sigma_weight.push_back(pm_weights.second);
-              }
-              else {
-                g4rw_full_primary_plus_sigma_weight[k] *= pm_weights.first;
-                g4rw_full_primary_minus_sigma_weight[k] *= pm_weights.second;
-              }
-            }
-            new_added = true;
-          }
-        }
-      }
-
-      G4RWGridWeights(new_full_created, ParSet, g4rw_full_grid_weights,
-                      MultiRW);
-      for (auto weights : g4rw_full_grid_weights) {
-        g4rw_full_grid_coeffs.push_back(std::vector<double>());
-        GetG4RWCoeffs(weights, g4rw_full_grid_coeffs.back());
-      }
-    }
-  }*/
 
   //New style of weighting to get full hierarchy (i.e. from full event not 
   //just from the primary + downstreams) -- currently for piplus and proton
@@ -1802,8 +1689,8 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_beam_endZ", &reco_beam_endZ);
   fTree->Branch("true_beam_len", &true_beam_len);
   fTree->Branch("reco_beam_len", &reco_beam_len);
-  fTree->Branch("test_branch", &test_branch);
-  fTree->Branch("reco_beam_alt_len", &reco_beam_alt_len);
+  //fTree->Branch("test_branch", &test_branch);
+  fTree->Branch("reco_beam_alt_len", &reco_beam_alt_len); //TODO -- rename this
   fTree->Branch("for_truncation_method", &for_truncation_method);
   fTree->Branch("reco_beam_calo_startX", &reco_beam_calo_startX);
   fTree->Branch("reco_beam_calo_startY", &reco_beam_calo_startY);
@@ -1840,8 +1727,6 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_beam_calo_Z", &reco_beam_calo_Z);
   fTree->Branch("reco_beam_dQ", &reco_beam_dQ);
   fTree->Branch("reco_beam_dEdX_SCE", &reco_beam_dEdX_SCE);
-  fTree->Branch("reco_beam_calibrated_dEdX_SCE", &reco_beam_calibrated_dEdX_SCE);
-  fTree->Branch("reco_beam_calibrated_dQdX_SCE", &reco_beam_calibrated_dQdX_SCE);
   fTree->Branch("reco_beam_resRange_SCE", &reco_beam_resRange_SCE);
   fTree->Branch("reco_beam_TrkPitch_SCE", &reco_beam_TrkPitch_SCE);
 
@@ -1859,7 +1744,6 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_beam_dQdX_NoSCE", &reco_beam_dQdX_NoSCE);
   fTree->Branch("reco_beam_dQ_NoSCE", &reco_beam_dQ_NoSCE);
   fTree->Branch("reco_beam_dEdX_NoSCE", &reco_beam_dEdX_NoSCE);
-  fTree->Branch("reco_beam_calibrated_dEdX_NoSCE", &reco_beam_calibrated_dEdX_NoSCE);
   fTree->Branch("reco_beam_resRange_NoSCE", &reco_beam_resRange_NoSCE);
   fTree->Branch("reco_beam_TrkPitch_NoSCE", &reco_beam_TrkPitch_NoSCE);
 
@@ -1872,7 +1756,6 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_beam_calo_TPC_NoSCE", &reco_beam_calo_TPC_NoSCE);
 
   fTree->Branch("reco_beam_flipped", &reco_beam_flipped);
-  fTree->Branch("reco_beam_passes_beam_cuts", &reco_beam_passes_beam_cuts);
 
   fTree->Branch("reco_beam_PFP_ID", &reco_beam_PFP_ID);
   fTree->Branch("reco_beam_PFP_nHits", &reco_beam_PFP_nHits);
@@ -1891,7 +1774,6 @@ void pduneana::PDSPAnalyzer::beginJob() {
 
   if (fSaveRecoBeamAllTrack) {
     fTree->Branch("reco_beam_allTrack_ID",              &reco_beam_allTrack_ID);
-    fTree->Branch("reco_beam_allTrack_beam_cuts",       &reco_beam_allTrack_beam_cuts);
     fTree->Branch("reco_beam_allTrack_flipped",         &reco_beam_allTrack_flipped);
     fTree->Branch("reco_beam_allTrack_len",             &reco_beam_allTrack_len);
     fTree->Branch("reco_beam_allTrack_startX",          &reco_beam_allTrack_startX);
@@ -1907,7 +1789,7 @@ void pduneana::PDSPAnalyzer::beginJob() {
     fTree->Branch("reco_beam_allTrack_trackEndDirY",    &reco_beam_allTrack_trackEndDirY);
     fTree->Branch("reco_beam_allTrack_trackEndDirZ",    &reco_beam_allTrack_trackEndDirZ);
     fTree->Branch("reco_beam_allTrack_resRange",        &reco_beam_allTrack_resRange);
-    fTree->Branch("reco_beam_allTrack_calibrated_dEdX", &reco_beam_allTrack_calibrated_dEdX);
+    fTree->Branch("reco_beam_allTrack_dEdX", &reco_beam_allTrack_dEdX);
     fTree->Branch("reco_beam_allTrack_Chi2_proton",     &reco_beam_allTrack_Chi2_proton);
     fTree->Branch("reco_beam_allTrack_Chi2_ndof",       &reco_beam_allTrack_Chi2_ndof);
     fTree->Branch("reco_beam_alt_len_allTrack", &reco_beam_alt_len_allTrack);
@@ -1972,11 +1854,11 @@ void pduneana::PDSPAnalyzer::beginJob() {
 
   fTree->Branch("reco_daughter_allTrack_ID", &reco_daughter_allTrack_ID);
   fTree->Branch("reco_daughter_allTrack_dQdX_SCE", &reco_daughter_allTrack_dQdX_SCE);
-  fTree->Branch("reco_daughter_allTrack_calibrated_dQdX_SCE", &reco_daughter_allTrack_calibrated_dQdX_SCE);
+  fTree->Branch("reco_daughter_allTrack_dQdX_SCE", &reco_daughter_allTrack_dQdX_SCE);
   fTree->Branch("reco_daughter_allTrack_EField_SCE", &reco_daughter_allTrack_EField_SCE);
   fTree->Branch("reco_daughter_allTrack_dEdX_SCE", &reco_daughter_allTrack_dEdX_SCE);
   fTree->Branch("reco_daughter_allTrack_resRange_SCE", &reco_daughter_allTrack_resRange_SCE);
-  fTree->Branch("reco_daughter_allTrack_calibrated_dEdX_SCE", &reco_daughter_allTrack_calibrated_dEdX_SCE);
+  fTree->Branch("reco_daughter_allTrack_dEdX_SCE", &reco_daughter_allTrack_dEdX_SCE);
 
   fTree->Branch("reco_daughter_allTrack_Chi2_proton", &reco_daughter_allTrack_Chi2_proton);
   fTree->Branch("reco_daughter_allTrack_Chi2_pion", &reco_daughter_allTrack_Chi2_pion);
@@ -1997,10 +1879,10 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_daughter_allTrack_Chi2_ndof_plane1",
                 &reco_daughter_allTrack_Chi2_ndof_plane1);
 
-  fTree->Branch("reco_daughter_allTrack_calibrated_dEdX_SCE_plane0",
-                &reco_daughter_allTrack_calibrated_dEdX_SCE_plane0);
-  fTree->Branch("reco_daughter_allTrack_calibrated_dEdX_SCE_plane1",
-                &reco_daughter_allTrack_calibrated_dEdX_SCE_plane1);
+  fTree->Branch("reco_daughter_allTrack_dEdX_SCE_plane0",
+                &reco_daughter_allTrack_dEdX_SCE_plane0);
+  fTree->Branch("reco_daughter_allTrack_dEdX_SCE_plane1",
+                &reco_daughter_allTrack_dEdX_SCE_plane1);
   fTree->Branch("reco_daughter_allTrack_resRange_plane0",
                 &reco_daughter_allTrack_resRange_plane0);
   fTree->Branch("reco_daughter_allTrack_resRange_plane1",
@@ -2040,7 +1922,6 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_daughter_allShower_dirY", &reco_daughter_allShower_dirY);
   fTree->Branch("reco_daughter_allShower_dirZ", &reco_daughter_allShower_dirZ);
   fTree->Branch("reco_daughter_allShower_energy", &reco_daughter_allShower_energy);
-  fTree->Branch("reco_daughter_allShower_calibrated_energy", &reco_daughter_allShower_calibrated_energy);
 
 
 
@@ -2117,7 +1998,7 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("true_daughter_nPiMinus", &true_daughter_nPiMinus);
   fTree->Branch("true_daughter_nNucleus", &true_daughter_nNucleus);
 
-  fTree->Branch("reco_beam_vertex_slice", &reco_beam_vertex_slice);
+  //fTree->Branch("reco_beam_vertex_slice", &reco_beam_vertex_slice);
 
   fTree->Branch("true_beam_daughter_PDG", &true_beam_daughter_PDG);
   fTree->Branch("true_beam_daughter_ID", &true_beam_daughter_ID);
@@ -2301,16 +2182,6 @@ void pduneana::PDSPAnalyzer::beginJob() {
   //fTree->Branch("g4rw_primary_minus_sigma_weight", &g4rw_primary_minus_sigma_weight);
   //fTree->Branch("g4rw_primary_var", &g4rw_primary_var);
 
-  /*
-  fTree->Branch("g4rw_alt_primary_plus_sigma_weight",
-                &g4rw_alt_primary_plus_sigma_weight);
-  fTree->Branch("g4rw_alt_primary_minus_sigma_weight",
-                &g4rw_alt_primary_minus_sigma_weight);
-
-  fTree->Branch("g4rw_full_primary_plus_sigma_weight",
-                &g4rw_full_primary_plus_sigma_weight);
-  fTree->Branch("g4rw_full_primary_minus_sigma_weight",
-                &g4rw_full_primary_minus_sigma_weight);*/
   if (fSaveG4RWWeights) {
     //fTree->Branch("g4rw_full_grid_weights", &g4rw_full_grid_weights);
     fTree->Branch("g4rw_full_grid_piplus_weights",  &g4rw_full_grid_piplus_weights);
@@ -2448,9 +2319,8 @@ void pduneana::PDSPAnalyzer::reset()
   reco_track_nHits.clear();
 
   reco_beam_type = -999;
-  reco_beam_passes_beam_cuts = false;
 
-  reco_beam_vertex_slice = std::numeric_limits<int>::max();
+  //reco_beam_vertex_slice = std::numeric_limits<int>::max();
 
   true_daughter_nPi0 = 0;
   true_daughter_nPiPlus = 0;
@@ -2698,7 +2568,6 @@ void pduneana::PDSPAnalyzer::reset()
   reco_beam_PFP_michelScore_collection_weight_by_charge = -999;
 
   reco_beam_allTrack_ID = -999;
-  reco_beam_allTrack_beam_cuts = -999;
   reco_beam_allTrack_flipped = -999;
   reco_beam_allTrack_len = -999;
   reco_beam_allTrack_startX = -999;
@@ -2714,13 +2583,12 @@ void pduneana::PDSPAnalyzer::reset()
   reco_beam_allTrack_trackEndDirY = -999;
   reco_beam_allTrack_trackEndDirZ = -999;
   reco_beam_allTrack_resRange.clear();
-  reco_beam_allTrack_calibrated_dEdX.clear();
+  reco_beam_allTrack_dEdX.clear();
   reco_beam_allTrack_Chi2_proton = -999;
   reco_beam_allTrack_Chi2_ndof = -999;
 
   reco_beam_dQdX_NoSCE.clear();
   reco_beam_dEdX_NoSCE.clear();
-  reco_beam_calibrated_dEdX_NoSCE.clear();
   reco_beam_resRange_NoSCE.clear();
   reco_beam_TrkPitch_NoSCE.clear();
 
@@ -2729,8 +2597,6 @@ void pduneana::PDSPAnalyzer::reset()
   reco_beam_dQ.clear();
   reco_beam_dQ_NoSCE.clear();
   reco_beam_dEdX_SCE.clear();
-  reco_beam_calibrated_dEdX_SCE.clear();
-  reco_beam_calibrated_dQdX_SCE.clear();
   reco_beam_vertex_nHits = -999;
   reco_beam_vertex_michel_score = -999.;
   reco_beam_vertex_nHits_allTrack = -999;
@@ -2830,14 +2696,13 @@ void pduneana::PDSPAnalyzer::reset()
   reco_daughter_allTrack_ID.clear();
   reco_daughter_allTrack_dEdX_SCE.clear();
   reco_daughter_allTrack_dQdX_SCE.clear();
-  reco_daughter_allTrack_calibrated_dQdX_SCE.clear();
   reco_daughter_allTrack_EField_SCE.clear();
   reco_daughter_allTrack_resRange_SCE.clear();
 
 
   //Calorimetry + chi2 for planes 0 and 1
-  reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.clear();
-  reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.clear();
+  reco_daughter_allTrack_dEdX_SCE_plane0.clear();
+  reco_daughter_allTrack_dEdX_SCE_plane1.clear();
 
   reco_daughter_allTrack_resRange_plane0.clear();
   reco_daughter_allTrack_resRange_plane1.clear();
@@ -2849,9 +2714,6 @@ void pduneana::PDSPAnalyzer::reset()
   reco_daughter_allTrack_Chi2_ndof_plane1.clear();
   ///////////////////////////////////////////
 
-
-  //reco_daughter_allTrack_calibrated_dEdX.clear();
-  reco_daughter_allTrack_calibrated_dEdX_SCE.clear();
 
   reco_daughter_allTrack_Chi2_proton.clear();
   reco_daughter_allTrack_Chi2_muon.clear();
@@ -2889,7 +2751,6 @@ void pduneana::PDSPAnalyzer::reset()
   reco_daughter_allShower_dirY.clear();
   reco_daughter_allShower_dirZ.clear();
   reco_daughter_allShower_energy.clear();
-  reco_daughter_allShower_calibrated_energy.clear();
   ///////
 
 
@@ -2918,15 +2779,6 @@ void pduneana::PDSPAnalyzer::reset()
   sparsenet_features_charge_distance_30.clear();
   //
 
-  //g4rw_primary_plus_sigma_weight.clear();
-  //g4rw_primary_minus_sigma_weight.clear();
-  //g4rw_primary_var.clear();
-  //g4rw_alt_primary_plus_sigma_weight.clear();
-  //g4rw_alt_primary_minus_sigma_weight.clear();
-  //g4rw_full_primary_plus_sigma_weight.clear();
-  //g4rw_full_primary_minus_sigma_weight.clear();
-  //g4rw_full_grid_weights.clear();
-  //g4rw_full_grid_coeffs.clear();
   g4rw_full_grid_piplus_weights.clear();
   g4rw_full_grid_piplus_coeffs.clear();
   g4rw_full_grid_abscex_weights.clear();
@@ -2951,7 +2803,6 @@ void pduneana::PDSPAnalyzer::reset()
   g4rw_full_grid_kplus_coeffs.clear();
   g4rw_primary_grid_weights.clear();
   g4rw_primary_grid_coeffs.clear();
-  //g4rw_primary_grid_pair_weights.clear();
   //
   g4rw_primary_grid_exp_fit_chi2.clear();
   g4rw_full_grid_piplus_exp_fit_chi2.clear();
@@ -3038,12 +2889,6 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   if (fVerbose) std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
   reco_beam_type = 13;
 
-  //Flag to tell if it passes the beam cuts
-  //-- should probably take out or make it more flexible for other runs
-  reco_beam_passes_beam_cuts = beam_cuts.IsBeamlike( *thisTrack, evt, "1" );
-  if (fVerbose) std::cout << "Beam Cuts " << reco_beam_passes_beam_cuts << std::endl;
-
-
   reco_beam_trackID = thisTrack->ID();
 
   //Using default pandora info -- not SCE-corrected
@@ -3106,7 +2951,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   //double max_Y = 0.;
   //double max_Z = 0.;
 
-  for( auto it = trajPtsToHits.begin(); it != trajPtsToHits.end(); ++it ){
+  /*for( auto it = trajPtsToHits.begin(); it != trajPtsToHits.end(); ++it ){
 
     const recob::Hit * theHit = it->second;
     size_t i = it->first;
@@ -3127,11 +2972,11 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     int slice = std::floor((z - fZ0) / fPitch);
     hitsToSlices[theHit] = slice;
     slicesToHits[slice].push_back(theHit);
-  }
+  }*/
 
   //Last point is the vertex slice
   //To do: remove
-  reco_beam_vertex_slice = slicesToHits.rbegin()->first;
+  //reco_beam_vertex_slice = slicesToHits.rbegin()->first;
 
   //Primary Track Calorimetry
   //SCE-corrected
@@ -3141,7 +2986,9 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   bool found_calo = false;
   size_t index = 0;
   for ( index = 0; index < calo.size(); ++index) {
-    if (calo[index].PlaneID().Plane == 2) {
+    auto this_plane = calo[index].PlaneID().Plane;
+    if ((this_plane == 2 && !fVPlaneAsCollector) ||
+        (this_plane == 1 && fVPlaneAsCollector)) {
       found_calo = true;
       break; 
     }
@@ -3149,28 +2996,17 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
 
   if (found_calo) {
     //Using SCE-corrected (from calorimetry) to calculate momentum by range
-    reco_beam_momByRange_alt_proton = track_p_calc.GetTrackMomentum(
+    reco_beam_momByRange_alt_proton = track_p_calc.GetTrackMomentum( // TODO -- rename this 
         calo[index].Range(), 2212);
-    reco_beam_momByRange_alt_muon = track_p_calc.GetTrackMomentum(
+    reco_beam_momByRange_alt_muon = track_p_calc.GetTrackMomentum(// TODO -- rename this 
         calo[index].Range(), 13);
-    reco_beam_alt_len = calo[index].Range();
+    reco_beam_alt_len = calo[index].Range();// TODO -- rename this 
 
     auto calo_dQdX = calo[index].dQdx();
     auto calo_dEdX = calo[index].dEdx();
     auto calo_range = calo[index].ResidualRange();
     auto TpIndices = calo[index].TpIndices();
 
-    //For Prod3 only
-    if (fCalorimetryTagSCE == "pandoracali") {
-      auto pandoracalo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, "pandoracalo");
-      size_t this_index = 0;
-      for ( this_index = 0; this_index < pandoracalo.size(); ++this_index) {
-        if (pandoracalo[this_index].PlaneID().Plane == 2) {
-          break; 
-        }
-      }
-      TpIndices = pandoracalo[this_index].TpIndices();
-    }
     std::cout << calo_dQdX.size() << std::endl;
     std::cout << calo[index].PlaneID().Plane << std::endl;
 
@@ -3194,7 +3030,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         reco_beam_calo_wire.push_back( theHit.WireID().Wire );
       }
       else if (theHit.WireID().TPC == 5) {
-        reco_beam_calo_wire.push_back( theHit.WireID().Wire + 479);
+        reco_beam_calo_wire.push_back( theHit.WireID().Wire + 479); // TODO -- SHOULD REMOVE THIS OR STANDARDIZE IT
       }
       //Need other TPCs?
       else {
@@ -3214,7 +3050,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
                      wireReadout.Wire(theHit.WireID()).GetCenter().Z() << " " <<
                      theHit.WireID().TPC << " " << std::endl;
 
-      //truth infos
+      //truth infos --  TODO is this useful?
       if (!evt.isRealData()) {
         reco_hit_IDE_IDs.push_back(std::vector<int>());
         reco_hit_IDE_origins.push_back(std::vector<int>());
@@ -3234,6 +3070,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     }
 
     //Getting the SCE corrected start/end positions & directions
+    //TODO -- should really double check with richie and see if this is good to do
     std::sort(theXYZPoints.begin(), theXYZPoints.end(), [](auto a, auto b)
         {return (a.Z() < b.Z());});
 
@@ -3373,81 +3210,53 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     }
     ////////////////////////////////////////////
 
-    //New Calibration
     std::cout << "Getting reco beam calo" << std::endl;
-    if (fRecalibrate){
-      std::vector< float > new_dEdX = calibration_SCE.GetCalibratedCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTagSCE, 2, -10.);
-      std::cout << new_dEdX.size() << " " << reco_beam_resRange_SCE.size() << std::endl;
-      for( size_t i = 0; i < new_dEdX.size(); ++i ){ reco_beam_calibrated_dEdX_SCE.push_back( new_dEdX[i] ); }
-      //std::cout << "got calibrated dedx" << std::endl;
+    for (size_t i = 0; i < calo_dQdX.size(); ++i){
+      // Electric Field in the drift region in KV/cm
+      double E_field_nominal = detProp.Efield();
 
-      std::vector<double> new_dQdX = calibration_SCE.CalibratedQdX(
-        *thisTrack, evt, fTrackerTag,
-        fCalorimetryTagSCE, 2, -10.);
-      for (auto dqdx : new_dQdX) {
-        reco_beam_calibrated_dQdX_SCE.push_back(dqdx);
-      }
+      geo::Vector_t E_field_offsets
+          = (sce->EnableCalEfieldSCE() ?
+             sce->GetCalEfieldOffsets(
+                 geo::Point_t{theXYZPoints[i].X(),
+                              theXYZPoints[i].Y(),
+                              theXYZPoints[i].Z()},
+                 calo[index].PlaneID().TPC) :
+             geo::Vector_t{0., 0., 0.});
+      TVector3 E_field_vector = {
+          E_field_nominal*(1 + E_field_offsets.X()),
+          E_field_nominal*E_field_offsets.Y(),
+          E_field_nominal*E_field_offsets.Z()};
 
-      std::vector<double> efield = calibration_SCE.GetEFieldVector(
-        *thisTrack, evt, fTrackerTag, fCalorimetryTagSCE, 2, -10.);
-      for (auto ef : efield) {
-        reco_beam_EField_SCE.push_back(ef);
-      }
-    }
-    else{
-      for (size_t i = 0; i < calo_dQdX.size(); ++i){
-        reco_beam_calibrated_dEdX_SCE.push_back(calo_dEdX[i]);
-        reco_beam_calibrated_dQdX_SCE.push_back(calo_dQdX[i]);
-
-        // Electric Field in the drift region in KV/cm
-        double E_field_nominal = detProp.Efield();
-
-        geo::Vector_t E_field_offsets
-            = (sce->EnableCalEfieldSCE() && fSCE ?
-               sce->GetCalEfieldOffsets(
-                   geo::Point_t{theXYZPoints[i].X(),
-                                theXYZPoints[i].Y(),
-                                theXYZPoints[i].Z()},
-                   calo[index].PlaneID().TPC) :
-               geo::Vector_t{0., 0., 0.});
-        TVector3 E_field_vector = {
-            E_field_nominal*(1 + E_field_offsets.X()),
-            E_field_nominal*E_field_offsets.Y(),
-            E_field_nominal*E_field_offsets.Z()};
-
-        double E_field = E_field_vector.Mag();
-        reco_beam_EField_SCE.push_back(E_field);
-      }
+      double E_field = E_field_vector.Mag();
+      reco_beam_EField_SCE.push_back(E_field);
     }
     ////////////////////////////////////////////
 
     //Get the chi2-based PID for the SCE-corrected beam track
     std::pair<double, int> pid_chi2_ndof = trackUtil.Chi2PID(
-        reco_beam_calibrated_dEdX_SCE, reco_beam_resRange_SCE, templates[2212]);
+        reco_beam_dEdX_SCE, reco_beam_resRange_SCE, templates[2212]);
     reco_beam_Chi2_proton = pid_chi2_ndof.first;
     reco_beam_Chi2_ndof = pid_chi2_ndof.second;
 
     pid_chi2_ndof = trackUtil.Chi2PID(
-        reco_beam_calibrated_dEdX_SCE, reco_beam_resRange_SCE, templates[13]);
+        reco_beam_dEdX_SCE, reco_beam_resRange_SCE, templates[13]);
     reco_beam_Chi2_muon = pid_chi2_ndof.first;
 
     if (fVerbose)
-      std::cout << "Calo check: " << reco_beam_calibrated_dEdX_SCE.size() << " " <<
+      std::cout << "Calo check: " << reco_beam_dEdX_SCE.size() << " " <<
                    reco_beam_TrkPitch_SCE.size() << std::endl;
     std::vector< calo_point > reco_beam_calo_points;
-    //Doing thin slice method
-    if (reco_beam_calibrated_dEdX_SCE.size() &&
-        reco_beam_calibrated_dEdX_SCE.size() == reco_beam_TrkPitch_SCE.size() &&
-        reco_beam_calibrated_dEdX_SCE.size() == reco_beam_calo_wire.size()) {
+    //Doing thin slice method -- TODO  check with Richie if this is even useful
 
-      for( size_t i = 0; i < reco_beam_calibrated_dEdX_SCE.size(); ++i ){
+      for( size_t i = 0; i < reco_beam_dEdX_SCE.size(); ++i ){
         reco_beam_calo_points.push_back(
           calo_point(reco_beam_calo_wire[i], reco_beam_calo_tick[i],
                      reco_beam_TrkPitch_SCE[i],
                      reco_beam_dQdX_SCE[i], reco_beam_dEdX_SCE[i],
                      reco_beam_dQ[i],
-                     reco_beam_calibrated_dQdX_SCE[i],
-                     reco_beam_calibrated_dEdX_SCE[i],
+                     reco_beam_dQdX_SCE[i],
+                     reco_beam_dEdX_SCE[i],
                      reco_beam_resRange_SCE[i], calo_hit_indices[i],
                      reco_beam_calo_wire_z[i], reco_beam_calo_TPC[i],
                      reco_beam_EField_SCE[i], reco_beam_calo_X[i],
@@ -3469,8 +3278,6 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         calo_point thePoint = reco_beam_calo_points[i];
         reco_beam_calo_wire[i] = thePoint.wire;
         reco_beam_calo_tick[i] = thePoint.tick;
-        reco_beam_calibrated_dQdX_SCE[i] = thePoint.calibrated_dQdX;
-        reco_beam_calibrated_dEdX_SCE[i] = thePoint.calibrated_dEdX;
         reco_beam_TrkPitch_SCE[i] = thePoint.pitch;
         calo_hit_indices[i] = thePoint.hit_index;
         reco_beam_calo_wire_z[i] = thePoint.wire_z;
@@ -3484,7 +3291,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         reco_beam_calo_Y[i] = thePoint.y;
         reco_beam_calo_Z[i] = thePoint.z;
         //reco_beam_calo_x[i]
-        if (!evt.isRealData() && fSaveHitIDEInfo) {
+        /*if (!evt.isRealData() && fSaveHitIDEInfo) {
           reco_beam_hit_IDE_IDs.push_back(std::vector<int>());
           reco_beam_hit_IDE_origins.push_back(std::vector<int>());
           reco_beam_hit_IDE_electrons.push_back(std::vector<double>());
@@ -3511,7 +3318,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
           reco_beam_hit_IDE_beam_electrons.push_back(total_beam);
           reco_beam_hit_IDE_cosmic_energies.push_back(total_cosmic_energy);
           reco_beam_hit_IDE_beam_energies.push_back(total_beam_energy);
-        }
+        }*/
       }
 
       //Get the initial Energy KE
@@ -3533,12 +3340,12 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
       reco_beam_incidentEnergies.push_back( init_KE );
       for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
         //use dedx * pitch or new hit calculation?
-        if (reco_beam_calo_points[i].calibrated_dEdX < 0.) continue;
-        double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].calibrated_dEdX * reco_beam_calo_points[i].pitch );
+        if (reco_beam_calo_points[i].dEdX < 0.) continue;
+        double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
         reco_beam_incidentEnergies.push_back( this_energy );
       }
       if( reco_beam_incidentEnergies.size() ) reco_beam_interactingEnergy = reco_beam_incidentEnergies.back();
-    }
+    //} // END OF THIN SLICE
   }
 
   //Uncorrected
@@ -3575,7 +3382,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         reco_beam_calo_wire_NoSCE.push_back( theHit.WireID().Wire );
       }
       else if (theHit.WireID().TPC == 5) {
-        reco_beam_calo_wire_NoSCE.push_back( theHit.WireID().Wire + 479);
+        reco_beam_calo_wire_NoSCE.push_back( theHit.WireID().Wire + 479); //TODO -- remove this?
       }
       //Need other TPCs?
       else {
@@ -3585,36 +3392,21 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
           wireReadout.Wire(theHit.WireID()).GetCenter().Z());
 
     }
-
-    if (fRecalibrate) {
-      std::vector< float > new_dEdX = calibration_NoSCE.GetCalibratedCalorimetry(  *thisTrack, evt, fTrackerTag, fCalorimetryTagNoSCE, 2, -1.);
-      for( size_t i = 0; i < new_dEdX.size(); ++i ){ reco_beam_calibrated_dEdX_NoSCE.push_back( new_dEdX[i] ); }
-    }
-    else {
-      for (auto dedx : reco_beam_dEdX_NoSCE) {
-        reco_beam_calibrated_dEdX_NoSCE.push_back(dedx);
-      }
-    }
     ////////////////////////////////////////////
 
     std::vector< calo_point > reco_beam_calo_points;
-    if (reco_beam_calibrated_dEdX_NoSCE.size() &&
-        reco_beam_calibrated_dEdX_NoSCE.size() == reco_beam_TrkPitch_NoSCE.size() &&
-        reco_beam_calibrated_dEdX_NoSCE.size() == reco_beam_calo_wire.size()) {
-
-      for( size_t i = 0; i < reco_beam_calibrated_dEdX_NoSCE.size(); ++i ){
+      for( size_t i = 0; i < reco_beam_dEdX_NoSCE.size(); ++i ){
         reco_beam_calo_points.push_back(
           calo_point(reco_beam_calo_wire_NoSCE[i], 0.,
                      reco_beam_TrkPitch_NoSCE[i],
                      reco_beam_dQdX_NoSCE[i], reco_beam_dEdX_NoSCE[i],
                      reco_beam_dQ_NoSCE[i], 0.,
-                     reco_beam_calibrated_dEdX_NoSCE[i],
+                     reco_beam_dEdX_NoSCE[i],
                      reco_beam_resRange_NoSCE[i], calo_hit_indices[i],
                      reco_beam_calo_wire_z_NoSCE[i], reco_beam_calo_TPC_NoSCE[i],
                      0., 0., 0., 0.));
       }
 
-      //std::cout << "N Calo points: " << reco_beam_calo_points.size() << std::endl;
       //Sort
       std::sort( reco_beam_calo_points.begin(), reco_beam_calo_points.end(), [](calo_point a, calo_point b) {return ( a.z < b.z );} );
 
@@ -3622,7 +3414,6 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
       for( size_t i = 0; i < reco_beam_calo_points.size(); ++i ){
         calo_point thePoint = reco_beam_calo_points[i];
         reco_beam_calo_wire_NoSCE[i] = thePoint.wire;
-        reco_beam_calibrated_dEdX_NoSCE[i] = thePoint.calibrated_dEdX;
         reco_beam_TrkPitch_NoSCE[i] = thePoint.pitch;
         calo_hit_indices[i] = thePoint.hit_index;
         reco_beam_calo_wire_z_NoSCE[i] = thePoint.z;
@@ -3631,8 +3422,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         reco_beam_dQdX_NoSCE[i] = thePoint.dQdX;
         reco_beam_dEdX_NoSCE[i] = thePoint.dEdX;
       }
-    }
-  }
+  }// No SCE
 }
 
 //info from reconstructed beam shower info
@@ -4656,8 +4446,6 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         reco_daughter_allTrack_resRange_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_dEdX_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_dQdX_SCE.push_back( std::vector<double>() );
-        reco_daughter_allTrack_calibrated_dQdX_SCE.push_back( std::vector<double>() );
-        reco_daughter_allTrack_calibrated_dEdX_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_EField_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_calo_X.push_back( std::vector<double>() );
         reco_daughter_allTrack_calo_Y.push_back( std::vector<double>() );
@@ -4685,71 +4473,40 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
             reco_daughter_allTrack_calo_X.back().push_back(theXYZPoints[j].X());
             reco_daughter_allTrack_calo_Y.back().push_back(theXYZPoints[j].Y());
             reco_daughter_allTrack_calo_Z.back().push_back(theXYZPoints[j].Z());
-          }
+            double E_field_nominal = detProp.Efield();   // Electric Field in the drift region in KV/cm
+            geo::Vector_t E_field_offsets
+                = (sce->EnableCalEfieldSCE() ?
+                   sce->GetCalEfieldOffsets(
+                       geo::Point_t{theXYZPoints[j].X(), theXYZPoints[j].Y(),
+                                    theXYZPoints[j].Z()},
+                       dummy_caloSCE[index].PlaneID().TPC) :
+                   geo::Vector_t{0., 0., 0.});
+            TVector3 E_field_vector
+                = {E_field_nominal*(1 + E_field_offsets.X()),
+                   E_field_nominal*E_field_offsets.Y(),
+                   E_field_nominal*E_field_offsets.Z()};
 
-          if (fRecalibrate) {
-            std::vector<float> cali_dEdX_SCE
-                = calibration_SCE.GetCalibratedCalorimetry(
-                    *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 2);
-
-            for( size_t j = 0; j < cali_dEdX_SCE.size(); ++j ){
-              reco_daughter_allTrack_calibrated_dEdX_SCE.back().push_back(
-                  cali_dEdX_SCE[j]);
-            }
-            std::vector<double> new_dQdX = calibration_SCE.CalibratedQdX(
-                *pandora2Track, evt, "pandora2Track",
-                fPandora2CaloSCE, 2, -10.);
-            for (auto dqdx : new_dQdX) {
-              reco_daughter_allTrack_calibrated_dQdX_SCE.back().push_back(dqdx);
-            }
-            std::vector<double> efield = calibration_SCE.GetEFieldVector(
-                *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 2, -10.);
-            for (auto ef : efield) {
-              reco_daughter_allTrack_EField_SCE.back().push_back(ef);
-            }
-
-          }
-          else {
-            for (size_t j = 0; j < dummy_dQdx_SCE.size(); ++j) {
-              reco_daughter_allTrack_calibrated_dEdX_SCE.back().push_back(
-                  dummy_dEdx_SCE[j]);
-              reco_daughter_allTrack_calibrated_dQdX_SCE.back().push_back(
-                  dummy_dQdx_SCE[j]);
-              double E_field_nominal = detProp.Efield();   // Electric Field in the drift region in KV/cm
-              geo::Vector_t E_field_offsets
-                  = (sce->EnableCalEfieldSCE() && fSCE ?
-                     sce->GetCalEfieldOffsets(
-                         geo::Point_t{theXYZPoints[j].X(), theXYZPoints[j].Y(),
-                                      theXYZPoints[j].Z()},
-                         dummy_caloSCE[index].PlaneID().TPC) :
-                     geo::Vector_t{0., 0., 0.});
-              TVector3 E_field_vector
-                  = {E_field_nominal*(1 + E_field_offsets.X()),
-                     E_field_nominal*E_field_offsets.Y(),
-                     E_field_nominal*E_field_offsets.Z()};
-
-              double E_field = E_field_vector.Mag();
-              reco_daughter_allTrack_EField_SCE.back().push_back(E_field);
-            }
+            double E_field = E_field_vector.Mag();
+            reco_daughter_allTrack_EField_SCE.back().push_back(E_field);
           }
 
           //Chi2 based PID
           std::pair<double, int> this_chi2_ndof = trackUtil.Chi2PID(
-              reco_daughter_allTrack_calibrated_dEdX_SCE.back(),
+              reco_daughter_allTrack_dEdX_SCE.back(),
               reco_daughter_allTrack_resRange_SCE.back(), templates[2212]);
 
           reco_daughter_allTrack_Chi2_proton.push_back(this_chi2_ndof.first);
           reco_daughter_allTrack_Chi2_ndof.push_back(this_chi2_ndof.second);
 
           this_chi2_ndof = trackUtil.Chi2PID(
-              reco_daughter_allTrack_calibrated_dEdX_SCE.back(),
+              reco_daughter_allTrack_dEdX_SCE.back(),
               reco_daughter_allTrack_resRange_SCE.back(), templates[211]);
 
           reco_daughter_allTrack_Chi2_pion.push_back(this_chi2_ndof.first);
           reco_daughter_allTrack_Chi2_ndof_pion.push_back(this_chi2_ndof.second);
 
           this_chi2_ndof = trackUtil.Chi2PID(
-              reco_daughter_allTrack_calibrated_dEdX_SCE.back(),
+              reco_daughter_allTrack_dEdX_SCE.back(),
               reco_daughter_allTrack_resRange_SCE.back(), templates[13]);
 
           reco_daughter_allTrack_Chi2_muon.push_back(this_chi2_ndof.first);
@@ -4791,7 +4548,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
                          plane1_index << std::endl;
 
 
-        reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.push_back(
+        reco_daughter_allTrack_dEdX_SCE_plane0.push_back(
             std::vector<double>());
         reco_daughter_allTrack_resRange_plane0.push_back(
             std::vector<double>());
@@ -4805,32 +4562,14 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
                 resRange_plane0[j]);
           }
 
- 
-          std::vector<float> dEdX_plane0
-              = (fRecalibrate ?
-                 calibration_SCE.GetCalibratedCalorimetry(
-                    *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 0) :
-                 dummy_caloSCE[plane0_index].dEdx());
+          std::vector<float> dEdX_plane0 = dummy_caloSCE[plane0_index].dEdx();
           for (auto & dedx : dEdX_plane0) {
-            reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.back().push_back(
+            reco_daughter_allTrack_dEdX_SCE_plane0.back().push_back(
                 dedx);
           }
-          /*
-          if (fRecalibrate){
-            std::vector<float> dEdX_plane0 = calibration_SCE.GetCalibratedCalorimetry(
-              *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 0);
-            for (size_t j = 0; j < dEdX_plane0.size(); ++j) {
-              reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.back().push_back(dEdX_plane0[j]);
-            }
-          }
-          else{
-            for (size_t j = 0; j < dEdX_plane0.size(); ++j){
-              reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.back().push_back(dEdX_plane0[j]);
-            }
-          }*/
 
           std::pair<double, int> plane0_chi2_ndof = trackUtil.Chi2PID(
-              reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.back(),
+              reco_daughter_allTrack_dEdX_SCE_plane0.back(),
               reco_daughter_allTrack_resRange_plane0.back(), templates[2212]);
           reco_daughter_allTrack_Chi2_proton_plane0.push_back(
               plane0_chi2_ndof.first);
@@ -4845,7 +4584,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         }
 
 
-        reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.push_back(
+        reco_daughter_allTrack_dEdX_SCE_plane1.push_back(
             std::vector<double>());
 
         reco_daughter_allTrack_resRange_plane1.push_back(
@@ -4860,33 +4599,14 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
 
 
           std::vector<float> dEdX_plane1
-              = (fRecalibrate ? 
-                 calibration_SCE.GetCalibratedCalorimetry(
-                    *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 1) :
-                 dummy_caloSCE[plane1_index].dEdx());
+              = dummy_caloSCE[plane1_index].dEdx();
           for (auto & dedx : dEdX_plane1) {
-            reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.back().push_back(
+            reco_daughter_allTrack_dEdX_SCE_plane1.back().push_back(
                 dedx);
           }
 
-          /*
-          if (fRecalibrate){
-            std::vector<float> dEdX_plane1 = calibration_SCE.GetCalibratedCalorimetry(
-              *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 1);
-
-            for (size_t j = 0; j < dEdX_plane1.size(); ++j) {
-              reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.back().push_back(dEdX_plane1[j]);
-            }
-          }
-          else{
-            auto dEdX_plane1 = dummy_caloSCE[plane1_index].dEdx();
-            for (size_t j = 0; j < dEdX_plane1.size(); ++j){
-              reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.back().push_back(dEdX_plane1[j]);
-            }
-          } */
-
           std::pair<double, int> plane1_chi2_ndof = trackUtil.Chi2PID(
-              reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.back(),
+              reco_daughter_allTrack_dEdX_SCE_plane1.back(),
               reco_daughter_allTrack_resRange_plane1.back(), templates[2212]);
           reco_daughter_allTrack_Chi2_proton_plane1.push_back(
               plane1_chi2_ndof.first);
@@ -4948,8 +4668,6 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         reco_daughter_allTrack_resRange_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_dEdX_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_dQdX_SCE.push_back( std::vector<double>() );
-        reco_daughter_allTrack_calibrated_dEdX_SCE.push_back(std::vector<double>());
-        reco_daughter_allTrack_calibrated_dQdX_SCE.push_back(std::vector<double>());
         reco_daughter_allTrack_EField_SCE.push_back(std::vector<double>());
         reco_daughter_allTrack_Chi2_proton.push_back( -999. );
         reco_daughter_allTrack_Chi2_ndof.push_back( -999 );
@@ -4965,9 +4683,9 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         reco_daughter_allTrack_calo_Z.push_back( std::vector<double>() );
 
         //Calorimetry + chi2 for planes 0 and 1
-        reco_daughter_allTrack_calibrated_dEdX_SCE_plane0.push_back(
+        reco_daughter_allTrack_dEdX_SCE_plane0.push_back(
             std::vector<double>());
-        reco_daughter_allTrack_calibrated_dEdX_SCE_plane1.push_back(
+        reco_daughter_allTrack_dEdX_SCE_plane1.push_back(
             std::vector<double>());
         reco_daughter_allTrack_resRange_plane0.push_back(
             std::vector<double>());
@@ -5041,7 +4759,9 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
 
         for (size_t iHit = 0; iHit < hits.size(); ++iHit) {
           auto theHit = hits[iHit];
-          if (theHit->View() != 2) continue; //skip induction planes
+          if ((!fVPlaneAsCollector && theHit->View() != 2) ||
+              (fVPlaneAsCollector && theHit->View() != 1))
+            continue; //skip induction planes -- 
 
           good_hits.push_back(theHit);
 
@@ -5069,10 +4789,10 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
           //std::cout << std::endl;
         }
 
-        if (fGetCalibratedShowerEnergy) {
+        //if (fGetCalibratedShowerEnergy) {
           //std::cout << "Getting calibrated shower energy" << std::endl;
           auto calo = showerUtil.GetRecoShowerCalorimetry(
-              *pandora2Shower, evt, "pandora2Shower", "pandora2cali");
+              *pandora2Shower, evt, "pandora2Shower", "pandora2cali"); // TODO -- Rename this
           bool found_calo = false;
           size_t index = 0;
           for (index = 0; index < calo.size(); ++index) {
@@ -5083,18 +4803,20 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
           }
           
           if (!found_calo) {
-            reco_daughter_allShower_calibrated_energy.push_back(-999.);
+            reco_daughter_allShower_energy.push_back(-999.);
           }
           else {
-            reco_daughter_allShower_calibrated_energy.push_back(calo[index].KineticEnergy());
+            reco_daughter_allShower_energy.push_back(calo[index].KineticEnergy());
           }
-        }
+        //}
 
-        if (fGetUncalibratedShowerEnergy && n_good_y > 1) {
+        /*if (fGetUncalibratedShowerEnergy && n_good_y > 1) {
           double total_shower_energy = 0.;
           for (size_t iHit = 0; iHit < good_hits.size(); ++iHit) {
             auto const& theHit = good_hits[iHit];
-            if (theHit->View() != 2) continue; //skip induction planes
+            if ((!fVPlaneAsCollector && theHit->View() != 2) ||
+                (fVPlaneAsCollector && theHit->View() != 1))
+              continue; //skip induction planes
 
             if (y_vec[iHit] < -100.)
               y_vec[iHit] = total_y / n_good_y;
@@ -5106,7 +4828,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         }
         else {
           reco_daughter_allShower_energy.push_back(-999.);
-        }
+        }*/
         
       }
       else{
@@ -5119,7 +4841,6 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         reco_daughter_allShower_dirY.push_back(-999.);
         reco_daughter_allShower_dirZ.push_back(-999.);
         reco_daughter_allShower_energy.push_back(-999.);
-        reco_daughter_allShower_calibrated_energy.push_back(-999.);
       }
 
     }
@@ -5347,7 +5068,6 @@ void pduneana::PDSPAnalyzer::BeamForcedTrackInfo(
           reco_beam_vertex_michel_score_weight_by_charge_allTrack = -999.;
       }
       reco_beam_allTrack_ID = pandora2Track->ID();
-      reco_beam_allTrack_beam_cuts = beam_cuts.IsBeamlike( *pandora2Track, evt, "1" );
       reco_beam_allTrack_startX = pandora2Track->Trajectory().Start().X();
       reco_beam_allTrack_startY = pandora2Track->Trajectory().Start().Y();
       reco_beam_allTrack_startZ = pandora2Track->Trajectory().Start().Z();
@@ -5408,8 +5128,7 @@ void pduneana::PDSPAnalyzer::BeamForcedTrackInfo(
 
         for( size_t i = 0; i < calo_range.size(); ++i ){
           reco_beam_allTrack_resRange.push_back( calo_range[i] );
-          //reco_beam_dQdX_SCE_allTrack.push_back( calo_dQdX[i] );
-          //reco_beam_dEdX_SCE_allTrack.push_back( calo_dEdX[i] );
+          reco_beam_allTrack_dEdX.push_back(calo_dEdX[i]);
           reco_beam_TrkPitch_SCE_allTrack.push_back( calo[index].TrkPitchVec()[i] );
         }
         
@@ -5449,98 +5168,44 @@ void pduneana::PDSPAnalyzer::BeamForcedTrackInfo(
           reco_beam_calo_endZ_allTrack = theXYZPoints.back().Z();
         }
 
-        //New Calibration
-        if (fRecalibrate){
-          std::vector< float > new_dEdX = calibration_SCE.GetCalibratedCalorimetry( *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE, 2);
-          for( size_t i = 0; i < new_dEdX.size(); ++i ) {
-            reco_beam_allTrack_calibrated_dEdX.push_back( new_dEdX[i] );
-          }
-          /*std::vector<double> new_dQdX = calibration_SCE.CalibratedQdX( *pandora2Track, evt, "pandora2Track", fCalorimetryTagSCE, 2, -10.);
-           for (auto dqdx : new_dQdX)  reco_beam_calibrated_dQdX_SCE_allTrack.push_back(dqdx);*/
-          
-          /*std::vector<double> efield = calibration_SCE.GetEFieldVector( *pandora2Track, evt, "pandora2Track", fCalorimetryTagSCE, 2, -10.);
-           for (auto ef : efield)  reco_beam_EField_SCE_allTrack.push_back(ef);*/
-        }
-        else{
-          for (size_t i = 0; i < calo_dEdX.size(); ++i){
-            reco_beam_allTrack_calibrated_dEdX.push_back(calo_dEdX[i]);
-            //reco_beam_calibrated_dQdX_SCE_allTrack.push_back(calo_dQdX[i]);
-            
-            /*double E_field_nominal = detProp.Efield();   // Electric Field in the drift region in KV/cm
-             geo::Vector_t E_field_offsets = {0., 0., 0.};
-             if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{theXYZPoints[i].X(), theXYZPoints[i].Y(), theXYZPoints[i].Z()},calo[index].PlaneID().TPC);
-             TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
-             double E_field = E_field_vector.Mag();
-             reco_beam_EField_SCE.push_back(E_field);*/
-          }
-        }
+        //for (size_t i = 0; i < calo_dEdX.size(); ++i){
+        //}
         double efield_placeholder = 1.;
         ////////////////////////////////////////////
 
-        std::pair< double, int > pid_chi2_ndof = trackUtil.Chi2PID( reco_beam_allTrack_calibrated_dEdX, reco_beam_allTrack_resRange, templates[ 2212 ] );
+        std::pair< double, int > pid_chi2_ndof = trackUtil.Chi2PID( reco_beam_allTrack_dEdX, reco_beam_allTrack_resRange, templates[ 2212 ] );
         reco_beam_allTrack_Chi2_proton = pid_chi2_ndof.first;
         reco_beam_allTrack_Chi2_ndof = pid_chi2_ndof.second;
         
         std::vector< calo_point > reco_beam_calo_points;
-        //Doing thin slice
-        if (reco_beam_allTrack_calibrated_dEdX.size() &&
-            reco_beam_allTrack_calibrated_dEdX.size() == reco_beam_TrkPitch_SCE_allTrack.size() &&
-            reco_beam_allTrack_calibrated_dEdX.size() == reco_beam_calo_wire_allTrack.size()) {
-          
-          for( size_t i = 0; i < reco_beam_allTrack_calibrated_dEdX.size(); ++i ){
-            reco_beam_calo_points.push_back(
-                                            calo_point(reco_beam_calo_wire_allTrack[i], 1.,
-                                                       reco_beam_TrkPitch_SCE_allTrack[i],
-                                                       1., 1.,
-                                                       1.,
-                                                       1.,
-                                                       reco_beam_allTrack_calibrated_dEdX[i],
-                                                       reco_beam_allTrack_resRange[i], 0,
-                                                       1., 0,
-                                                       efield_placeholder, reco_beam_calo_X_allTrack[i],
-                                                       reco_beam_calo_Y_allTrack[i], reco_beam_calo_Z_allTrack[i]));
-          }
-          
-          //std::cout << "N Calo points: " << reco_beam_calo_points.size() << std::endl;
-          //Sort
-          std::sort( reco_beam_calo_points.begin(), reco_beam_calo_points.end(), [](calo_point a, calo_point b) {return ( a.z < b.z );} );
-          
-          //And also put these in the right order
-          for( size_t i = 0; i < reco_beam_calo_points.size(); ++i ){
-            calo_point thePoint = reco_beam_calo_points[i];
-            reco_beam_calo_wire_allTrack[i] = thePoint.wire;
-            reco_beam_TrkPitch_SCE_allTrack[i] = thePoint.pitch;
-            reco_beam_allTrack_calibrated_dEdX[i] = thePoint.calibrated_dEdX;
-            reco_beam_allTrack_resRange[i] = thePoint.res_range;
-            reco_beam_calo_X_allTrack[i] = thePoint.x;
-            reco_beam_calo_Y_allTrack[i] = thePoint.y;
-            reco_beam_calo_Z_allTrack[i] = thePoint.z;
-          }
-          
-          //Get the initial Energy KE
-          //double mass = 0.;
-          /*
-          double init_KE = 0.;
-          //std::cout << "Has BI? " << fMCHasBI << " " << evt.isRealData() << std::endl;
-          if (evt.isRealData() || fMCHasBI) {
-            double mass = 139.57;
-            
-            init_KE =  sqrt( 1.e6*beam_inst_P*beam_inst_P + mass*mass ) - mass;
-            // std::cout << "MC has BI: " << init_KE << std::endl;
-          }
-          else{
-            init_KE = sqrt(1.e6*true_beam_startP*true_beam_startP + true_beam_mass*true_beam_mass) - true_beam_mass;
-          }
-          
-          reco_beam_incidentEnergies_allTrack.push_back( init_KE );
-          for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
-            //use dedx * pitch or new hit calculation?
-            if (reco_beam_calo_points[i].calibrated_dEdX < 0.) continue;
-            double this_energy = reco_beam_incidentEnergies_allTrack.back() - ( reco_beam_calo_points[i].calibrated_dEdX * reco_beam_calo_points[i].pitch );
-            reco_beam_incidentEnergies_allTrack.push_back( this_energy );
-          }
-          if( reco_beam_incidentEnergies_allTrack.size() ) reco_beam_interactingEnergy_allTrack = reco_beam_incidentEnergies_allTrack.back();
-          */
+        for( size_t i = 0; i < reco_beam_allTrack_dEdX.size(); ++i ){
+          reco_beam_calo_points.push_back(
+                                          calo_point(reco_beam_calo_wire_allTrack[i], 1.,
+                                                     reco_beam_TrkPitch_SCE_allTrack[i],
+                                                     1., 1.,
+                                                     1.,
+                                                     1.,
+                                                     reco_beam_allTrack_dEdX[i],
+                                                     reco_beam_allTrack_resRange[i], 0,
+                                                     1., 0,
+                                                     efield_placeholder, reco_beam_calo_X_allTrack[i],
+                                                     reco_beam_calo_Y_allTrack[i], reco_beam_calo_Z_allTrack[i]));
+        }
+        
+        //std::cout << "N Calo points: " << reco_beam_calo_points.size() << std::endl;
+        //Sort
+        std::sort( reco_beam_calo_points.begin(), reco_beam_calo_points.end(), [](calo_point a, calo_point b) {return ( a.z < b.z );} );
+        
+        //And also put these in the right order
+        for( size_t i = 0; i < reco_beam_calo_points.size(); ++i ){
+          calo_point thePoint = reco_beam_calo_points[i];
+          reco_beam_calo_wire_allTrack[i] = thePoint.wire;
+          reco_beam_TrkPitch_SCE_allTrack[i] = thePoint.pitch;
+          reco_beam_allTrack_dEdX[i] = thePoint.dEdX;
+          reco_beam_allTrack_resRange[i] = thePoint.res_range;
+          reco_beam_calo_X_allTrack[i] = thePoint.x;
+          reco_beam_calo_Y_allTrack[i] = thePoint.y;
+          reco_beam_calo_Z_allTrack[i] = thePoint.z;
         }
 
       }
@@ -5551,7 +5216,6 @@ void pduneana::PDSPAnalyzer::BeamForcedTrackInfo(
     }
     else{
       reco_beam_allTrack_ID = -999;
-      reco_beam_allTrack_beam_cuts = -999;
       reco_beam_allTrack_startX = -999;
       reco_beam_allTrack_startY = -999;
       reco_beam_allTrack_startZ = -999;
