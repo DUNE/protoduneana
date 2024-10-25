@@ -4753,7 +4753,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         //double total_shower_energy = 0.;
         //need to get average y
         std::vector<double> x_vec, y_vec, z_vec;
-        double total_y = 0.;
+        //double total_y = 0.;
         int n_good_y = 0;
         std::vector<art::Ptr<recob::Hit>> good_hits;
 
@@ -4779,7 +4779,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
           //std::cout << shower_hit_x << " " << shower_hit_z << " ";
           if (!sps.empty()) {
             y_vec.push_back(sps[0]->XYZ()[1]);
-            total_y += y_vec.back();
+            //total_y += y_vec.back();
             ++n_good_y;
             //std::cout << shower_hit_y_vec.back();
           }
