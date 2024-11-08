@@ -19,8 +19,8 @@ services:
   TimeTracker:                    @local::dune_time_tracker
   MemoryTracker:                  @local::dune_memory_tracker
   RandomNumberGenerator:          {} #ART native random number generator
-   
-  ExptGeoHelperInterface:         @local::dune_geometry_helper
+  
+  WireReadout:                    @local::dune_wire_readout 
   DetectorPropertiesService:      @local::protodunesp_detproperties
   FileCatalogMetadata:            @local::art_file_catalog_mc
                                   @table::protodune_services
