@@ -24,7 +24,7 @@ services:
   #                      @table::vdcb_crp2_services
   #                      @table::vdcb_dataprep_base_services
   #                      @table::vdcb_sim_base_services
-  ExptGeoHelperInterface:         @local::dune_geometry_helper
+  WireReadout:                    @local::dune_wire_readout
   DetectorPropertiesService:      @local::protodunevd_detproperties
   FileCatalogMetadata:            @local::art_file_catalog_mc
                                   @table::protodunevd_reco_services

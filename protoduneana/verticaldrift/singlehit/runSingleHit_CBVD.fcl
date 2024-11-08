@@ -37,7 +37,8 @@ services:
   TimeTracker:           @local::dune_time_tracker
   MemoryTracker:         @local::dune_memory_tracker
   RandomNumberGenerator: {} #ART native random number generator
-   
+
+  WireReadout:          @local::dune_wire_readout   
   FileCatalogMetadata:  @local::art_file_catalog_mc
                         @table::vdcb_crp2_services
                         @table::vdcb_dataprep_base_services
