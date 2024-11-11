@@ -70,18 +70,46 @@ physics:
  producers: { 
     ##Producers for forcing pandora to create track or shower objects
     ##for each PFParticle
+    #pandora2Track:         @local::dune_pandoraTrackCreation
+    #pandora2calo:          @local::pdune_sp_alltrackcalomcsce
+    #pandora2calonosce:     @local::pdune_sp_alltrackcalomcnosce
+    #pandora2pid:           @local::standard_chi2pid
+    #pandora2Shower:        @local::dune_pandoraShowerCreation
+    #pandora2Showercalo:    @local::pdune_sp_allshowercalomcsce
+    #pandora2Showercalonosce:    @local::pdune_sp_allshowercalomcnosce
     pandora2Track:         @local::dune_pandoraTrackCreation
-    pandora2calo:          @local::pdune_sp_alltrackcalomcsce
-    pandora2calonosce:     @local::pdune_sp_alltrackcalomcnosce
-    pandora2pid:           @local::standard_chi2pid
+    #pandora2calo:          @local::pdhd_allTrack_calomcsce
+    #pandora2calonosce:     @local::pdhd_allTrack_calomcnosce
     pandora2Shower:        @local::dune_pandoraShowerCreation
-    pandora2Showercalo:    @local::pdune_sp_allshowercalomcsce
-    pandora2Showercalonosce:    @local::pdune_sp_allshowercalomcnosce
+    #pandora2Showercalo:         @local::pdhd_allShower_calomcsce
+    #pandora2Showercalonosce:    @local::pdhd_allShower_calomcnosce
+
+    pandora2Gnocchicalo: @local::pdhd_gnocchi_calomc_nosce
+    pandora2Gnocchicalonosce: @local::pdhd_gnocchi_calomc_nosce
+
 
     #beamevent:          @local::pdhd_beamevent
  }
 
- reco: [] #beamevent]
+ filters: { 
+   fnhits: @local::pdhd_nhitsfilter
+ }
+
+ fpath: [fnhits]
+
+
+ reco: [
+   #beamevent,
+   pandora2Track, 
+   #pandora2calo,
+   #pandora2calonosce,
+   #pandora2pid,
+   pandora2Shower,
+   #pandora2Showercalo,
+   #pandora2Showercalonosce,
+   pandora2Gnocchicalo,
+   pandora2Gnocchicalonosce
+ ]
 
  analyzers:
  {
@@ -96,6 +124,7 @@ physics:
 
 }
 
+physics.analyzers.pduneana.SelectEvents: ["fpath"]
 outputs: {}
 services.ParticleInventoryService.ParticleInventory.EveIdCalculator: "EmEveIdCalculator"
 #services.DetectorPropertiesService.Electronlifetime: 35000
@@ -125,9 +154,26 @@ services.SpaceCharge.EnableSimSpatialSCE: false
 services.ExptGeoHelperInterface.ChannelMapClass: "DuneApaChannelMapAlg"
 #Forcing Pandora to create either all tracks or all showers on each PFParticle object
 ####The above line forces pandora to fit a track to all PFParticles
-physics.analyzers.pduneana.NoBeamInst: false
+physics.analyzers.pduneana.NoBeamInst: false #true
 #physics.analyzers.pduneana.SkipMVA: true
 physics.analyzers.pduneana.VPlaneAsCollector: true
 physics.analyzers.pduneana.CalorimetryTagSCE: "pandoraGnocchiCalonosce"
 physics.analyzers.pduneana.CalorimetryTagNoSCE: "pandoraGnocchiCalonosce"
 #physics.producers.beamevent.MatchTime:            true
+physics.producers.pandora2Track.PFParticleLabel:             "pandora"
+physics.producers.pandora2Track.UseAllParticles:             true
+####The above line forces pandora to fit a track to all PFParticles
+physics.producers.pandora2Shower.PFParticleLabel:            "pandora"
+physics.producers.pandora2Shower.UseAllParticles:            true
+
+#physics.producers.pandora2Showercalo.ShowerTag: "pandora2Shower"
+#physics.producers.pandora2Showercalonosce.ShowerTag: "pandora2Shower"
+#physics.producers.pandora2calo.TrackModuleLabel: "pandora2Track"
+#physics.producers.pandora2calo.ShowerTag: "pandora2Shower"
+#physics.producers.pandora2calonosce.TrackModuleLabel: "pandora2Track"
+#physics.producers.pandora2calonosce.ShowerTag: "pandora2Shower"
+
+physics.producers.pandora2Gnocchicalo.TrackModuleLabel:                "pandora2Track"
+physics.producers.pandora2Gnocchicalo.AssocHitModuleLabel:             "pandora2Track"
+physics.producers.pandora2Gnocchicalonosce.TrackModuleLabel:                "pandora2Track"
+physics.producers.pandora2Gnocchicalonosce.AssocHitModuleLabel:             "pandora2Track"
