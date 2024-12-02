@@ -475,7 +475,7 @@ pdvdana::SingleHit::SingleHit(fhicl::ParameterSet const& p)
     std::cout << "  " << fgeoZmin << " < Z < " << fgeoZmax << std::endl;
   }
 
-  if (fMaxSizeCluster == 0) fMaxSizeCluster = fRadiusInt*1.75;
+  if (fMaxSizeCluster == 0) fMaxSizeCluster = fRadiusInt*2;
   if (fMinSizeCluster == 0) fMinSizeCluster = fRadiusInt;
 }
 
@@ -758,7 +758,8 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
 	 
     fNearOrFarToTheBeam = NearOrFar(bIsPDVD , bIsPDHD , hit);
 
-    fEnergy         = hit.ROISummedADC();///fADCtoEl;
+    //fEnergy         = hit.ROISummedADC();///fADCtoEl;
+    fEnergy         = hit.Integral();
     fPeakTime       = hit.PeakTime();//*ftick_in_mus;
     fSigmaPeakTime  = hit.SigmaPeakTime();//*ftick_in_mus;
     fRMS            = hit.RMS();
@@ -1621,7 +1622,8 @@ void pdvdana::SingleHit::GetListOfTimeCoincidenceHit( bool IsPDVD , bool IsPDHD 
 
       WireInd1.push_back(hit.WireID());
       ChannelInd1.push_back(hit.Channel());
-      EInd1.push_back(hit.ROISummedADC());
+      //EInd1.push_back(hit.ROISummedADC());
+      EInd1.push_back(hit.Integral());
       PTInd1.push_back(PeakTime);
       PAInd1.push_back(hit.PeakAmplitude());
       continue;
@@ -1632,7 +1634,8 @@ void pdvdana::SingleHit::GetListOfTimeCoincidenceHit( bool IsPDVD , bool IsPDHD 
 
       WireInd2.push_back(hit.WireID());
       ChannelInd2.push_back(hit.Channel());
-      EInd2.push_back(hit.ROISummedADC());
+      //EInd2.push_back(hit.ROISummedADC());
+      EInd2.push_back(hit.Integral());
       PTInd2.push_back(PeakTime);
       PAInd2.push_back(hit.PeakAmplitude());
     }
