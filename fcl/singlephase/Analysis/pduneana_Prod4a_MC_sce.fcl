@@ -221,10 +221,23 @@ physics.analyzers.pduneana.PiMParameterSet: [
   }
 ]
 
+keToP500: 624.1554
+keToP600: 726.2809 
+keToP700: 827.8876
+keToP800: 929.145844
+keToP900: 1030.15824
+keToP2000: 2135.01288
+
+range_500_600: [@local::keToP500, @local::keToP600]
+range_600_700: [@local::keToP600, @local::keToP700]
+range_700_800: [@local::keToP700, @local::keToP800]
+range_800_900: [@local::keToP800, @local::keToP900]
+range_900_2000: [@local::keToP900, @local::keToP2000]
+
 BaseAbsPar:
   {Cut: "abs"
    Name: "fAbs1"
-   Range: [0., 500.]
+   Range: [0, @local::keToP500] #[0., 500.]
    Nominal: 1.0 
    Sigma: .2}
 BaseCexPar: @local::BaseAbsPar
@@ -241,15 +254,15 @@ AbsPars: {Abs_0_500: @local::BaseAbsPar
           Abs_800_900: @local::BaseAbsPar
           Abs_900_2000: @local::BaseAbsPar}
 AbsPars.Abs_500_600.Name: "fAbs2"
-AbsPars.Abs_500_600.Range: [500, 600]
+AbsPars.Abs_500_600.Range: @local::range_500_600 #[500, 600]
 AbsPars.Abs_600_700.Name: "fAbs3"
-AbsPars.Abs_600_700.Range: [600, 700]
+AbsPars.Abs_600_700.Range: @local::range_600_700 #[600, 700]
 AbsPars.Abs_700_800.Name: "fAbs4"
-AbsPars.Abs_700_800.Range: [700, 800]
+AbsPars.Abs_700_800.Range: @local::range_700_800 #[700, 800]
 AbsPars.Abs_800_900.Name: "fAbs5"
-AbsPars.Abs_800_900.Range: [800, 900]
+AbsPars.Abs_800_900.Range: @local::range_800_900 #[800, 900]
 AbsPars.Abs_900_2000.Name: "fAbs6"
-AbsPars.Abs_900_2000.Range: [900, 2000]
+AbsPars.Abs_900_2000.Range: @local::range_900_2000 #[900, 2000]
 
 CexPars: {Cex_0_500: @local::BaseCexPar
           Cex_500_600: @local::BaseCexPar
@@ -258,15 +271,16 @@ CexPars: {Cex_0_500: @local::BaseCexPar
           Cex_800_900: @local::BaseCexPar
           Cex_900_2000: @local::BaseCexPar}
 CexPars.Cex_500_600.Name: "fCex2"
-CexPars.Cex_500_600.Range: [500, 600]
 CexPars.Cex_600_700.Name: "fCex3"
-CexPars.Cex_600_700.Range: [600, 700]
 CexPars.Cex_700_800.Name: "fCex4"
-CexPars.Cex_700_800.Range: [700, 800]
 CexPars.Cex_800_900.Name: "fCex5"
-CexPars.Cex_800_900.Range: [800, 900]
 CexPars.Cex_900_2000.Name: "fCex6"
-CexPars.Cex_900_2000.Range: [900, 2000]
+
+CexPars.Cex_500_600.Range: @local::range_500_600 #[500, 600]
+CexPars.Cex_600_700.Range: @local::range_600_700 #[600, 700]
+CexPars.Cex_700_800.Range: @local::range_700_800 #[700, 800]
+CexPars.Cex_800_900.Range: @local::range_800_900 #[800, 900]
+CexPars.Cex_900_2000.Range: @local::range_900_2000 #[900, 2000]
 
 OtherPars: {Other_0_500: @local::BaseOtherPar
             Other_500_600: @local::BaseOtherPar
@@ -275,15 +289,15 @@ OtherPars: {Other_0_500: @local::BaseOtherPar
             Other_800_900: @local::BaseOtherPar
             Other_900_2000: @local::BaseOtherPar}
 OtherPars.Other_500_600.Name: "fOther2"
-OtherPars.Other_500_600.Range: [500, 600]
 OtherPars.Other_600_700.Name: "fOther3"
-OtherPars.Other_600_700.Range: [600, 700]
 OtherPars.Other_700_800.Name: "fOther4"
-OtherPars.Other_700_800.Range: [700, 800]
 OtherPars.Other_800_900.Name: "fOther5"
-OtherPars.Other_800_900.Range: [800, 900]
 OtherPars.Other_900_2000.Name: "fOther6"
-OtherPars.Other_900_2000.Range: [900, 2000]
+OtherPars.Other_500_600.Range: @local::range_500_600 #[500, 600]
+OtherPars.Other_600_700.Range: @local::range_600_700 #[600, 700]
+OtherPars.Other_700_800.Range: @local::range_700_800 #[700, 800]
+OtherPars.Other_800_900.Range: @local::range_800_900 #[800, 900]
+OtherPars.Other_900_2000.Range: @local::range_900_2000 #[900, 2000]
 
 physics.analyzers.pduneana.AbsCexFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/thresh_abscex_0_2000.root"
 physics.analyzers.pduneana.AbsCexParameterSet: [
@@ -342,7 +356,7 @@ physics.analyzers.pduneana.GetCalibratedShowerEnergy: true
 physics.analyzers.pduneana.SCE: true
 physics.analyzers.pduneana.SaveHits: false 
 physics.analyzers.pduneana.SaveHitIDEInfo: false 
-physics.analyzers.pduneana.SaveG4RWWeights: false 
+physics.analyzers.pduneana.SaveG4RWWeights: false
 
 services.ParticleInventoryService.ParticleInventory.EveIdCalculator: "EmEveIdCalculator"
 

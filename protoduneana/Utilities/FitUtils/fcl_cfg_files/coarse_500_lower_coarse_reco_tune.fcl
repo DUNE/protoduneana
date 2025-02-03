@@ -1,5 +1,5 @@
 #include "coarse_500_lower_coarse_reco.fcl"
-MaxEntries: -1
+MaxEntries: 60000 #-1
 DoThrows: false
 MaxDataEntries: -1
 FluctuateStats: false

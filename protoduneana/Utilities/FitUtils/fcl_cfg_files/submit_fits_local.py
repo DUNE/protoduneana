@@ -15,7 +15,8 @@ parser.add_argument('--output_dir', type=str, help='Output top dir', default=Non
 parser.add_argument('--config_dump', action='store_true', help='Tell fife_launch to do a config_dump')
 parser.add_argument('--dry_run', action='store_true', help='Tell fife_launch to do a dry_run')
 #parser.add_argument('--fcl', type=str, required=True)
-parser.add_argument('--output_name', type=str, default='hadd_wrapper_test.root')
+parser.add_argument('--output_name', type=str, default=None)
+parser.add_argument('--alloutput', action='store_true')
 parser.add_argument('--lifetime', type=str, default='6h')
 parser.add_argument('--input_file', type=str, required=True)
 parser.add_argument('--copy-input', action='store_true')
@@ -44,9 +45,6 @@ cmd = ['fife_launch', '-c', args.config]
 
 fit_type = args.type.replace('.fcl', '')
 
-output_str = '*%s.root'%fit_type
-print('output_str:', output_str)
-cmd += ['-Ojob_output.addoutput=%s'%output_str]
 
 ##Choose output dir
 if args.output_dir:
@@ -69,7 +67,16 @@ cmd += ['-Oglobal.protoduneana_version=%s'%os.getenv('PROTODUNEANA_VERSION')]
 #  cmd += ['-Oglobal.cov_name=%s'%args.cov.split('/')[-1]]
 
 ##Miscellanea
-cmd += ['-Oglobal.output_name=%(process)s_' + '%s.root'%fit_type]
+output_name = (f'%(process)s_{fit_type}.root' if args.output_name is None
+               else args.output_name)
+output_str = '-Oglobal.output_name=' + output_name
+cmd += [output_str] #['-Oglobal.output_name=%(process)s_' + '%s.root'%fit_type]
+
+#output_str = '*%s.root'%fit_type
+#print('output_str:', output_str)
+if args.alloutput: output_name = "*root"
+cmd += ['-Ojob_output.addoutput=' + output_name]
+
 cmd += ['-Oglobal.fcl_name=%s.fcl'%fit_type]
 cmd += ['-Oexecutable.arg_2=%(fcl_name)s']
 cmd += ['-Osubmit.expected-lifetime=%s'%args.lifetime]
@@ -81,7 +88,7 @@ cmd += ['-Oglobal.input_file=%s'%input_file]
 if 'toy' in fit_type or 'alt_sce' in fit_type or args.multiple:
   cmd += ['-Osubmit.N=%i'%args.N]
 
-arg_count = 7
+arg_count = 9
 if args.data_input != '':
   data_input = args.data_input.replace('/pnfs/', 'root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/')
   cmd += [f'-Oexecutable.arg_{arg_count}=-d',
@@ -133,6 +140,8 @@ if args.tune and args.multiple:
   cmd += [f'-Osubmit.f_5=dropbox://{args.tune_dir}/{args.tune}']
   cmd += [f'-Ojob_setup.prescript_5=head -n ${{PROCESS}} ${{CONDOR_DIR_INPUT}}/{args.tune} | tail -n 1']
   cmd += [f'-Ojob_setup.prescript_6=export refit_file=$(head -n ${{PROCESS}} ${{CONDOR_DIR_INPUT}}/{args.tune} | tail -n 1)']
+  #cmd += [f'-Ojob_setup.prescript_5=head -n $((PROCESS+1)) ${{CONDOR_DIR_INPUT}}/{args.tune} | tail -n 1']
+  #cmd += [f'-Ojob_setup.prescript_6=export refit_file=$(head -n $((PROCESS+1)) ${{CONDOR_DIR_INPUT}}/{args.tune} | tail -n 1)']
   cmd += [f'-Ojob_setup.prescript_7=python -m get_ratios $refit_file']
   if args.retune: cmd[-1] += ' 1'
   cmd += [f'-Ojob_setup.prescript_8=cat tune.txt']

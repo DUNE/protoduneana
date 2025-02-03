@@ -27,7 +27,7 @@ dEdXHigh: 3.4
 UseBI: false 
 DoNTracks: false
 
-DoMichel: true 
+DoMichel: false 
 MichelCut: 0.6
 
 RestrictBeamP: true

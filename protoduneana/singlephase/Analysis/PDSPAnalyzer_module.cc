@@ -47,6 +47,7 @@
 //#include "duneprototypes/Protodune/singlephase/DataUtils/ProtoDUNECalibration.h"
 #include "protoduneana/Utilities/ProtoDUNECalibration.h"
 #include "protoduneana/Utilities/AbsCexReweighter.hh"
+//#include "protoduneana/Utilities/ProtonPNMultRWer.hh"
 
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
@@ -1146,9 +1147,10 @@ private:
   //G4ReweightParameterMaker ParMaker, FakeDataParameterMaker, ProtParMaker;//, PiMinusParMaker;
   G4ReweightParameterMaker ParMaker;
   AbsCexReweighter * fAbsCex_reweighter;
+  //ProtonPNMultRWer * fPMult_reweighter;
   G4MultiReweighter * MultiRW, * ProtMultiRW, * PiMinusMultiRW,
                     * KPlusMultiRW, * NeutronMultiRW, * FakeDataMultiRW,
-                    * FineMultiRW, * fAbsCexMultiRW;
+                    * FineMultiRW, * fAbsCexMultiRW/*, fPMultMRW*/;
   G4ReweightManager * RWManager;
 };
 

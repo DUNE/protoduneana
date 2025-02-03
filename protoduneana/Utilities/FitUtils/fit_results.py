@@ -35,17 +35,29 @@ def get_new_xsec(f, name):
   )
   return new_gr
 
-def combine(hists, title):
-  combined = RT.TH1D(title, "", 3, 0, 3)
-  data1 = hists[-3]
-  data2 = hists[-2]
-  data3 = hists[-1]
-  combined.SetBinContent(1, data1.GetBinContent(1))
-  combined.SetBinContent(2, data2.GetBinContent(1))
-  combined.SetBinContent(3, data3.GetBinContent(1))
-  combined.GetXaxis().SetBinLabel(1, "Failed Beam Cuts")
-  combined.GetXaxis().SetBinLabel(2, "No Beam Track")
-  combined.GetXaxis().SetBinLabel(3, "Michel Vertex Cut")
+def combine(hists, title,
+            labels=["Failed Beam Cuts",
+                    "No Beam Track",
+                    "Michel Vertex Cut"]):
+
+  n = len(labels)
+
+  combined = RT.TH1D(title, "", n, 0, n)
+  datas = [h for h in hists[-n:]]
+  print(datas)
+  #data1 = hists[-3]
+  #data2 = hists[-2]
+  #data3 = hists[-1]
+  #combined.SetBinContent(1, data1.GetBinContent(1))
+  #combined.SetBinContent(2, data2.GetBinContent(1))
+  #combined.SetBinContent(3, data3.GetBinContent(1))
+  for i,d in enumerate(datas):
+    combined.SetBinContent(i+1, d.GetBinContent(1))
+    combined.GetXaxis().SetBinLabel(i+1, labels[i])
+
+  #combined.GetXaxis().SetBinLabel(1, "Failed Beam Cuts")
+  #combined.GetXaxis().SetBinLabel(2, "No Beam Track")
+  #combined.GetXaxis().SetBinLabel(3, "Michel Vertex Cut")
   combined.GetXaxis().SetLabelSize(.05)
   combined.SetMinimum(0.)
   return combined
@@ -187,8 +199,9 @@ def normal(args):
     "NominalAbsTotal", "NominalCexTotal",
     "NominalRejectedIntTotal", "NominalAPA2Total",
     "NominalFailedBeamCutsTotal", "NominalNoBeamTrackTotal",
-    "NominalMichelCutTotal"
   ]
+  if not args.no_michel:
+    prefit_names.append("NominalMichelCutTotal")
   
   prefit_hists = []
   
@@ -245,8 +258,10 @@ def normal(args):
     "Data/Data_selected_Abs_hist", "Data/Data_selected_Cex_hist",
     "Data/Data_selected_RejectedInt_hist", "Data/Data_selected_APA2_hist",
     "Data/Data_selected_FailedBeamCuts_hist", "Data/Data_selected_NoBeamTrack_hist",
-    "Data/Data_selected_MichelCut_hist"
+    #"Data/Data_selected_MichelCut_hist"
   ]
+  if not args.no_michel:
+    data_names.append("Data/Data_selected_MichelCut_hist")
   
   data_hists = []
   total_data = 0.
@@ -263,8 +278,12 @@ def normal(args):
     "PostFitAbsTotal", "PostFitCexTotal",
     "PostFitRejectedIntTotal", "PostFitAPA2Total",
     "PostFitFailedBeamCutsTotal", "PostFitNoBeamTrackTotal",
-    "PostFitMichelCutTotal"
+    #"PostFitMichelCutTotal"
   ]
+  if not args.no_michel:
+    postfit_names.append("PostFitMichelCutTotal")
+
+
   postfit_hists = []
   for n in postfit_names:
     postfit_hists.append(fIn.Get(n))
@@ -316,25 +335,35 @@ def normal(args):
     "Reconstructed KE [MeV]",
     "", #"Reconstructed End Z [cm]",
   ]
+  if args.no_michel:
+    names.pop(names.index('Michel Cut'))
+    short_names.pop(short_names.index('MichelCut'))
+
   
   #fOut = RT.TFile(sys.argv[2], "RECREATE");
   fOut = RT.TFile(args.o, "RECREATE");
   
-  data_combined = combine(new_data_hists, "data_comb") 
+  labels=[
+    "Failed Beam Cuts",
+    "No Beam Track",
+  ]
+  if not args.no_michel: labels.append("Michel Vertex Cut")
+
+  data_combined = combine(new_data_hists, "data_comb", labels=labels)
   #data_combined = RT.TH1D("data_comb", "", 2, 0, 2)
   #data1 = new_data_hists[-2]
   #data2 = new_data_hists[-1]
   #data_combined.SetBinContent(1, data1.GetBinContent(1))
   #data_combined.SetBinContent(2, data2.GetBinContent(1))
   
-  prefit_combined = combine(prefit_hists, "prefit_comb") 
+  prefit_combined = combine(prefit_hists, "prefit_comb", labels=labels)
   #prefit_combined = RT.TH1D("prefit_comb", "", 2, 0, 2)
   #prefit1 = prefit_hists[-2]
   #prefit2 = prefit_hists[-1]
   #prefit_combined.SetBinContent(1, prefit1.GetBinContent(1))
   #prefit_combined.SetBinContent(2, prefit2.GetBinContent(1))
   
-  postfit_combined = combine(postfit_hists, "postfit_comb") 
+  postfit_combined = combine(postfit_hists, "postfit_comb", labels=labels)
   #postfit_combined = RT.TH1D("postfit_comb", "", 2, 0, 2)
   #postfit1 = postfit_hists[-2]
   #postfit2 = postfit_hists[-1]
@@ -640,6 +669,7 @@ def save(args):
     'cAbsRebin', 'cCexRebin', 'cRejectedIntRebin',
     'cAPA2', 'cBadEvents', 'cMichelCut',
   ]
+  if args.no_michel: cs.pop(cs.index('cMichelCut'))
   for n in cs:
     c = f.Get(n)
     c.Draw()
@@ -662,6 +692,7 @@ if __name__ == '__main__':
                       ])
   parser.add_argument('--npars', default=0, type=int)
   parser.add_argument('--noplotstyle', action='store_true')
+  parser.add_argument('--no_michel', action='store_true')
   args = parser.parse_args()
   
   routines = {

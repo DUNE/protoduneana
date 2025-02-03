@@ -43,6 +43,9 @@ bool protoana::PDSPSystematics::fBeamMatchHighUseSingleFrac = false;
 const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamMatchHighPar = 0x0;
 
 const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperPar = 0x0;
+const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperParLowPMu = 0x0;
+const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperParHighPMu = 0x0;
+const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperParPi = 0x0;
 
 
 protoana::PDSPSystematics::PDSPSystematics(
@@ -79,6 +82,9 @@ protoana::PDSPSystematics::PDSPSystematics(
 
   SetupSyst_BeamShiftBins(pars);//Trim
   SetupSyst_BeamScraper(pars);
+  SetupSyst_BeamScraperPi(pars);
+  SetupSyst_BeamScraperHighPMu(pars);
+  SetupSyst_BeamScraperLowPMu(pars);
 
   SetupSignal_G4RWCoeff(g4rw_pars);
   SetupSignal_TiedG4RWCoeff(g4rw_pars);
@@ -342,6 +348,7 @@ double protoana::PDSPSystematics::GetSystWeight_G4RWCoeffNoPar(
   for (const auto * par : fActiveG4RWPars) {
     double subweight = event.GetG4RWCoeffWeight(
         par->GetG4RWCoeffBranch(), par->GetValue(), par->GetG4RWExtend());
+
     weight *= CheckAndReturn(subweight, "G4RWCoeff", (*par), event);
     //weight *= subweight;
     //std::cout << "\t" << par->GetG4RWCoeffBranch() << std::endl;
@@ -983,6 +990,71 @@ double protoana::PDSPSystematics::GetSystWeight_BeamScraper(
   return CheckAndReturn(weight, "BeamScraper", (*fBeamScraperPar), event);
 }
 
+
+
+void protoana::PDSPSystematics::SetupSyst_BeamScraperPi(
+    const std::map<std::string, ThinSliceSystematic> & pars) {
+  if (pars.find("beam_scraper_weight_pi") == pars.end()) {
+    return;
+  }
+  fBeamScraperParPi = &(pars.at("beam_scraper_weight_pi"));
+  fActiveSystematics.push_back(
+      {"beam_scraper_weight_pi", GetSystWeight_BeamScraperPi});
+}
+
+double protoana::PDSPSystematics::GetSystWeight_BeamScraperPi(
+    const ThinSliceEvent & event,
+    int signal_index) {
+  double weight = (
+          (event.GetIsBeamScraper() &&
+           event.GetPDG() == 211) ?
+          fBeamScraperParPi->GetValue() :
+          1.);
+  return CheckAndReturn(weight, "BeamScraperPi", (*fBeamScraperParPi), event);
+}
+
+void protoana::PDSPSystematics::SetupSyst_BeamScraperLowPMu(
+    const std::map<std::string, ThinSliceSystematic> & pars) {
+  if (pars.find("beam_scraper_weight_lowp_mu") == pars.end()) {
+    return;
+  }
+  fBeamScraperParLowPMu = &(pars.at("beam_scraper_weight_lowp_mu"));
+  fActiveSystematics.push_back(
+      {"beam_scraper_weight_lowp_mu", GetSystWeight_BeamScraperLowPMu});
+}
+
+double protoana::PDSPSystematics::GetSystWeight_BeamScraperLowPMu(
+    const ThinSliceEvent & event,
+    int signal_index) {
+  double weight = (
+          (event.GetIsBeamScraper() && event.GetTrueStartP() < .8 &&
+           event.GetPDG() == -13) ?
+          fBeamScraperParLowPMu->GetValue() :
+          1.);
+  return CheckAndReturn(weight, "BeamScraperLowPMu", (*fBeamScraperParLowPMu), event);
+}
+
+
+void protoana::PDSPSystematics::SetupSyst_BeamScraperHighPMu(
+    const std::map<std::string, ThinSliceSystematic> & pars) {
+  if (pars.find("beam_scraper_weight_highp_mu") == pars.end()) {
+    return;
+  }
+  fBeamScraperParHighPMu = &(pars.at("beam_scraper_weight_highp_mu"));
+  fActiveSystematics.push_back(
+      {"beam_scraper_weight_highp_mu", GetSystWeight_BeamScraperHighPMu});
+}
+
+double protoana::PDSPSystematics::GetSystWeight_BeamScraperHighPMu(
+    const ThinSliceEvent & event,
+    int signal_index) {
+  double weight = (
+          (event.GetIsBeamScraper() && event.GetTrueStartP() > .8 &&
+           event.GetPDG() == -13) ?
+          fBeamScraperParHighPMu->GetValue() :
+          1.);
+  return CheckAndReturn(weight, "BeamScraperHighPMu", (*fBeamScraperParHighPMu), event);
+}
 //Trim
 void protoana::PDSPSystematics::SetupSyst_BoxBeam(
     const std::map<std::string, ThinSliceSystematic> & pars) {

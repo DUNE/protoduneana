@@ -32,4 +32,5 @@ AnalysisOptions.FakeDataG4RWGrid: {
 AddSystTerm: false
 DoSysts: false
 FitFlux: false
+LowerLimit: 1.e-10
 #Systematics: []

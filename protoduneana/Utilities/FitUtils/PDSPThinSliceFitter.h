@@ -33,7 +33,7 @@ class PDSPThinSliceFitter {
   PDSPThinSliceFitter(std::string fcl_file, std::string output_file,
                       std::string mc_file = "", std::string data_file = "",
                       std::string refit_file = "", std::string tune_file = "",
-                      bool retune = false);
+                      bool retune = false, int njobs = -1);
   void FillMCEvents();
   void BuildMCSamples();
   void Tune(std::string tune_file);
@@ -194,6 +194,7 @@ class PDSPThinSliceFitter {
   std::string fDataFileName;
   std::string fRefitFile = "";
   bool fRetune = false;
+  int fNJobs = -1;
   std::string fTreeName;
   std::vector<fhicl::ParameterSet> fSelectionSets;
   std::map<int, int> fSelectionBins;

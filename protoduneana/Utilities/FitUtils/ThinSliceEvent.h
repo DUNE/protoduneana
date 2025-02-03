@@ -20,6 +20,7 @@ class ThinSliceEvent {
     reco_beam_startX_SCE = -999.;
     reco_beam_startY_SCE = -999.;
     reco_beam_startZ_SCE = -999.;
+    reco_beam_endZ_SCE = -999.;
     beam_inst_P = -999;
     pdg = -999;
     is_beam_scraper = false;
@@ -176,6 +177,14 @@ class ThinSliceEvent {
   void SetRecoStartZ_SCE(double z) {
     reco_beam_startZ_SCE = z;
   };
+
+  double GetRecoEndZ_SCE() const {
+    return reco_beam_endZ_SCE;
+  };
+  void SetRecoEndZ_SCE(double z) {
+    reco_beam_endZ_SCE = z;
+  };
+
 
   double GetTrueEndP() const {
     return true_beam_endP;
@@ -457,7 +466,11 @@ class ThinSliceEvent {
     }
     std::cout << results << " " << GetPol(input, coeffs) << std::endl;
     return results;*/
-    return GetPol(input, coeffs);
+    double results = GetPol(input, coeffs);
+
+    //Cap values that are possibly below zero due to polynomial/splining
+    results = (results < 1.e-5) ? 1.e-5 : results;
+    return results;
   };
 
   double GetG4RWWeight(const std::string & br, size_t i) const {
@@ -550,6 +563,13 @@ class ThinSliceEvent {
   void SetTrueNPi0(int i) {true_n_pi0 = i;};
   double GetTrueNPi0() const {return true_n_pi0;};
 
+  const std::vector<double> & GetRecoShowerEnergy() const {
+    return reco_daughter_shower_energy;
+  };
+  void SetRecoShowerEnergy(std::vector<double> & v) {
+    reco_daughter_shower_energy = v;
+  };
+
 
 
  private:
@@ -565,6 +585,7 @@ class ThinSliceEvent {
   double reco_beam_endZ, true_beam_startP, true_beam_endZ;
   double reco_beam_startY;
   double reco_beam_startX_SCE, reco_beam_startY_SCE, reco_beam_startZ_SCE;
+  double reco_beam_endZ_SCE;
   double beam_inst_P;
   bool has_pi0_shower;
   std::vector<double> reco_beam_incidentEnergies,
@@ -595,7 +616,8 @@ class ThinSliceEvent {
   bool is_beam_scraper;
 
   std::vector<double> reco_daughter_truncated_dEdX,
-                      reco_daughter_chi2s_perhit;
+                      reco_daughter_chi2s_perhit,
+                      reco_daughter_shower_energy;
   double vertex_michel_score;
   int vertex_nhits;
   double stored_reco_energy = -999.;

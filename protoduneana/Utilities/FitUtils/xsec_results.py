@@ -27,6 +27,8 @@ parser.add_argument('--LADS', type=int, help='0: Use results from Kotlinski. 1: 
 parser.add_argument('--add', action='store_true', help='Set error bars to cov') 
 parser.add_argument('--fixed', action='store_true')
 parser.add_argument('--nochi2', action='store_true')
+parser.add_argument('--extra_unc', type=float, help='Extra uncertainty (percent) to add to each bin uncorrelated', default=None)
+parser.add_argument('--xerr', type=float, default=None)
 parser.add_argument('-v', action='store_true')
 
 args = parser.parse_args()
@@ -34,7 +36,8 @@ args = parser.parse_args()
 RT.gROOT.SetBatch();
 RT.gROOT.LoadMacro("~/protoDUNEStyle.C")
 RT.gStyle.SetOptStat(00000)
-RT.gStyle.SetErrorX(1.e-4)
+if args.xerr is not None:
+  RT.gStyle.SetErrorX(1.e-4)
 RT.gStyle.SetTitleAlign(33)
 RT.gStyle.SetTitleX(.5)
 tt = RT.TLatex();
@@ -70,6 +73,17 @@ if args.add:
       print(count, count, sqrt(cov_hist.GetBinContent(count, count)))
       x.SetPointEYhigh(i, sqrt(cov_hist.GetBinContent(count, count)))
       x.SetPointEYlow(i, sqrt(cov_hist.GetBinContent(count, count)))
+
+      if args.extra_unc is not None:
+        factor = args.extra_unc/100.  #assume it's in terms of percentage
+        val = x.GetPointY(i)
+        err = x.GetErrorY(i)
+
+        print(f'Adding 5 pct of {val} to {err}')
+        x.SetPointEYhigh(i, sqrt(err**2 + (val*factor)**2))
+        x.SetPointEYlow(i, sqrt(err**2 + (val*factor)**2))
+        print(f'\tNew: {x.GetErrorY(i)}')
+
       count += 1
 
 #if args.fixed:
@@ -136,6 +150,11 @@ for i in [0, 1, 2]:
   result_xsecs[i].SetMinimum(0.)
   result_xsecs[i].SetLineWidth(2)
 
+  if args.xerr is not None:
+    for j in range(result_xsecs[i].GetN()):
+      result_xsecs[i].SetPointEXhigh(j, args.xerr)
+      result_xsecs[i].SetPointEXlow(j, args.xerr)
+
   if args.m:
     g4_xsecs[i].SetMaximum(1.05*the_max)
   else:
@@ -178,7 +197,8 @@ for i in [0, 1, 2]:
     elif args.v:
       leg.AddEntry(g4_xsecs[i], 'Geant4 10.6 Varied', 'l')
     else:
-      leg.AddEntry(g4_xsecs[i], 'Geant4 10.6/QGSP_BERT -- PDSP Def.', 'l')
+      #leg.AddEntry(g4_xsecs[i], 'Geant4 10.6/QGSP_BERT -- PDSP Def.', 'l')
+      leg.AddEntry(g4_xsecs[i], 'Geant4 10.6/QGSP_BERT', 'l')
 
     if args.genie:
       leg.AddEntry(genie_xsecs[i], 'Genie', 'l')

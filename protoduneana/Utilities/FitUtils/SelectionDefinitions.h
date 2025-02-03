@@ -684,6 +684,26 @@ auto make_simple_chi2(const std::vector<double> & chi2,
   return results;
 }
 
+/*class secondary_pass_chi2 {
+ private:
+  double fChi2Cut;
+ public:
+  secondary_pass_chi2(double cut) : fChi2Cut(cut) {};
+  std::vector<int> operator()(
+      const std::vector<double> & trackID,
+      const std::vector<double> & chi2_ndof
+  ) {
+    std::vector<int> results;
+    for (size_t i = 0; i < trackID.size(); ++i) {
+      if (trackID[i] != -999 && chi2_ndof < fChi2Cut) {
+        results.push_back(1);
+      }
+      else {results.push_back(0);}
+    }
+  }
+    
+};*/
+
 class secondary_noPion_simple {
  private:
   double fTrackScoreCut;

@@ -19,10 +19,10 @@ namespace protoana {
 
 struct ExtraHistDataVars {
   ExtraHistDataVars(int selid, double endz, double startx, double starty,
-                    double startz, double michel, int nhits)
+                    double startz, double michel, int nhits, double calo_endz)
     : selection_ID(selid), reco_endz(endz),
       reco_startx_sce(startx), reco_starty_sce(starty), reco_startz_sce(startz),
-      vertex_michel_score(michel), vertex_nhits(nhits)
+      vertex_michel_score(michel), vertex_nhits(nhits), reco_endz_sce(calo_endz)
   {};
 
   void AddRecoProductTrackScores(std::vector<double> & scores) {
@@ -39,14 +39,20 @@ struct ExtraHistDataVars {
     reco_product_chi2s_per_hit = vals;
   };
 
+  void AddRecoProductShowerEnergy(std::vector<double> & vals) {
+    reco_daughter_shower_energy = vals;
+  };
+
   int selection_ID;
   double reco_endz;
   double reco_startx_sce, reco_starty_sce, reco_startz_sce;
   double vertex_michel_score;
   int vertex_nhits;
+  double reco_endz_sce;
   std::vector<double> reco_product_track_scores,
                       reco_product_truncated_dEdXs,
-                      reco_product_chi2s_per_hit;
+                      reco_product_chi2s_per_hit,
+                      reco_daughter_shower_energy;
 };
 
 class AbsCexDriver : public ThinSliceDriver {
@@ -513,6 +519,16 @@ class AbsCexDriver : public ThinSliceDriver {
 
    //void SetupExtraHists(ThinSliceDataSet & data_set);
    //void SetupExtraHistEndZ();
+   static void FillExtraHistDataSCEEndZ(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataSCEEndZAbs(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataSCEEndZCex(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataSCEEndZOther(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataShowerEnergy(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
    static void FillExtraHistDataEndZ(ThinSliceDataSet & data_set,
                                  const ExtraHistDataVars & vars);
    static void FillExtraHistDataEndZGoodReco(ThinSliceDataSet & data_set,
@@ -534,6 +550,21 @@ class AbsCexDriver : public ThinSliceDriver {
    void FillExtraHistsData(ThinSliceDataSet & data_set,
                            const ExtraHistDataVars & vars);
 
+   static void FillExtraHistMCSCEEndZ(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCSCEEndZAbs(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCSCEEndZCex(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCSCEEndZOther(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCShowerEnergy(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
    static void FillExtraHistMCEndZ(ThinSliceSample & sample,
                                    const ThinSliceEvent & event,
                                    double weight);

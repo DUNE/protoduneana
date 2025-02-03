@@ -136,6 +136,23 @@ class PDSPSystematics {
       const ThinSliceEvent & event,
       int signal_index);
 
+  void SetupSyst_BeamScraperHighPMu(
+      const std::map<std::string, ThinSliceSystematic> & pars);
+  static double GetSystWeight_BeamScraperHighPMu(
+      const ThinSliceEvent & event,
+      int signal_index);
+  void SetupSyst_BeamScraperLowPMu(
+      const std::map<std::string, ThinSliceSystematic> & pars);
+  static double GetSystWeight_BeamScraperLowPMu(
+      const ThinSliceEvent & event,
+      int signal_index);
+
+  void SetupSyst_BeamScraperPi(
+      const std::map<std::string, ThinSliceSystematic> & pars);
+  static double GetSystWeight_BeamScraperPi(
+      const ThinSliceEvent & event,
+      int signal_index);
+
   double GetSystWeight_UpstreamInt(
       const ThinSliceEvent & event,
       const ThinSliceSystematic & par/*,
@@ -229,6 +246,9 @@ class PDSPSystematics {
   static const ThinSliceSystematic * fBeamMatchHighPar;
 
   static const ThinSliceSystematic * fBeamScraperPar;
+  static const ThinSliceSystematic * fBeamScraperParLowPMu;
+  static const ThinSliceSystematic * fBeamScraperParHighPMu;
+  static const ThinSliceSystematic * fBeamScraperParPi;
 
   //CosThetaEff
   static std::vector<int> fCosThetaEffIDs;

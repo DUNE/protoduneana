@@ -41,7 +41,7 @@ AnalysisOptions: {
   VaryDataCalibration: false 
   DataCalibrationFactor: 1.02
   BarlowBeeston: true
-  #ToSkip: [5, 6]
+  ToSkip: [5, 6]
 
   #ExtraHists: @local::AbsCexExtraHists
  
@@ -75,7 +75,9 @@ Systematics: [
   ,@local::SystematicsList.beam_match_weight
   ,@local::g4rw_full_piplus_low_coeff
   ,@local::g4rw_full_piplus_high_coeff
-  ,@local::SystematicsList.beam_scraper_weight
+  ,@local::SystematicsList.beam_scraper_weight_pi
+  ,@local::SystematicsList.beam_scraper_weight_lowp_mu
+  ,@local::SystematicsList.beam_scraper_weight_highp_mu
 ]
 
 Systematics[1].Central: 1.71
@@ -147,10 +149,15 @@ CovarianceBins: [
  ,["beam_match_weight", 2] #20%
  ,["g4rw_full_piplus_low_coeff", 3] #33%
  ,["g4rw_full_piplus_high_coeff", 4] #33%
- ,["beam_scraper_weight", 5] #50%
+ #,["beam_scraper_weight", 5] #50%
+ ,["beam_scraper_weight_pi", 5] #50%
+ ,["beam_scraper_weight_lowp_mu", 6] #50%
+ ,["beam_scraper_weight_highp_mu", 7] #50%
+
 ]
 
-CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv.root"
+#CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv.root"
+CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv_three_scrapers.root"
 CovarianceMatrix: "m"
 
 SetSelVarCentrals: false
@@ -204,12 +211,12 @@ Selections: [
     RecoBins: [[0, 1]]
     AxisTitles: [""]
   }
-  ,{
-    Name: "MichelCut"
-    ID: 7
-    RecoBins: [[0, 1]]
-    AxisTitles: [""]
-  }
+  #,{
+  #  Name: "MichelCut"
+  #  ID: 7
+  #  RecoBins: [[0, 1]]
+  #  AxisTitles: [""]
+  #}
 ]
 
 

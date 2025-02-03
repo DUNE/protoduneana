@@ -853,7 +853,16 @@ SystematicsList: {
     Sigma: .1
     Options: {}
   }
+
 }
+
+SystematicsList.beam_scraper_weight_lowp_mu: @local::SystematicsList.beam_scraper_weight
+SystematicsList.beam_scraper_weight_highp_mu: @local::SystematicsList.beam_scraper_weight
+SystematicsList.beam_scraper_weight_pi: @local::SystematicsList.beam_scraper_weight
+
+SystematicsList.beam_scraper_weight_lowp_mu.Name: "beam_scraper_weight_lowp_mu"
+SystematicsList.beam_scraper_weight_highp_mu.Name: "beam_scraper_weight_highp_mu"
+SystematicsList.beam_scraper_weight_pi.Name: "beam_scraper_weight_pi"
 
 SystematicsList.beam_shift_bin_1: @local::SystematicsList.beam_shift_bin_0
 SystematicsList.beam_shift_bin_1.Name: "beam_shift_bin_1"
