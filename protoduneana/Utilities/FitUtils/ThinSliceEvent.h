@@ -20,6 +20,7 @@ class ThinSliceEvent {
     reco_beam_startX_SCE = -999.;
     reco_beam_startY_SCE = -999.;
     reco_beam_startZ_SCE = -999.;
+    reco_beam_endZ_SCE = -999.;
     beam_inst_P = -999;
     pdg = -999;
     is_beam_scraper = false;
@@ -40,6 +41,8 @@ class ThinSliceEvent {
     reco_daughter_efield = std::vector<std::vector<double>>();
     has_pi0_shower = false;
     true_daughter_PDGs = std::vector<int>();
+    true_n_neutrons = -999;
+    true_n_protons = -999;
     reco_beam_origin = -999;
     reco_daughter_truncated_dEdX = std::vector<double>();
     reco_daughter_chi2s_perhit = std::vector<double>();
@@ -79,6 +82,47 @@ class ThinSliceEvent {
   void SetSelectionID(int s) {
     selection_ID = s;
   };
+
+  int GetCalUpSelectionID() const {
+    return cal_up_selection_ID;
+  };
+  void SetCalUpSelectionID(int s) {
+    cal_up_selection_ID = s;
+  };
+
+  int GetBackUpSelectionID() const {
+    return back_up_selection_ID;
+  };
+  void SetBackUpSelectionID(int s) {
+    back_up_selection_ID = s;
+  };
+  int GetBackDownSelectionID() const {
+    return back_down_selection_ID;
+  };
+  void SetBackDownSelectionID(int s) {
+    back_down_selection_ID = s;
+  };
+  int GetFrontUpSelectionID() const {
+    return front_up_selection_ID;
+  };
+  void SetFrontUpSelectionID(int s) {
+    front_up_selection_ID = s;
+  };
+  int GetFrontDownSelectionID() const {
+    return front_down_selection_ID;
+  };
+  void SetFrontDownSelectionID(int s) {
+    front_down_selection_ID = s;
+  };
+
+
+  int GetCalDownSelectionID() const {
+    return cal_down_selection_ID;
+  };
+  void SetCalDownSelectionID(int s) {
+    cal_down_selection_ID = s;
+  };
+
 
   bool GetHasPi0Shower() const {
     return has_pi0_shower;
@@ -133,6 +177,14 @@ class ThinSliceEvent {
   void SetRecoStartZ_SCE(double z) {
     reco_beam_startZ_SCE = z;
   };
+
+  double GetRecoEndZ_SCE() const {
+    return reco_beam_endZ_SCE;
+  };
+  void SetRecoEndZ_SCE(double z) {
+    reco_beam_endZ_SCE = z;
+  };
+
 
   double GetTrueEndP() const {
     return true_beam_endP;
@@ -414,7 +466,11 @@ class ThinSliceEvent {
     }
     std::cout << results << " " << GetPol(input, coeffs) << std::endl;
     return results;*/
-    return GetPol(input, coeffs);
+    double results = GetPol(input, coeffs);
+
+    //Cap values that are possibly below zero due to polynomial/splining
+    results = (results < 1.e-5) ? 1.e-5 : results;
+    return results;
   };
 
   double GetG4RWWeight(const std::string & br, size_t i) const {
@@ -460,9 +516,16 @@ class ThinSliceEvent {
   double GetLeadingPiPlusCostheta() const {return leading_piplus_costheta;};
   double GetLeadingPi0Costheta() const {return leading_pi0_costheta;};
 
+  double GetLeadingPMomentum() const {return leading_p_momentum;};
+  double GetLeadingPiPlusMomentum() const {return leading_piplus_momentum;};
+  double GetLeadingPi0Momentum() const {return leading_pi0_momentum;};
+
   void SetLeadingPCostheta(double p) {leading_p_costheta = p;};
   void SetLeadingPiPlusCostheta(double p) {leading_piplus_costheta = p;};
   void SetLeadingPi0Costheta(double p) {leading_pi0_costheta = p;};
+  void SetLeadingPMomentum(double p) {leading_p_momentum = p;};
+  void SetLeadingPiPlusMomentum(double p) {leading_piplus_momentum = p;};
+  void SetLeadingPi0Momentum(double p) {leading_pi0_momentum = p;};
 
   void SetRecoOrigin(int origin) {reco_beam_origin = origin;};
   int GetRecoOrigin() const {return reco_beam_origin;};
@@ -485,10 +548,36 @@ class ThinSliceEvent {
   void SetMCStatVarWeight(double w) {mc_stat_var_weight = w;};
   double GetMCStatVarWeight() const {return mc_stat_var_weight;};
 
+  void SetTrueNNeutrons(int i) {true_n_neutrons = i;};
+  double GetTrueNNeutrons() const {return true_n_neutrons;};
+
+  void SetTrueNProtons(int i) {true_n_protons = i;};
+  double GetTrueNProtons() const {return true_n_protons;};
+
+  void SetTrueNPiPlus(int i) {true_n_piplus = i;};
+  double GetTrueNPiPlus() const {return true_n_piplus;};
+
+  void SetTrueNPiMinus(int i) {true_n_piminus = i;};
+  double GetTrueNPiMinus() const {return true_n_piminus;};
+
+  void SetTrueNPi0(int i) {true_n_pi0 = i;};
+  double GetTrueNPi0() const {return true_n_pi0;};
+
+  const std::vector<double> & GetRecoShowerEnergy() const {
+    return reco_daughter_shower_energy;
+  };
+  void SetRecoShowerEnergy(std::vector<double> & v) {
+    reco_daughter_shower_energy = v;
+  };
+
+
+
  private:
   int event_ID, subrun_ID, run_ID;
   int sample_ID;
-  int selection_ID;
+  int selection_ID, cal_up_selection_ID, cal_down_selection_ID;
+  int back_up_selection_ID, back_down_selection_ID, front_up_selection_ID,
+      front_down_selection_ID;
   int pdg;
   double true_beam_interactingEnergy, reco_beam_interactingEnergy;
   double true_beam_initEnergy;
@@ -496,6 +585,7 @@ class ThinSliceEvent {
   double reco_beam_endZ, true_beam_startP, true_beam_endZ;
   double reco_beam_startY;
   double reco_beam_startX_SCE, reco_beam_startY_SCE, reco_beam_startZ_SCE;
+  double reco_beam_endZ_SCE;
   double beam_inst_P;
   bool has_pi0_shower;
   std::vector<double> reco_beam_incidentEnergies,
@@ -521,15 +611,19 @@ class ThinSliceEvent {
   int reco_beam_true_byHits_ID;
   double delta_e_to_tpc;
   double leading_p_costheta, leading_piplus_costheta, leading_pi0_costheta;
+  double leading_p_momentum, leading_piplus_momentum, leading_pi0_momentum;
   int reco_beam_origin = -999;
   bool is_beam_scraper;
 
   std::vector<double> reco_daughter_truncated_dEdX,
-                      reco_daughter_chi2s_perhit;
+                      reco_daughter_chi2s_perhit,
+                      reco_daughter_shower_energy;
   double vertex_michel_score;
   int vertex_nhits;
   double stored_reco_energy = -999.;
   double mc_stat_var_weight = 1.;
+  int true_n_neutrons = -999, true_n_protons = -999, true_n_piplus = -999,
+      true_n_piminus = -999, true_n_pi0 = -999;
 };
 }
 #endif

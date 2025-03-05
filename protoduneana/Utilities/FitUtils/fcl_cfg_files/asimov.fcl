@@ -41,7 +41,7 @@ AnalysisOptions: {
   VaryDataCalibration: false 
   DataCalibrationFactor: 1.02
   BarlowBeeston: true
-  #ToSkip: [5, 6]
+  ToSkip: [5, 6]
 
   #ExtraHists: @local::AbsCexExtraHists
  
@@ -73,38 +73,54 @@ Systematics: [
   @local::g4rw_proton_coeff
   ,@local::SystematicsList.end_z_no_track_weight
   ,@local::SystematicsList.beam_match_weight
-  #,@local::g4rw_downstream_piplus_low_coeff
-  #,@local::g4rw_downstream_piplus_high_coeff
   ,@local::g4rw_full_piplus_low_coeff
   ,@local::g4rw_full_piplus_high_coeff
-  ,@local::SystematicsList.beam_scraper_weight
+  ,@local::SystematicsList.beam_scraper_weight_pi
+  ,@local::SystematicsList.beam_scraper_weight_lowp_mu
+  ,@local::SystematicsList.beam_scraper_weight_highp_mu
 ]
-
 
 Systematics[1].Central: 1.71
 
-
-Systematics[1].Options.Fractions: [
-#[1, [-1., -1., -1., 0.4,  0.2028985507246377, 0.24324324324324323, 0.22010869565217392, 0.15562248995983935, 0.17752234993614305, 0.19827299900365325, 0.22109443954104147, 0.2775628626692457] ],
-#[2, [0.0, 0.25, 0.20512820512820515, 0.24705882352941178, 0.291866028708134, 0.23363095238095238, 0.23853711790393015, 0.26844411979547117, 0.2839335180055402, 0.3261278195488722] ],
-#[3, [0.28571428571428575, 0.14285714285714288, 0.21176470588235294, 0.17842323651452283, 0.18452380952380953, 0.1461495222034851, 0.14193936960449707, 0.15475564897530217, 0.1736037535946723, 0.1944606413994169] ],
-#[4, [] ],
-#[5, [0.5750000000000001] ],
-#[6, [] ],
-#[7, [0.0704647676161919] ]
+old_fv_notrack_fractions: [
+  [1, [-1.0, 0.24719101123595508, 0.2278481012658228, 0.17065152420800955, 0.20838073568448995, 0.2772946859903382] ],
+  [2, [-1.0, 0.20930232558139536, 0.27891156462585037, 0.2372, 0.2753416275749541, 0.32582159624413143] ],
+  [3, [-1.0, 0.19469026548672566, 0.18279569892473121, 0.1432376442734537, 0.1636555360281195, 0.19492267289174206] ],
+  [4, [] ],
+  #[5, [0.5750000000000001] ],
+  [5, [] ],
+  [6, [] ],
+  [7, [0.07057057057057058] ]]
+new_fv_notrack_fractions: [
 [1, [-1.0, 0.24719101123595508, 0.2278481012658228, 0.17065152420800955, 0.21968616262482168] ],
 [2, [-1.0, 0.20930232558139536, 0.27891156462585037, 0.2372, 0.2843498659517426] ],
 [3, [-1.0, 0.19469026548672566, 0.18279569892473121, 0.1432376442734537, 0.16972581010650353] ],
 [4, [] ],
-[5, [0.5750000000000001] ],
+#[5, [0.5750000000000001] ],
+[5, [] ],
 [6, [] ],
 [7, [0.07057057057057058] ]
 ]
-Systematics[1].UpperLimit: 1.7391304347826089
-Systematics[1].ThrowLimitUp: 1.7391304347826089
-Systematics[1].GenThrowLimitUp: 1.7391304347826089
+new_fv_notrack_limit: 1.7391304347826089
+old_fv_notrack_limit: @local::new_fv_notrack_limit
 
-Systematics[2].Options.Fractions: [
+Systematics[1].Options.Fractions: @local::new_fv_notrack_fractions
+Systematics[1].UpperLimit: @local::new_fv_notrack_limit
+Systematics[1].ThrowLimitUp: @local::new_fv_notrack_limit
+Systematics[1].GenThrowLimitUp: @local::new_fv_notrack_limit
+
+
+old_fv_origin_fractions: [[1, [0.09022217209879328, 0.0861430159318266, 0.09319799630899024, 0.09825163573956881, 0.11554872845195426, 0.14195979899497488]],
+                         [2, [0.08490566037735849, 0.09824046920821114, 0.09568666336142786, 0.10137810866466022, 0.11952273194815881, 0.13147410358565736]],
+                         [3, [0.08798159861989649, 0.09655296877819888, 0.09747257987601335, 0.10615434711820254, 0.11293103448275862, 0.12430555555555556]],
+                         [4, [0.07950208188757807]],
+                         [5, [0.08531367966924322]],
+                         [6, [0.08047016274864376]],
+                         [7, [0.08936755270394134]]]
+old_fv_origin_limit: 7.044247787610619
+
+
+new_fv_origin_fractions: [
   [1, [0.09022217209879328, 0.0861430159318266, 0.09319799630899024, 0.09825163573956881, 0.11870773854244929]],
   [2, [0.08490566037735849, 0.09824046920821114, 0.09568666336142786, 0.10137810866466022, 0.12112575703598147]],
   [3, [0.08798159861989649, 0.09655296877819888, 0.09747257987601335, 0.10615434711820254, 0.11464435146443515]],
@@ -113,10 +129,13 @@ Systematics[2].Options.Fractions: [
   [6, [0.08047016274864376]],
   [7, [0.08936755270394134]]
 ]
-Systematics[2].UpperLimit: 8.255882352941176
-Systematics[2].ThrowLimitUp: 8.255882352941176
-Systematics[2].GenThrowLimitUp: 8.255882352941176 
+new_fv_origin_limit: 8.255882352941176
 
+Systematics[2].UpperLimit: @local::new_fv_origin_limit
+Systematics[2].ThrowLimitUp: @local::new_fv_origin_limit
+Systematics[2].GenThrowLimitUp: @local::new_fv_origin_limit
+
+Systematics[2].Options.Fractions: @local::new_fv_origin_fractions
 
 Systematics[1].Central: 1.
 Systematics[2].Central: 1.
@@ -128,30 +147,26 @@ CovarianceBins: [
  ["end_z_no_track_weight", 0] #10%
  ,["g4rw_proton_coeff", 1] #33%
  ,["beam_match_weight", 2] #20%
-
- #,["g4rw_downstream_piplus_low_coeff", 3] #33%
- #,["g4rw_downstream_piplus_high_coeff", 4] #33%
-
  ,["g4rw_full_piplus_low_coeff", 3] #33%
  ,["g4rw_full_piplus_high_coeff", 4] #33%
+ #,["beam_scraper_weight", 5] #50%
+ ,["beam_scraper_weight_pi", 5] #50%
+ ,["beam_scraper_weight_lowp_mu", 6] #50%
+ ,["beam_scraper_weight_highp_mu", 7] #50%
 
- ,["beam_scraper_weight", 5] #50%
 ]
 
-CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv.root"
+#CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv.root"
+CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv_three_scrapers.root"
 CovarianceMatrix: "m"
 
-SelectionVarSysts: [
-  #@local::beam_shift_vars
-]
-SetSelVarCentrals: false 
+SetSelVarCentrals: false
+SelectionVarSysts: []
 
-FixVariables: false 
-SystsToFix: [
-]
+FixVariables: false
+SystsToFix: []
 
-
-AddDiffInQuadrature:  false 
+AddDiffInQuadrature:  false
 DiffCovName: "diffs_2D"
 DiffGraphFile: "fluc_xsec_diff.root"
 
@@ -196,12 +211,12 @@ Selections: [
     RecoBins: [[0, 1]]
     AxisTitles: [""]
   }
-  ,{
-    Name: "MichelCut"
-    ID: 7
-    RecoBins: [[0, 1]]
-    AxisTitles: [""]
-  }
+  #,{
+  #  Name: "MichelCut"
+  #  ID: 7
+  #  RecoBins: [[0, 1]]
+  #  AxisTitles: [""]
+  #}
 ]
 
 
@@ -224,6 +239,7 @@ IncidentSamples: [1, 2, 3, 6, 7]
 MeasurementSamples: [1, 2, 3]
 
 signal_bins: [500., 600., 700., 800.]
+#signal_bins: [500., 600., 700., 800., 900.]
 Samples: [
   {
     Name: "Abs"
@@ -282,22 +298,19 @@ MaxIterations: 1e6
 MaxCalls: 1e9
 NScanSteps: 500
 Tolerance: 1.e-2 #0.001
-UpperLimit: 10.0
-LowerLimit: 1.e-5
-ReducedIncidentChi2: false
+UpperLimit: 100.0
+LowerLimit: -1
 FitFlux: true
-ScaleDataToNorm: false
 ScaleToDataBeamProfile: true
 RerunFit: true
 FitAttempts: 6
-##
 
 AddRegTerm: false 
 RegFactor: 5.
 
 FitFunctionType: 2
 
-SetSigLimits: true 
+SetSigLimits: true
 SetSystLimits: true
 SetSelVarLimits: true
 #####################
@@ -305,9 +318,8 @@ SetSelVarLimits: true
 FitUnderOverflow: true
 TieUnderOver: false 
 
-GetMeanXSec: true 
+GetMeanXSec: true
 XSecCalcStyle: "Approx"
-
 
 ## Plotting
 #PlotStyle: @local::ReducedColorsStyle
@@ -320,7 +332,7 @@ DrawXSecUnderflow: false
 RandomStart: false 
 SplitMC:  false 
 #MaxEntries:  100000 #152936 #
-MaxEntries:  40000 #152936 #
+MaxEntries:  40000 #
 MaxDataEntries: @local::MaxEntries #54000
 DoFakeData: true
 FluctuateStats: false 
@@ -329,13 +341,13 @@ NThrows: 10000
 DoScans: false 
 OnlySystScans: false 
 RunHesse: true
-Do1DShifts: false #true 
+Do1DShifts: false
 DoSysts: true
 MaxRethrows: 1000
 #####################
 
-FitType: "Normal"
-#FitType: "None"
+#FitType: "Normal"
+FitType: "None"
 #FitType: "ConstructCovariance"
 #FitType: "ThrowsOnly"
 #PriorFitResults: "selvar.root"

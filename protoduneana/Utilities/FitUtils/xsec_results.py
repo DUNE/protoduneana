@@ -10,9 +10,10 @@ parser = ap()
 parser.add_argument('-o', type=str, required=True)
 parser.add_argument('--total', action='store_true')
 parser.add_argument('-f', type=str, required=True)
-parser.add_argument('-x', type=str, required=True)
+parser.add_argument('-x', type=str, default='/exp/dune/data/users/calcuttj/old_data2/PiAnalysis_G4Prediction/thresh_abscex_xsecs.root')
 parser.add_argument('--genie', type=str, default=None)
 parser.add_argument('--xt', type=str, default=None)
+parser.add_argument('--xlads', type=str, default=None)
 parser.add_argument('--al', type=int, default=0)
 parser.add_argument('--ah', type=int, default=-1)
 parser.add_argument('--cl', type=int, default=0)
@@ -26,14 +27,17 @@ parser.add_argument('--LADS', type=int, help='0: Use results from Kotlinski. 1: 
 parser.add_argument('--add', action='store_true', help='Set error bars to cov') 
 parser.add_argument('--fixed', action='store_true')
 parser.add_argument('--nochi2', action='store_true')
+parser.add_argument('--extra_unc', type=float, help='Extra uncertainty (percent) to add to each bin uncorrelated', default=None)
+parser.add_argument('--xerr', type=float, default=None)
 parser.add_argument('-v', action='store_true')
 
 args = parser.parse_args()
 
-RT.gROOT.LoadMacro("~/protoDUNEStyle.C")
 RT.gROOT.SetBatch();
+RT.gROOT.LoadMacro("~/protoDUNEStyle.C")
 RT.gStyle.SetOptStat(00000)
-RT.gStyle.SetErrorX(1.e-4)
+if args.xerr is not None:
+  RT.gStyle.SetErrorX(1.e-4)
 RT.gStyle.SetTitleAlign(33)
 RT.gStyle.SetTitleX(.5)
 tt = RT.TLatex();
@@ -69,6 +73,17 @@ if args.add:
       print(count, count, sqrt(cov_hist.GetBinContent(count, count)))
       x.SetPointEYhigh(i, sqrt(cov_hist.GetBinContent(count, count)))
       x.SetPointEYlow(i, sqrt(cov_hist.GetBinContent(count, count)))
+
+      if args.extra_unc is not None:
+        factor = args.extra_unc/100.  #assume it's in terms of percentage
+        val = x.GetPointY(i)
+        err = x.GetErrorY(i)
+
+        print(f'Adding 5 pct of {val} to {err}')
+        x.SetPointEYhigh(i, sqrt(err**2 + (val*factor)**2))
+        x.SetPointEYlow(i, sqrt(err**2 + (val*factor)**2))
+        print(f'\tNew: {x.GetErrorY(i)}')
+
       count += 1
 
 #if args.fixed:
@@ -109,6 +124,10 @@ if args.xt:
   xs_thresh = [x for x in other_grs_thresh[0].GetX()]
   g4_xsecs_thresh.append(RT.TGraph(len(xs), array('d', xs_thresh), array('d', total_thresh)))
 
+if args.xlads:
+  fG4Lads = RT.TFile.Open(args.xlads)
+  abs_xsec_g4_lads = fG4Lads.Get('gr_abs_KE')
+  #abs_xsec_g4_lads.SetDirectory(0)
 
 result_maxes = []
 for i in range(0, len(result_xsecs)):
@@ -130,6 +149,11 @@ for i in [0, 1, 2]:
   g4_xsecs[i].SetMinimum(0.)
   result_xsecs[i].SetMinimum(0.)
   result_xsecs[i].SetLineWidth(2)
+
+  if args.xerr is not None:
+    for j in range(result_xsecs[i].GetN()):
+      result_xsecs[i].SetPointEXhigh(j, args.xerr)
+      result_xsecs[i].SetPointEXlow(j, args.xerr)
 
   if args.m:
     g4_xsecs[i].SetMaximum(1.05*the_max)
@@ -159,18 +183,22 @@ for i in [0, 1, 2]:
     g4_xsecs_thresh[i].SetLineWidth(2)
     g4_xsecs_thresh[i].SetLineStyle(9)
     g4_xsecs_thresh[i].Draw('C same')
+    
 
   result_xsecs[i].Draw('pez same')
   result_xsecs[i].SetMarkerStyle(20)
   result_xsecs[i].SetMarkerColor(RT.kBlack)
   if i == 0:
     leg = RT.TLegend()
+    leg.SetFillStyle(0)
+    leg.SetLineWidth(0)
     if args.xt:
       leg.AddEntry(g4_xsecs[i], 'Geant4 10.6 Thresholds', 'l')
     elif args.v:
       leg.AddEntry(g4_xsecs[i], 'Geant4 10.6 Varied', 'l')
     else:
-      leg.AddEntry(g4_xsecs[i], 'Geant4 10.6', 'l')
+      #leg.AddEntry(g4_xsecs[i], 'Geant4 10.6/QGSP_BERT -- PDSP Def.', 'l')
+      leg.AddEntry(g4_xsecs[i], 'Geant4 10.6/QGSP_BERT', 'l')
 
     if args.genie:
       leg.AddEntry(genie_xsecs[i], 'Genie', 'l')
@@ -345,6 +373,11 @@ if args.xt:
   g4_xsecs_thresh[0].SetLineWidth(2)
   g4_xsecs_thresh[0].SetLineStyle(9)
   g4_xsecs_thresh[0].Draw('C same')
+if args.xlads:
+  abs_xsec_g4_lads.SetLineColor(RT.kRed)
+  abs_xsec_g4_lads.SetLineWidth(2)
+  abs_xsec_g4_lads.SetLineStyle(9)
+  abs_xsec_g4_lads.Draw('C same')
 result_xsecs[0].Draw('pez same')
 tt.DrawLatex(0.10,0.94,"#bf{DUNE:ProtoDUNE-SP}");
 
@@ -390,10 +423,11 @@ for i in range(0, len(all_xs)):
     xsec_chi2 += (all_ys[i] - all_g4s[i])*xsec_cov_mat[i][j]*(all_ys[j] - all_g4s[j])
 print('cross section chi2: %.2f'%xsec_chi2)
 leg = RT.TLegend()
-leg.AddEntry(g4_xsecs[0], 'Geant4 10.6' if not args.xt else 'Geant4 10.6 Thresholds', 'l')
+#leg.AddEntry(g4_xsecs[0], 'Geant4 10.6' if not args.xt else 'Geant4 10.6 Thresholds', 'l')
+leg.AddEntry(result_xsecs[0], 'ProtoDUNE-SP', 'pez')
+leg.AddEntry(g4_xsecs[0], 'QGSP_BERT -- PDSP Def.' if not args.xt else 'Geant4 10.6 Thresholds', 'l')
 if args.xt:
   leg.AddEntry(g4_xsecs_thresh[0], 'Geant4 10.6 No Thresholds', 'l')
-leg.AddEntry(result_xsecs[0], 'ProtoDUNE-SP', 'pez')
 
 
 
@@ -402,6 +436,9 @@ if args.LADS >= 0:
     leg.AddEntry(LADS_0, "Kotlinski et al. (2000)", 'pez')
   if args.LADS in [1, 2]:
     leg.AddEntry(LADS_1, "Rowntree et al. (1999)", 'pez')
+  if args.xlads:
+    #leg.AddEntry(abs_xsec_g4_lads, 'Geant4 10.6 LADS', 'l')
+    leg.AddEntry(abs_xsec_g4_lads, 'QGSP_BERT -- LADS Def.', 'l')
 
 if not args.nochi2:
   leg.AddEntry('', '#chi^{2} = %.2f'%xsec_chi2, '')

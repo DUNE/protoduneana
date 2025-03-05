@@ -1,0 +1,68 @@
+#include "standard_data_fit.fcl"
+
+MaxEntries: -1 
+MaxDataEntries: @local::MaxEntries
+FluctuateStats: false
+FluctuateInSamples: false
+RequireGoodHesse: true
+FitType: "Normal"
+
+FitFlux: false
+#FitFlux: true
+AnalysisOptions.AltFluxVar: false
+AddSystTerm: false
+DoSysts: true
+FixVariables: true
+SystsToFix: [
+  ["g4rw_proton_coeff", 1.0],
+  ["end_z_no_track_weight", 1.71],
+  ["beam_match_weight", 1.0],
+  ["g4rw_full_piplus_low_coeff", 1.0],
+  ["g4rw_full_piplus_high_coeff", 1.0],
+  ["beam_scraper_weight_pi", 1.0]
+  ,["beam_scraper_weight_lowp_mu", 1.0]
+  ,["beam_scraper_weight_highp_mu", 1.0]
+]
+DoFakeData: false
+AnalysisOptions.ToSkip: [5, 6]
+
+ThrowAndFixSysts: false
+SystsToThrowAndFix: []
+
+Samples[3].PrefitVal: 4.
+#FixFluxes: [
+#  [2, 1.]
+#]
+
+
+#Samples[5].SingleSignalBin: true
+#Samples[5].IsSignal: true
+#Samples[6].SingleSignalBin: true
+#Samples[6].IsSignal: true
+#SetValsPreFit: true
+#PreFitVals: [
+#0.66980293, 0.44712371, 0.59363963, 0.5994981, 0.57318124, 1.05012951,
+#1.29179723, 1.1141977, 1.04703642, 1.12936773, 0.4784949, 1.00502269,
+#0.70118181, 0.68819274, 0.66886103, 2.8185193,
+#2.8051502942378277,
+#2.8051502942378277,
+#0.5
+#]
+#AnalysisOptions.UseBeamShift: false
+
+#PreFitVals: [0.53055128, 0.51701437, 0.60772975, 0.60515157, 0.6093009, 1.04029407,
+#1.39891313, 1.10738678, 1.04826208, 1.29871773, 0.25180852, 1.00700491,
+#0.66849621, 0.6857729, 0.7003889, 2.06214972,
+#8.587209266852573e-05,
+#8.587209266852573e-05,
+#1.5
+#]
+
+#
+#PreFitVals: [0.63791492, 0.46152089, 0.59599498, 0.59854855, 0.57271523, 1.04738121,
+#1.30562017, 1.1107248, 1.04886334, 1.1293238, 0.55603204, 0.96862403,
+#0.70052657, 0.68774711, 0.66260246, 2.606451,
+#0.39013617728878225,
+#0.39013617728878225,
+#0.9865971
+#]

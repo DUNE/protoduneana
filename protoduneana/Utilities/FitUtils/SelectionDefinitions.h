@@ -1,5 +1,11 @@
 #include "TRandom3.h"
+#include "TProfile.h"
 #include <array>
+#include <numeric>
+#include <memory>
+#include <iostream>
+#include "TMath.h"
+#include <map>
 class new_interaction_topology {
  private:
   double fEndZLow, fEndZHigh;
@@ -110,6 +116,44 @@ class inclusive_topology {
   }
 };*/
 
+/*class selection_sequence {
+ private:
+  bool fDoMichel;
+ public:
+  selection_sequence(bool do_michel) : fDoMichel(do_michel) {};
+
+  std::vector<int> operator()(bool beam_is_track, bool ends_in_APA3,
+                 bool no_pion_daughter,
+                 bool beam_cuts, bool has_shower, bool michel_cut) {
+
+    if (!beam_is_track) {
+      return 6;
+    }
+
+    if (!beam_cuts) {
+      return 5;
+    }
+    
+    if (!ends_in_APA3) {
+      return 4;
+    }
+
+    if (fDoMichel && michel_cut) {
+      return 7;
+    }
+
+    if (!no_pion_daughter) {
+      return 3;
+    }
+
+    if (has_shower) {
+      return 2;
+    }
+    else {
+      return 1;
+    }
+  }
+};*/
 class selection_ID {
  private:
   bool fDoMichel;
@@ -147,6 +191,61 @@ class selection_ID {
       return 1;
     }
   }
+};
+
+class selection_ID_FV {
+ private:
+  bool fDoMichel;
+ public:
+  selection_ID_FV(bool do_michel) : fDoMichel(do_michel) {};
+
+  int operator()(bool beam_is_track, bool ends_in_APA3,
+                 bool no_pion_daughter,
+                 bool reach_FV,
+                 bool beam_cuts, bool has_shower, bool michel_cut) {
+
+    if (!beam_is_track) {
+      return 6;
+    }
+    if (!reach_FV) {
+      return 8;
+    }
+    if (!beam_cuts) {
+      return 5;
+    }
+    
+    if (!ends_in_APA3) {
+      return 4;
+    }
+
+    if (fDoMichel && michel_cut) {
+      return 7;
+    }
+
+    if (!no_pion_daughter) {
+      return 3;
+    }
+
+    if (has_shower) {
+      return 2;
+    }
+    else {
+      return 1;
+    }
+  }
+};
+
+class recalc_chi2_proton {
+  private:
+    TProfile * fTemplate;
+    double fScale;
+
+  public:
+    recalc_chi2_proton(TProfile * prof, double scale=1.)
+      : fTemplate(prof), fScale(scale) {};
+    std::vector<double> operator()(
+        std::vector<std::vector<double>> dedx,
+        std::vector<std::vector<double>> range);
 };
 
 class selection_ID_inclusive {
@@ -199,6 +298,9 @@ auto daughter_PDG_types(const std::vector<int> bt_PDGs) {
     else if (abs(PDG) == 11) {
       results.push_back(6);
     }
+    else if (abs(PDG) == 321) {
+      results.push_back(8);
+    }
     else {
       results.push_back(7);
     }
@@ -215,31 +317,34 @@ auto categorize_daughters = [](
     const std::vector<int> true_grand_daughters) {
   std::vector<int> results;
   for (size_t i = 0; i < bt_origins.size(); ++i) {
-    if (bt_IDs[i] == beam_ID) {
+    if (bt_IDs[i] == beam_ID) { //Self
       results.push_back(1);
     }
-    else if (bt_origins[i] == 2) {
+    else if (bt_origins[i] == 2) { //Cosmic
       results.push_back(2);
     }
-    else if (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) {
+    else if (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) { //??
       results.push_back(10); 
     }
     else if (std::find(true_daughters.begin(), true_daughters.end(), bt_IDs[i]) !=
-             true_daughters.end()) {
-      if (abs(bt_PDGs[i]) == 211) {
+             true_daughters.end()) { //Coming out of the interaction
+      if (abs(bt_PDGs[i]) == 211) {//Pion
         results.push_back(3);
       }
-      else if (abs(bt_PDGs[i]) == 13) {
+      else if (abs(bt_PDGs[i]) == 13) {//Muon
         results.push_back(4);
       }
-      else if (bt_PDGs[i] == 2212) {
+      else if (bt_PDGs[i] == 2212) {//P
         results.push_back(5);
       }
-      else if (bt_PDGs[i] == 22) {
+      else if (bt_PDGs[i] == 22) {//gamma 
         results.push_back(6);
       }
-      else if (bt_PDGs[i] > 2212) {
+      else if (bt_PDGs[i] > 2212) {//Nuc
         results.push_back(7);
+      }
+      else if (abs(bt_PDGs[i]) == 321) {//K
+        results.push_back(9);
       }
       else {
         //std::cout << bt_PDGs[i] << " " << bt_ParPDGs[i] << " " << (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) << std::endl;
@@ -249,17 +354,17 @@ auto categorize_daughters = [](
     else if (std::find(true_grand_daughters.begin(), 
                        true_grand_daughters.end(), bt_IDs[i]) !=
              true_grand_daughters.end()) {
-      if ((bt_PDGs[i] == 22 || abs(bt_PDGs[i]) == 11) && bt_ParPDGs[i] == 111) {
+      if ((bt_PDGs[i] == 22 || abs(bt_PDGs[i]) == 11) && bt_ParPDGs[i] == 111) {//Pi0 decay
         results.push_back(11);
       }
-      else {
+      else {//Grand daughters
         results.push_back(8);
       }
-    }
+    }//
     else if (std::find(true_grand_daughters.begin(), 
                        true_grand_daughters.end(), bt_ParIDs[i]) !=
-             true_grand_daughters.end()) {
-        results.push_back(9);
+             true_grand_daughters.end()) {//
+        results.push_back(8);
     }
     else {
         //std::cout << bt_PDGs[i] << " " << bt_ParPDGs[i] << " " << (abs(bt_PDGs[i]) == 11 && (abs(bt_ParPDGs[i]) == 13)) << std::endl;
@@ -511,9 +616,10 @@ bool shower_dist_energy_check(double shower_dist, double shower_energy) {
 class has_shower_dist_energy {
  private:
   double fTrackScoreCut;
+  double fScale = 1.;
  public:
-  has_shower_dist_energy(double cut)
-    : fTrackScoreCut(cut) {}
+  has_shower_dist_energy(double cut, double scale=1.)
+    : fTrackScoreCut(cut), fScale(scale) {}
   bool operator()(const std::vector<double> &track_score,
                   const std::vector<double> &shower_x,
                   const std::vector<double> &shower_y,
@@ -526,7 +632,7 @@ class has_shower_dist_energy {
                           std::pow((shower_z[i] - z), 2));
        
        if ((track_score[i] < fTrackScoreCut) &&
-           (track_score[i] > 0.) && shower_dist_energy_check(dist, energy[i])
+           (track_score[i] > 0.) && shower_dist_energy_check(dist, fScale*energy[i])
            /*(dist > 5. && dist < 1000.) &&
            (energy[i] > 80. && energy[i] < 1000.)*/) {
          return true;
@@ -561,6 +667,75 @@ class endAPA3 {
   
   bool operator()(double reco_beam_endZ) {
     return (reco_beam_endZ < fEndZCut);
+  }
+};
+
+auto make_simple_chi2(const std::vector<double> & chi2,
+                      const std::vector<int> & ndof) {
+  auto results = chi2;
+  for (size_t i = 0; i < results.size(); ++i) {
+    if (ndof[i] > 0) {
+      results[i] /= ndof[i];
+    }
+    else {
+      results[i] = -999.;
+    }
+  }
+  return results;
+}
+
+/*class secondary_pass_chi2 {
+ private:
+  double fChi2Cut;
+ public:
+  secondary_pass_chi2(double cut) : fChi2Cut(cut) {};
+  std::vector<int> operator()(
+      const std::vector<double> & trackID,
+      const std::vector<double> & chi2_ndof
+  ) {
+    std::vector<int> results;
+    for (size_t i = 0; i < trackID.size(); ++i) {
+      if (trackID[i] != -999 && chi2_ndof < fChi2Cut) {
+        results.push_back(1);
+      }
+      else {results.push_back(0);}
+    }
+  }
+    
+};*/
+
+class secondary_noPion_simple {
+ private:
+  double fTrackScoreCut;
+  double fChi2Cut;
+  double fdEdXLow, fdEdXMed, fdEdXHigh;
+ public:
+  secondary_noPion_simple(double track_score_cut, double chi2_cut,
+                   double dEdX_low, double dEdX_med, double dEdX_high)
+    : fTrackScoreCut(track_score_cut),
+      fChi2Cut(chi2_cut),
+      fdEdXLow(dEdX_low),
+      fdEdXMed(dEdX_med),
+      fdEdXHigh(dEdX_high) {}
+  bool operator()(
+      const std::vector<double> &track_score, 
+      const std::vector<int> &trackID,
+      const std::vector<double> &dEdX,
+      const std::vector<double> &chi2_ndof) {
+    for( size_t i = 0; i < track_score.size(); ++i ) {
+      if ((trackID[i] != -999) && (track_score[i] > fTrackScoreCut)) {
+        if (dEdX[i] < fdEdXMed && dEdX[i] > fdEdXLow) {
+          return false;
+        }
+        else if (dEdX[i] < fdEdXHigh) {
+          if (chi2_ndof[i] > fChi2Cut) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 };
 
@@ -734,6 +909,13 @@ class FV_values {
     }
 };
 
+class reach_FV {
+  private:
+    double fZMin;
+  public:
+    reach_FV(double zmin) : fZMin(zmin) {};
+    bool operator()(double calo_endZ) {return (calo_endZ >= fZMin);}
+};
 class beam_cut_FV {
   private:
     double fZMin;
@@ -1030,7 +1212,7 @@ class fake_selection {
 
     int operator()(int true_id, int sel_ID) {
       double r = fRNG.Uniform(0., 1.);
-      if (sel_ID == 5 || sel_ID == 6) return 6;
+      //if (sel_ID == 5 || sel_ID == 6) return 6;
 
       if (true_id > 4)
         return 4;

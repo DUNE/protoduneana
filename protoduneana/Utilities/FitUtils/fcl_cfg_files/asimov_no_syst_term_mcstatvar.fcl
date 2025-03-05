@@ -1,0 +1,16 @@
+#include "asimov_no_syst_term.fcl"
+AnalysisOptions.FluctuateStats: false
+
+MaxEntries: -1
+MaxDataEntries: @local::MaxEntries
+#MaxEntries: 20000 
+#MaxDataEntries: 20000 
+FitType: "Normal"
+
+FluctuateStats: false 
+FluctuateInSamples: false
+
+UseMCStatVarWeight: false
+VaryMCStats: true
+AnalysisOptions.UseBeamShift: false
+AnalysisOptions.FakeDataRoutine: "Asimov"

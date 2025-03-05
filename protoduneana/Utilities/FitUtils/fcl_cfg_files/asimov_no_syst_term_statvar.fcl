@@ -1,0 +1,9 @@
+#include "asimov_no_syst_term.fcl"
+
+MaxEntries: -1 
+MaxDataEntries: @local::MaxEntries
+FitType: "Normal"
+
+FluctuateStats: true
+FluctuateInSamples: true
+UseMCStatVarWeight: false

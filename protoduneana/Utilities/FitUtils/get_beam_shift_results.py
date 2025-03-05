@@ -13,6 +13,7 @@ parser.add_argument("-m", type=str, help='Minus file', default = "")
 parser.add_argument("-o", type=str, help='Output file', default='beam_shift_results.root')
 parser.add_argument('--uncorrelated', action='store_true')
 parser.add_argument('--post', action='store_true')
+parser.add_argument('--pre', action='store_true')
 args = parser.parse_args()
 
 
@@ -27,6 +28,14 @@ if args.post:
   xs = [array('d', [h.GetBinCenter(i) for i in range(1, h.GetNbinsX()+1)]) for h in hNs]
   yNs = [array('d', [h.GetBinContent(i) for i in range(1, h.GetNbinsX()+1)]) for h in hNs]
   gNs = [RT.TGraph(len(x), x, y) for x,y in zip(xs, yNs)]
+elif args.pre:
+  hNs = [fN.Get('PreFitXSec/PreFitAbsXSec'),
+         fN.Get('PreFitXSec/PreFitCexXSec'),
+         fN.Get('PreFitXSec/PreFitOtherInelXSec')] 
+  xs = [array('d', [h.GetBinCenter(i) for i in range(1, h.GetNbinsX()+1)]) for h in hNs]
+  yNs = [array('d', [h.GetBinContent(i) for i in range(1, h.GetNbinsX()+1)]) for h in hNs]
+  gNs = [RT.TGraph(len(x), x, y) for x,y in zip(xs, yNs)]
+
 
 
 else:
@@ -44,6 +53,23 @@ if args.post:
   hMs = [fM.Get('PostFitXSec/PostFitAbsXSec'),
          fM.Get('PostFitXSec/PostFitCexXSec'),
          fM.Get('PostFitXSec/PostFitOtherInelXSec')]
+  yPs = [array('d', [hP.GetBinContent(i) for i in range(1, hP.GetNbinsX()+1)]) for hP in hPs]
+  yMs = [array('d', [hM.GetBinContent(i) for i in range(1, hM.GetNbinsX()+1)]) for hM in hMs]
+
+  print(yPs)
+  print(yMs)
+
+  gPs = [RT.TGraph(len(x), x, y) for x,y in zip(xs, yPs)]
+  gMs = [RT.TGraph(len(x), x, y) for x,y in zip(xs, yMs)]
+
+elif args.pre:
+  hPs = [fP.Get('PreFitXSec/PreFitAbsXSec'),
+         fP.Get('PreFitXSec/PreFitCexXSec'),
+         fP.Get('PreFitXSec/PreFitOtherInelXSec')]
+
+  hMs = [fM.Get('PreFitXSec/PreFitAbsXSec'),
+         fM.Get('PreFitXSec/PreFitCexXSec'),
+         fM.Get('PreFitXSec/PreFitOtherInelXSec')]
 
   yPs = [array('d', [hP.GetBinContent(i) for i in range(1, hP.GetNbinsX()+1)]) for hP in hPs]
   yMs = [array('d', [hM.GetBinContent(i) for i in range(1, hM.GetNbinsX()+1)]) for hM in hMs]
@@ -76,7 +102,7 @@ for i in range(0, len(gNs)):
   gM.SetLineColor(RT.kBlue)
   gM.SetMarkerColor(RT.kBlue)
 
-  gN.SetMaximum(themax)
+  gN.SetMaximum(1.1*themax)
   gN.SetMinimum(0.)
   gN.Draw('AP')
   gN.Draw('P same')

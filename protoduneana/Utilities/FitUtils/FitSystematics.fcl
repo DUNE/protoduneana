@@ -853,7 +853,16 @@ SystematicsList: {
     Sigma: .1
     Options: {}
   }
+
 }
+
+SystematicsList.beam_scraper_weight_lowp_mu: @local::SystematicsList.beam_scraper_weight
+SystematicsList.beam_scraper_weight_highp_mu: @local::SystematicsList.beam_scraper_weight
+SystematicsList.beam_scraper_weight_pi: @local::SystematicsList.beam_scraper_weight
+
+SystematicsList.beam_scraper_weight_lowp_mu.Name: "beam_scraper_weight_lowp_mu"
+SystematicsList.beam_scraper_weight_highp_mu.Name: "beam_scraper_weight_highp_mu"
+SystematicsList.beam_scraper_weight_pi.Name: "beam_scraper_weight_pi"
 
 SystematicsList.beam_shift_bin_1: @local::SystematicsList.beam_shift_bin_0
 SystematicsList.beam_shift_bin_1.Name: "beam_shift_bin_1"
@@ -1274,6 +1283,16 @@ g4rw_full_grid_abscex_coeff_abs_900_2000: @local::g4rw_full_grid_abscex_coeff_ab
 g4rw_full_grid_abscex_coeff_abs_900_2000.Name: "g4rw_full_grid_abscex_coeff_abs_900_2000"
 g4rw_full_grid_abscex_coeff_abs_900_2000.Options.Branch: "g4rw_full_grid_abscex_coeffs_5"
 
+## New
+g4rw_full_grid_abscex_coeff_abs_800_2000: @local::g4rw_full_grid_abscex_coeff_abs_0_500
+g4rw_full_grid_abscex_coeff_abs_800_2000.Name: "g4rw_full_grid_abscex_coeff_abs_800_2000"
+g4rw_full_grid_abscex_coeff_abs_800_2000.IsTiedG4RWCoeff: true
+g4rw_full_grid_abscex_coeff_abs_800_2000.IsG4RWCoeff: false
+g4rw_full_grid_abscex_coeff_abs_800_2000.Options.Branches: [
+  "g4rw_full_grid_abscex_coeffs_4", "g4rw_full_grid_abscex_coeffs_5"]
+g4rw_full_grid_abscex_coeff_abs_800_2000.Options.Branch: @erase
+#######
+
 g4rw_full_grid_abscex_coeff_cex_0_500: @local::g4rw_full_grid_abscex_coeff_abs_0_500
 g4rw_full_grid_abscex_coeff_cex_0_500.Name: "g4rw_full_grid_abscex_coeff_cex_0_500"
 g4rw_full_grid_abscex_coeff_cex_0_500.Options.Branch: "g4rw_full_grid_abscex_coeffs_6"
@@ -1297,6 +1316,17 @@ g4rw_full_grid_abscex_coeff_cex_800_900.Options.Branch: "g4rw_full_grid_abscex_c
 g4rw_full_grid_abscex_coeff_cex_900_2000: @local::g4rw_full_grid_abscex_coeff_cex_0_500
 g4rw_full_grid_abscex_coeff_cex_900_2000.Name: "g4rw_full_grid_abscex_coeff_cex_900_2000"
 g4rw_full_grid_abscex_coeff_cex_900_2000.Options.Branch: "g4rw_full_grid_abscex_coeffs_11"
+
+## New
+g4rw_full_grid_abscex_coeff_cex_800_2000: @local::g4rw_full_grid_abscex_coeff_cex_0_500
+g4rw_full_grid_abscex_coeff_cex_800_2000.Name: "g4rw_full_grid_abscex_coeff_cex_800_2000"
+g4rw_full_grid_abscex_coeff_cex_800_2000.IsTiedG4RWCoeff: true
+g4rw_full_grid_abscex_coeff_cex_800_2000.IsG4RWCoeff: false
+g4rw_full_grid_abscex_coeff_cex_800_2000.Options.Branches: [
+  "g4rw_full_grid_abscex_coeffs_10", "g4rw_full_grid_abscex_coeffs_11"]
+g4rw_full_grid_abscex_coeff_cex_800_2000.Options.Branch: @erase
+#######
+
 
 g4rw_full_grid_abscex_coeff_other_0_500: @local::g4rw_full_grid_abscex_coeff_abs_0_500
 g4rw_full_grid_abscex_coeff_other_0_500.Name: "g4rw_full_grid_abscex_coeff_other_0_500"
@@ -1322,27 +1352,67 @@ g4rw_full_grid_abscex_coeff_other_900_2000: @local::g4rw_full_grid_abscex_coeff_
 g4rw_full_grid_abscex_coeff_other_900_2000.Name: "g4rw_full_grid_abscex_coeff_other_900_2000"
 g4rw_full_grid_abscex_coeff_other_900_2000.Options.Branch: "g4rw_full_grid_abscex_coeffs_17"
 
+## New
+g4rw_full_grid_abscex_coeff_other_800_2000: @local::g4rw_full_grid_abscex_coeff_other_0_500
+g4rw_full_grid_abscex_coeff_other_800_2000.Name: "g4rw_full_grid_abscex_coeff_other_800_2000"
+g4rw_full_grid_abscex_coeff_other_800_2000.IsTiedG4RWCoeff: true
+g4rw_full_grid_abscex_coeff_other_800_2000.IsG4RWCoeff: false 
+g4rw_full_grid_abscex_coeff_other_800_2000.Options.Branches: [
+  "g4rw_full_grid_abscex_coeffs_16", "g4rw_full_grid_abscex_coeffs_17"]
+g4rw_full_grid_abscex_coeff_other_800_2000.Options.Branch: @erase
+#######
+
+
 G4RWFitAbsCexPars: [
   @local::g4rw_full_grid_abscex_coeff_abs_0_500,
   @local::g4rw_full_grid_abscex_coeff_abs_500_600,
   @local::g4rw_full_grid_abscex_coeff_abs_600_700,
   @local::g4rw_full_grid_abscex_coeff_abs_700_800,
-  @local::g4rw_full_grid_abscex_coeff_abs_800_900,
-  @local::g4rw_full_grid_abscex_coeff_abs_900_2000,
+  @local::g4rw_full_grid_abscex_coeff_abs_800_2000,
 
   @local::g4rw_full_grid_abscex_coeff_cex_0_500,
   @local::g4rw_full_grid_abscex_coeff_cex_500_600,
   @local::g4rw_full_grid_abscex_coeff_cex_600_700,
   @local::g4rw_full_grid_abscex_coeff_cex_700_800,
-  @local::g4rw_full_grid_abscex_coeff_cex_800_900,
-  @local::g4rw_full_grid_abscex_coeff_cex_900_2000,
+  @local::g4rw_full_grid_abscex_coeff_cex_800_2000,
 
   @local::g4rw_full_grid_abscex_coeff_other_0_500,
   @local::g4rw_full_grid_abscex_coeff_other_500_600,
   @local::g4rw_full_grid_abscex_coeff_other_600_700,
   @local::g4rw_full_grid_abscex_coeff_other_700_800,
-  @local::g4rw_full_grid_abscex_coeff_other_800_900,
-  @local::g4rw_full_grid_abscex_coeff_other_900_2000
+  @local::g4rw_full_grid_abscex_coeff_other_800_2000
 ]
+
+##Effs
+piplus_costheta_eff: {
+  Name: "piplus_costheta_eff"
+  Central: 1.
+  LowerLimit: 0.0
+  UpperLimit: 1.447
+  ThrowLimit: 0.0
+  ThrowLimitUp: 1.447
+  GenThrowLimit: 0.00
+  GenThrowLimitUp: 1.447
+  Sigma: .2
+  IsCosThetaEff: true
+
+  Options: {
+    PDG: 211 
+    Frac:  0.691
+    Range: [0.5, 1.0]
+    ID: 3
+    Sel: 3
+  }
+}
+
+pi0_costheta_eff: @local::piplus_costheta_eff
+pi0_costheta_eff.Name: "pi0_costheta_eff"
+pi0_costheta_eff.Options: {
+  PDG: 111
+    Frac:  0.4
+    Range: [-.34, 0.82]
+    ID: 2
+    Sel: 2
+}
 
 END_PROLOG

@@ -27,7 +27,7 @@ dEdXHigh: 3.4
 UseBI: false 
 DoNTracks: false
 
-DoMichel: true 
+DoMichel: false 
 MichelCut: 0.6
 
 RestrictBeamP: true
@@ -101,9 +101,9 @@ DataMeanZ: 3.78
 #DataSigmaX: 4.71
 #DataSigmaY: 5.16
 DataSigmaZ: 1.10
-#DataMeanThetaX: 100.45
-#DataMeanThetaY: 103.52
-#DataMeanThetaZ: 17.83
+##DataMeanThetaX: 100.45
+##DataMeanThetaY: 103.52
+##DataMeanThetaZ: 17.83
 DataMeanThetaX: 100.95
 DataMeanThetaY: 104.17
 DataMeanThetaZ: 18.05

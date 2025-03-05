@@ -3,3 +3,14 @@ AnalysisOptions.FakeDataG4RWGrid.Var:
   [0.50, 0.50, 0.50, 0.50, 0.50, 0.50,
    1.70, 1.70, 1.70, 1.70, 1.70, 1.70,
    0.65, 0.65, 0.65, 0.65, 0.65, 0.65]
+
+MaxEntries: -1 #40000
+MaxDataEntries: @local::MaxEntries
+
+#AnalysisOptions.FakeDataRoutine: "Asimov"
+FitFlux: false
+#FluctuateStats: false
+FluctuateInSamples: false
+RequireGoodHesse: true
+FitType: "Normal"
+DrawXSecUnderflow: false

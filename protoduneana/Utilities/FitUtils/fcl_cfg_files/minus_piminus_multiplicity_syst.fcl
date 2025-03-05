@@ -1,0 +1,10 @@
+#include "test_multiplicity_syst.fcl"
+
+MaxEntries: -1 
+MaxDataEntries: @local::MaxEntries
+FitType: "Normal"
+
+AnalysisOptions.MultiplicitySyst.PDG: -211 
+AnalysisOptions.MultiplicitySyst.Topologies: [1, 2, 3]
+AnalysisOptions.MultiplicitySyst.RatioName: "h_minus_{topo}_{ke}_PiMinus"
+AnalysisOptions.MultiplicitySyst.RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/incl_multiplicity_vars.root"

@@ -1,0 +1,30 @@
+#include "data_fit_no_syst_term.fcl"
+
+AnalysisOptions.UseBeamShift: true
+AnalysisOptions.RandomMCBeamShift: true
+AnalysisOptions.CovarianceRoutines: [
+    {
+      Name: "BeamShift" #From Sungbin's 11/18/2022 upstream energy loss summary
+      #P0: [-5.586e1, 35.]
+      #P1: [-1.553e-2, 0.]
+      #P2: [9.668e-5, 0.]
+
+      P0: [-8.066e1, 143.]
+      P1: [4.801e-2, 0.]
+      P2: [6.079e-5, 0.]
+
+      UseInput: true
+      InputName: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/Fitting_Ploss_data_RecoBeam_RangeFF_muon_BeamWindow_noweight_Beam_Study_1.0GeV_muon.root"
+
+      NominalP0: 539.131
+      NominalP1: -4.18188e-2
+      NominalP2: 5.14203e-4
+      OutputName: "No56FixedBeamShiftCovarianceNoAPA2.root"
+      NCovarianceGens: 1000
+    }
+]
+
+
+MaxEntries: -1 #20000 
+MaxDataEntries: @local::MaxEntries
+FitType:  "Normal"

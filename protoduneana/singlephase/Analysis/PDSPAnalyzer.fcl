@@ -865,7 +865,7 @@ pdspanalysis:
   
   ParameterGridStart: 0.1
   ParameterGridDelta:   0.1
-  ParameterGridN:     20
+  ParameterGridN:     70
   GridPair: [1, 2]
 
   FakeVariable: true

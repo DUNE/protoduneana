@@ -5,12 +5,13 @@ from argparse import ArgumentParser as ap
 if __name__ == '__main__':
 
   parser = ap()
-  parser.add_argument('-n', nargs=3, default=[6, 6, 6])
+  parser.add_argument('-n', nargs=3, default=[5, 5, 5])
   parser.add_argument('-w', type=float, default=.33)
   parser.add_argument('-s', type=float, default=.10)
   args = parser.parse_args()
 
   centrals = args.w * np.random.randn(3) + 1.
+  print(centrals)
 
   with open('tune.txt', 'w') as f:
     for i in range(3):

@@ -1,6 +1,6 @@
 #include "asimov.fcl"
 
-MaxEntries: 120000 #152936 #
+MaxEntries: 100000 
 MaxDataEntries: @local::MaxEntries
 
 DoThrows: false
@@ -13,6 +13,7 @@ FluctuateInSamples: true
 
 AnalysisOptions.ToSkip: [5, 6]
 
+DoFakeData: true
 AnalysisOptions.FakeDataRoutine: "G4RWGrid"
 AnalysisOptions.FakeDataG4RWGrid: {
     Position: [
@@ -30,4 +31,6 @@ AnalysisOptions.FakeDataG4RWGrid: {
 
 AddSystTerm: false
 DoSysts: false
-Systematics: []
+FitFlux: false
+LowerLimit: 1.e-10
+#Systematics: []

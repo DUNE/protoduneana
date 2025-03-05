@@ -1,0 +1,2 @@
+#include "fix_systs_proton_special_gaus.fcl"
+SystsToFix[3][1]: 0.67

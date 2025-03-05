@@ -19,10 +19,10 @@ namespace protoana {
 
 struct ExtraHistDataVars {
   ExtraHistDataVars(int selid, double endz, double startx, double starty,
-                    double startz, double michel, int nhits)
+                    double startz, double michel, int nhits, double calo_endz)
     : selection_ID(selid), reco_endz(endz),
       reco_startx_sce(startx), reco_starty_sce(starty), reco_startz_sce(startz),
-      vertex_michel_score(michel), vertex_nhits(nhits)
+      vertex_michel_score(michel), vertex_nhits(nhits), reco_endz_sce(calo_endz)
   {};
 
   void AddRecoProductTrackScores(std::vector<double> & scores) {
@@ -39,14 +39,20 @@ struct ExtraHistDataVars {
     reco_product_chi2s_per_hit = vals;
   };
 
+  void AddRecoProductShowerEnergy(std::vector<double> & vals) {
+    reco_daughter_shower_energy = vals;
+  };
+
   int selection_ID;
   double reco_endz;
   double reco_startx_sce, reco_starty_sce, reco_startz_sce;
   double vertex_michel_score;
   int vertex_nhits;
+  double reco_endz_sce;
   std::vector<double> reco_product_track_scores,
                       reco_product_truncated_dEdXs,
-                      reco_product_chi2s_per_hit;
+                      reco_product_chi2s_per_hit,
+                      reco_daughter_shower_energy;
 };
 
 class AbsCexDriver : public ThinSliceDriver {
@@ -114,6 +120,11 @@ class AbsCexDriver : public ThinSliceDriver {
     ThinSliceDataSet & data_set, double & flux,
     std::map<int, std::vector<double>> & sample_scales,
     int split_val = 0);
+  void FakeDataMuonVar(
+    const std::vector<ThinSliceEvent> & events,
+    std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
+    ThinSliceDataSet & data_set, double & flux,
+    std::vector<double> & beam_fluxes);
 
   void FakeDataLowP(
     const std::vector<ThinSliceEvent> & events,
@@ -508,6 +519,16 @@ class AbsCexDriver : public ThinSliceDriver {
 
    //void SetupExtraHists(ThinSliceDataSet & data_set);
    //void SetupExtraHistEndZ();
+   static void FillExtraHistDataSCEEndZ(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataSCEEndZAbs(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataSCEEndZCex(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataSCEEndZOther(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
+   static void FillExtraHistDataShowerEnergy(ThinSliceDataSet & data_set,
+                                       const ExtraHistDataVars & vars);
    static void FillExtraHistDataEndZ(ThinSliceDataSet & data_set,
                                  const ExtraHistDataVars & vars);
    static void FillExtraHistDataEndZGoodReco(ThinSliceDataSet & data_set,
@@ -529,6 +550,21 @@ class AbsCexDriver : public ThinSliceDriver {
    void FillExtraHistsData(ThinSliceDataSet & data_set,
                            const ExtraHistDataVars & vars);
 
+   static void FillExtraHistMCSCEEndZ(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCSCEEndZAbs(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCSCEEndZCex(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCSCEEndZOther(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
+   static void FillExtraHistMCShowerEnergy(ThinSliceSample & sample,
+                                   const ThinSliceEvent & event,
+                                   double weight);
    static void FillExtraHistMCEndZ(ThinSliceSample & sample,
                                    const ThinSliceEvent & event,
                                    double weight);
@@ -568,12 +604,14 @@ class AbsCexDriver : public ThinSliceDriver {
    PDSPSystematics * fSystematics = 0x0;
    PDSPSystematics * fG4RWPars = 0x0;
 
-   bool fInclusive;
+   bool fInclusive, fAltFluxVar, fNewFVSelection;
    std::vector<int> fERecoSelections, fEndZSelections, fOneBinSelections;
    double fBeamInstPScale/*, fMCBeamInstPShift*/;
    bool fRestrictBeamInstP, fDebugRestrictBeamP;
-   bool fVaryDataCalibration, fVaryMCCalibration, fThrowCalibration,
+   bool fVaryDataCalibration, fVaryMCCalibration, fVaryMCCalSelection, fThrowCalibration,
         fVaryCalibrationFakeData;
+   bool fMCFrontUpSelection, fMCFrontDownSelection,
+        fMCBackUpSelection, fMCBackDownSelection;
    double fDataCalibrationFactor, fMCCalibrationFactor;
    bool fBarlowBeeston;
    std::vector<int> fToSkip;
@@ -642,6 +680,36 @@ class AbsCexDriver : public ThinSliceDriver {
                 fStartXDataSigma, fStartXMCSigma, 
                 fStartYDataSigma, fStartYMCSigma,
                 fStartZDataSigma, fStartZMCSigma;
+
+  void SetupOutgoingVarSyst();
+  double GetEndKE(const ThinSliceEvent & event);
+  double GetOutgoingVarWeight(const ThinSliceEvent & event);
+  double GetPartialOutgoingWeight(
+    double leading_value, double ke, 
+    const std::vector<TH1D*> & ratios, const std::vector<double> & limits);
+  bool fOutgoingSystVaryMomentum, fOutgoingSystCombine, fOutgoingSystActive;
+  std::map<std::pair<int, int>, std::vector<TH1D*>> fOutgoingAngleRatios,
+                                                    fOutgoingMomentumRatios;
+  std::map<int, std::vector<double>> fOutgoingSystLimits;
+  std::vector<int> fOutgoingSystCheckPDGs;
+
+
+  void SetupMultiplicitySyst();
+  double GetMultiplicityWeight(const ThinSliceEvent & event);
+  bool fMultiplicitySystActive;
+  std::map<int, std::vector<TH1D*>> fMultiplicityRatios;
+  int fMultiplicityPDG;
+  std::vector<int> fMultiplicitySamples;
+  std::map<int, std::vector<double>> fMultiplicityLimits;
+  bool fPreScaleSelection;
+  double fNoBeamPreScale, fNoBeamFrac;
+
+
+  bool fSCERatioSystActive;
+  std::map<int, std::vector<double>> fSCERatioLimits;
+  void SetupSCERatioSyst();
+  std::map<std::pair<int, int>, std::vector<TH1D*>> fSCESystRatios;
+  double GetSCERatioWeight(const ThinSliceEvent & event, double val);
 };
 }
 #endif

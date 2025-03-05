@@ -33,7 +33,7 @@ class PDSPThinSliceFitter {
   PDSPThinSliceFitter(std::string fcl_file, std::string output_file,
                       std::string mc_file = "", std::string data_file = "",
                       std::string refit_file = "", std::string tune_file = "",
-                      bool retune = false);
+                      bool retune = false, int njobs = -1);
   void FillMCEvents();
   void BuildMCSamples();
   void Tune(std::string tune_file);
@@ -67,6 +67,7 @@ class PDSPThinSliceFitter {
     std::map<int, std::vector<TH1*>> & throw_hists,
     std::map<int, std::vector<TH1*>> & throw_inc_hists,
     std::map<int, std::vector<TH1*>> & throw_xsec_hists);
+  double GetNMuons();
   void PlotThrows(
     std::map<int, std::vector<TH1*>> & throw_hists,
     std::map<int, std::vector<TH1*>> & truth_throw_hists,
@@ -151,6 +152,7 @@ class PDSPThinSliceFitter {
 
   std::map<int, double> fFluxParameters;
   std::map<int, std::string> fFluxParameterNames;
+  std::map<int, double> fFixFluxes;
   size_t fTotalFluxParameters = 0;
 
   //std::map<int, std::string> fSystParameterNames;
@@ -192,6 +194,7 @@ class PDSPThinSliceFitter {
   std::string fDataFileName;
   std::string fRefitFile = "";
   bool fRetune = false;
+  int fNJobs = -1;
   std::string fTreeName;
   std::vector<fhicl::ParameterSet> fSelectionSets;
   std::map<int, int> fSelectionBins;
@@ -233,6 +236,7 @@ class PDSPThinSliceFitter {
   std::vector<std::string> fSystsToThrowAndFix;
   std::map<std::string, int> fSystParameterIndices;
   std::string fFakeDataRoutine;
+  bool fNoFakeReset;
   bool fDoFluctuateStats, fFluctuateInSamples,
        fVaryMCStats, fVaryMCStatsForFakeData,
        fUseMCStatVarWeight, fUseMCStatVarWeightFakeData;
@@ -246,7 +250,8 @@ class PDSPThinSliceFitter {
   bool fGetMeanXSec = false;
   bool fTieUnderOver = false;
   bool fUseFakeSamples = false;
-  bool fFitFlux;
+  bool fFitFlux, fAltFluxVar;
+  double fFirstFlux = -1.;
   size_t fNThrows, fMaxRethrows;
   std::string fFitType = "Normal";
   std::string fFitResultsFile;

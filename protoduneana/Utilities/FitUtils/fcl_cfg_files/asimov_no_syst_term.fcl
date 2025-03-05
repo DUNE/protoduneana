@@ -1,0 +1,52 @@
+#include "asimov.fcl"
+
+MaxEntries: -1 #60000 
+MaxDataEntries: @local::MaxEntries
+DoThrows: false
+SplitMC: false 
+Shuffle: false 
+FluctuateStats: false #true
+FluctuateInSamples: false #true 
+RequireGoodHesse: false
+FitType:  "Normal"
+
+AddSystTerm: false
+DoSysts: false
+DoFakeData: true
+AnalysisOptions.FakeDataRoutine: "Asimov"
+AnalysisOptions.ToSkip: [5, 6]
+
+SetSelVarCentrals: false #true
+SelectionVarSysts: [
+]
+
+ThrowAndFixSysts: false
+SystsToThrowAndFix: [
+]
+#XSecCalcStyle: "Full"
+
+FitFlux: false
+AnalysisOptions.AltFluxVar: false #true
+DoScans: false #true
+Do1DShifts: false #true
+FixFluxes: [
+  #[2, 1.5]
+  #[2, 1.]
+#  #[2, 3000]
+]
+
+#Samples[5].SingleSignalBin: true
+#Samples[5].IsSignal: true
+#Samples[6].SingleSignalBin: true
+#Samples[6].IsSignal: true
+    
+#SetValsPreFit: false
+#PreFitVals: [
+#1.31092855, 1.15499804, 1.07921319, 1.07362412, 1.03117397, 1.07361683,
+#1.13529459, 1.20757398, 1.32494409, 0.94063775, 1.27120232, 1.18934921,
+#1.02835121, 0.91392844, 0.89723587, 1.16874881,
+#
+#  1.4335251896964392,
+#  1.4335251896964392,
+#0.51542902
+#]

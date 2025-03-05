@@ -20,6 +20,7 @@ int main(int argc, char ** argv){
   std::string data_file;
   std::string refit_file = "";
   std::string tune_file = "";
+  int njobs = -1;
   bool retune = false;
   // Options to run
   for (int iArg = 1; iArg < argc; iArg++) {
@@ -45,6 +46,9 @@ int main(int argc, char ** argv){
       retune = true; 
       ++iArg;
     }
+    if (!strcasecmp(argv[iArg],"--njobs")) {
+      njobs = std::atoi(argv[++iArg]);
+    }
     if (!strcasecmp(argv[iArg],"-h")) {
       std::cout << "Usage: runPDSPThinSliceFit -c fclfile.fcl " << 
                     "-o outputfile.root " << std::endl;
@@ -55,7 +59,7 @@ int main(int argc, char ** argv){
   protoana::PDSPThinSliceFitter * fit
       = new protoana::PDSPThinSliceFitter(fcl_file, output_file, mc_file,
                                           data_file, refit_file, tune_file,
-                                          retune);
+                                          retune, njobs);
   //fit->InitializeMCSamples();
   //fit->Tune(refit_file);
   fit->BuildMCSamples();

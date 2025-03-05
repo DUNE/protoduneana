@@ -1,5 +1,9 @@
-#include "standard_data_fit.fcl"
+#include "data_fit_no_syst_term.fcl"
 
-DoThrows: false
-AnalysisOptions.VaryDataCalibration: true
-AnalysisOptions.DataCalibrationFactor: 0.97
+AnalysisOptions.VaryMCCalibration: true
+AnalysisOptions.MCCalibrationFactor: 0.97
+AnalysisOptions.VaryMCCalSelection: true
+
+MaxEntries: -1 
+MaxDataEntries: @local::MaxEntries
+FitType:  "Normal"

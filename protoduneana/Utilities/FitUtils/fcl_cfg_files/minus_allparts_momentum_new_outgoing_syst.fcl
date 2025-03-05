@@ -1,0 +1,10 @@
+#include "test_new_outgoing_syst.fcl"
+
+MaxEntries: -1 
+MaxDataEntries: @local::MaxEntries
+FitType: "Normal"
+
+AnalysisOptions.OutgoingVarSyst.VaryMomentum: true
+AnalysisOptions.OutgoingVarSyst.Combine: false 
+AnalysisOptions.OutgoingVarSyst.PDGs: [211, 111, 2212]
+AnalysisOptions.OutgoingVarSyst.RatioName: "h_minus_leading_{part}_{value}_ke"
