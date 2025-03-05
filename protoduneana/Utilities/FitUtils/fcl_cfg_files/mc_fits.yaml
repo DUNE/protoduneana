@@ -1,0 +1,65 @@
+topdir: "/pnfs/dune/scratch/users/calcuttj/Fits/"
+
+#mc_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_update/'
+#data_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_update/'
+mc_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_nomichel/'
+data_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_nomichel/'
+
+fits: [
+  #['asimov_no_syst_term.fcl', 'asimov_no_syst_term', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  ##['sce_fit_no_syst_term.fcl', 'sce_fit', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+
+  #['plus_sce_fit_no_syst_term.fcl', 'sce_fit_front_up', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sce_fit_no_syst_term.fcl', 'sce_fit_front_down', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+
+  #['asimov_no_syst_term_mcstatvar.fcl', 'mcstatvar', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 500],
+  #['asimov_no_syst_term_statvar.fcl', 'statvar', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 500],
+  #['asimov_no_syst_term_statvar_mcstatvar.fcl', 'statvar_mcstatvar', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 500],
+  #['beam_shift_asimov.fcl', 'beam_shift', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 500],
+
+  #['minus_sigma_fix_syst_0.fcl', 'minus_sigma_fix_syst_0', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_1.fcl', 'minus_sigma_fix_syst_1', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_2.fcl', 'minus_sigma_fix_syst_2', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_3.fcl', 'minus_sigma_fix_syst_3', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_4.fcl', 'minus_sigma_fix_syst_4', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_5.fcl', 'minus_sigma_fix_syst_5', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_6.fcl', 'minus_sigma_fix_syst_6', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_sigma_fix_syst_7.fcl', 'minus_sigma_fix_syst_7', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_0.fcl', 'plus_sigma_fix_syst_0', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_1.fcl', 'plus_sigma_fix_syst_1', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_2.fcl', 'plus_sigma_fix_syst_2', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_3.fcl', 'plus_sigma_fix_syst_3', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_4.fcl', 'plus_sigma_fix_syst_4', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_5.fcl', 'plus_sigma_fix_syst_5', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_6.fcl', 'plus_sigma_fix_syst_6', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_sigma_fix_syst_7.fcl', 'plus_sigma_fix_syst_7', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+
+  #['cal_up_asimov.fcl', 'cal_up', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['cal_down_asimov.fcl', 'cal_down', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+
+  #['minus_proton_multiplicity_syst.fcl', 'minus_proton_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_proton_multiplicity_syst.fcl', 'plus_proton_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_piplus_multiplicity_syst.fcl', 'minus_piplus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_piplus_multiplicity_syst.fcl', 'plus_piplus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_pi0_multiplicity_syst.fcl', 'minus_pi0_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_pi0_multiplicity_syst.fcl', 'plus_pi0_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_piminus_multiplicity_syst.fcl', 'minus_piminus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_piminus_multiplicity_syst.fcl', 'plus_piminus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_neutron_multiplicity_syst.fcl', 'minus_neutron_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_neutron_multiplicity_syst.fcl', 'plus_neutron_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #
+  #['minus_p_costheta_new_outgoing_syst.fcl', 'minus_p_costheta', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_p_costheta_new_outgoing_syst.fcl', 'plus_p_costheta', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_piplus_costheta_new_outgoing_syst.fcl', 'minus_piplus_costheta', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_piplus_costheta_new_outgoing_syst.fcl', 'plus_piplus_costheta', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_pi0_costheta_new_outgoing_syst.fcl', 'minus_pi0_costheta', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_pi0_costheta_new_outgoing_syst.fcl', 'plus_pi0_costheta', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+
+  #['minus_p_momentum_new_outgoing_syst.fcl', 'minus_p_momentum', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_p_momentum_new_outgoing_syst.fcl', 'plus_p_momentum', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_piplus_momentum_new_outgoing_syst.fcl', 'minus_piplus_momentum', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['plus_piplus_momentum_new_outgoing_syst.fcl', 'plus_piplus_momentum', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  #['minus_pi0_momentum_new_outgoing_syst.fcl', 'minus_pi0_momentum', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+  ['plus_pi0_momentum_new_outgoing_syst.fcl', 'plus_pi0_momentum', 'eventSelection_mc_all.root', 'eventSelection_mc_all.root', 1],
+]
+

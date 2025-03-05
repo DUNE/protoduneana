@@ -1,0 +1,23 @@
+#include "asimov.fcl"
+
+
+AnalysisOptions.VaryMCCalibration: true
+AnalysisOptions.MCCalibrationFactor: 0.97
+AnalysisOptions.VaryMCCalSelection: true
+
+MaxEntries: -1 #20000
+MaxDataEntries: @local::MaxEntries
+DoThrows: false
+SplitMC: false 
+Shuffle: false 
+FluctuateStats: false #true
+FluctuateInSamples: false #true 
+RequireGoodHesse: false
+FitFlux: false
+FitType:  "Normal"
+
+AddSystTerm: false
+DoSysts: false
+DoFakeData: false
+#AnalysisOptions.FakeDataRoutine: "Asimov"
+AnalysisOptions.ToSkip: [5, 6]
