@@ -1,0 +1,8 @@
+#include "data_fit_no_syst_term.fcl"
+
+FitType: "Normal"
+MaxEntries: -1
+MaxDataEntries: -1
+
+UseMCStatVarWeight: false
+VaryMCStats: true
