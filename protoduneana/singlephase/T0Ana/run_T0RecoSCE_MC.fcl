@@ -2,45 +2,46 @@
 #include "protodune_tools_dune.fcl"
 
 services.TFileService.fileName: "T0RecoSCE_MC_ana.root"
+services.AuxDetGeometry: @local::protodunev6_auxdet_geo
 services.Geometry: @local::protodunev6_geo
 
 
 #source is now a root file
 source:
 {
-  module_type: 	RootInput
-  maxEvents:   	1000		# Number of events to create
+  module_type:  RootInput
+  maxEvents:    1000		# Number of events to create
 }
 
 physics:
 {
- 	analyzers: {
-       		t0ana:	@local::T0RecoSCE
-		}
+        analyzers: {
+                t0ana:	@local::T0RecoSCE
+                }
 
- 	ana:       [t0ana]
- 	end_paths: [ana]
+        ana:       [t0ana]
+        end_paths: [ana]
 
 }
 
-physics.analyzers.t0ana.Debug: 					false
-physics.analyzers.t0ana.UseMC: 					true
-physics.analyzers.t0ana.CathodeCrossers: 		false
-physics.analyzers.t0ana.AnodePiercers: 			true
-physics.analyzers.t0ana.FlashProducer: 			"opflash"
-physics.analyzers.t0ana.TriggerProducer: 		"opflashExternal"
-physics.analyzers.t0ana.AllFlashToTrackTimeDiffs: 	false
+physics.analyzers.t0ana.Debug:                                  false
+physics.analyzers.t0ana.UseMC:                                  true
+physics.analyzers.t0ana.CathodeCrossers:                false
+physics.analyzers.t0ana.AnodePiercers:                  true
+physics.analyzers.t0ana.FlashProducer:                  "opflash"
+physics.analyzers.t0ana.TriggerProducer:                "opflashExternal"
+physics.analyzers.t0ana.AllFlashToTrackTimeDiffs:       false
 
-physics.analyzers.t0ana.FlashScaleFactor: 		1.0
-physics.analyzers.t0ana.FlashTPCOffset: 		0 #us
+physics.analyzers.t0ana.FlashScaleFactor:               1.0
+physics.analyzers.t0ana.FlashTPCOffset:                 0 #us
 
-physics.analyzers.t0ana.UseOpHits: 				false
-physics.analyzers.t0ana.OpHitProducer: 			"ophit"
-physics.analyzers.t0ana.FirstOpChannel: 		132
-physics.analyzers.t0ana.LastOpChannel: 			143
+physics.analyzers.t0ana.UseOpHits:                              false
+physics.analyzers.t0ana.OpHitProducer:                  "ophit"
+physics.analyzers.t0ana.FirstOpChannel:                 132
+physics.analyzers.t0ana.LastOpChannel:                  143
 
-physics.analyzers.t0ana.MinTrackLength: 		20 #cm
-physics.analyzers.t0ana.MinPE: 					100
+physics.analyzers.t0ana.MinTrackLength:                 20 #cm
+physics.analyzers.t0ana.MinPE:                                  100
 
 physics.analyzers.t0ana.CheckAssignedAnodeT0:	true
 physics.analyzers.t0ana.AnodeT0Producer:		anodet0reco
@@ -50,10 +51,9 @@ outputs:{
 
  out1:
  {
-	module_type: 		RootOutput
-   	fileName:    		"T0RecoSCE_MC.root"
-   	dataTier:    		"ana"
-   	compressionLevel: 	1
+        module_type:            RootOutput
+        fileName:               "T0RecoSCE_MC.root"
+        dataTier:               "ana"
+        compressionLevel:       1
  }
 }
-

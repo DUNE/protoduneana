@@ -14,8 +14,7 @@
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/Simulation/SimChannel.h"
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/fwd.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 
@@ -194,7 +193,7 @@ namespace protoana {
     int GetProcessKey(std::string process);
 
     // Get the MC truth deposited energy
-    double GetDepEnergyMC(const art::Event &evt, geo::GeometryCore const * fGeom, int trackid, int whichview) const;
+    double GetDepEnergyMC(const art::Event &evt, geo::WireReadoutGeom const& wireReadout, int trackid, int whichview) const;
 
     // Get first trajectory point in TPC active volume
     int GetFirstTrajectoryPointInTPCActiveVolume(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh);

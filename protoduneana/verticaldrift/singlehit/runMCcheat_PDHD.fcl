@@ -1,0 +1,63 @@
+#include "services_dune.fcl"
+#include "services_vdcoldbox.fcl" 
+#include "ProtoDUNECalibration.fcl"
+#include "tools_dune.fcl"	
+
+process_name: SingleHit
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+}
+
+services:
+{
+  TFileService: { fileName: "MCsingleHitOutput.root" }
+  
+  TimeTracker:                    @local::dune_time_tracker
+  MemoryTracker:                  @local::dune_memory_tracker
+  RandomNumberGenerator:          {} #ART native random number generator
+   
+  ExptGeoHelperInterface:         @local::dune_geometry_helper
+  DetectorPropertiesService:      @local::protodunesp_detproperties
+  FileCatalogMetadata:            @local::art_file_catalog_mc
+                                  @table::protodune_services
+                                  @table::protodune_simulation_services
+                                  @table::protodune_data_reco_services
+  LArPropertiesService:           @local::dunefd_properties
+  IFDH:                           {}
+  #CalibrationServices:            @local::CalorimetryParameters_SPProd4_MC_SCE
+}
+
+services.Geometry.Name: "protodunehdv6"
+services.Geometry.GDML: "protodunehd_v6_refactored.gdml"
+services.Geometry.ROOT: "protodunehd_v6_refactored.gdml"
+
+physics:
+{
+  analyzers:
+  {
+    ana:
+    {
+      module_type: "MCsingleHitCheater"
+      LogLevel:     5
+
+      HitLabel:                   "hitpdune"
+      G4Label:                    "largeant"
+      GeneratorTag:               [ "cosmicgenerator" ,
+                                    "generator"       ,
+                                    "ar39"            ,
+                                    "kr85"            ,
+                                    "rn222"           
+                                  ]
+
+      HitLabel:          "hitpdune"
+
+    }
+  }
+
+  analysis: [ ana ]
+  end_paths: [ analysis ]
+}
+

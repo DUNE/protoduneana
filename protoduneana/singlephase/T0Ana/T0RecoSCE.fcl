@@ -4,34 +4,35 @@
 BEGIN_PROLOG
 
 T0RecoSCE: {
- 	module_type: 		"T0RecoSCE"
- 	TrackProducer: 		"pandoraTrack"
- 	HitProducer: 		"pandoraTrack"
- 	PFPProducer: 		"pandora"
- 	EdgeWidth: 			40.0  # cm
-	ReadoutEdgeTicks:	50
- }
- 
+  module_type:            "T0RecoSCE"
+  TrackProducer:          "pandoraTrack"
+  HitProducer:            "pandoraTrack"
+  PFPProducer:            "pandora"
+  EdgeWidth:                      40.0  # cm
+  ReadoutEdgeTicks:	50
+}
+
 END_PROLOG
 
 process_name: T0RecoSCE
 
 services:
 {
-  	scheduler:               	{ defaultExceptions: false }    # Make all uncaught exceptions fatal.
-  	# Load the service that manages root files for histograms.
-  	TFileService:            	{ fileName: "T0RecoSCE_data_ana.root" }
-  	TimeTracker:             	{}
-  	ExptGeoHelperInterface:   	@local::dune_geometry_helper
-  	Geometry:                 	@local::protodune_geo
-  	DetectorProperties:       	@local::protodunesp_detproperties
-  	LArProperties:            	@local::dunefd_properties
-  	DetectorClocksService:    	@local::protodune_detectorclocks
-  	MemoryTracker:           	{ } # default is one
-  	RandomNumberGenerator:   	{} #ART native random number generator
-  	message:                 	@local::dune_message_services_prod_debug
-	IFDH: 						{}
-  	FileCatalogMetadata:		@local::art_file_catalog_mc
-  								@table::protodune_services
-								@table::protodune_data_reco_services
+  scheduler:             { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+  # Load the service that manages root files for histograms.
+  TFileService:          { fileName: "T0RecoSCE_data_ana.root" }
+  TimeTracker:           {}
+  WireReadout:           @local::dune_wire_readout
+  AuxDetGeometry:        @local::protodune_auxdet_geo
+  Geometry:              @local::protodune_geo
+  DetectorProperties:    @local::protodunesp_detproperties
+  LArProperties:         @local::dunefd_properties
+  DetectorClocksService: @local::protodune_detectorclocks
+  MemoryTracker:         {} # default is one
+  RandomNumberGenerator: {} #ART native random number generator
+  message:               @local::dune_message_services_prod_debug
+  IFDH:                  {}
+  FileCatalogMetadata:	 @local::art_file_catalog_mc
+  @table::protodune_services
+  @table::protodune_data_reco_services
 }

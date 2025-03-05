@@ -1,0 +1,55 @@
+#include "services_dune.fcl"
+
+process_name: ColdboxTrackStudy
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+}
+
+services:{
+    TFileService:                 { fileName: "pdvd_cb_track_study_crp6_bde3.root"}
+    ExptGeoHelperInterface:       @local::dune_geometry_helper 
+    Geometry:                     @local::dunecrpcb_geo	
+    LArPropertiesService:         @local::dunefd_properties
+    DetectorPropertiesService:    @local::protodune_detproperties
+    DetectorClocksService:        @local::protodune_detectorclocks
+
+}
+
+outputs: {}
+physics:
+{
+  analyzers:
+  {
+    coldboxtrackstudy:
+    {
+        module_type:                     "ColdboxTrackStudy"
+        LogLevel:                        5
+        TrackModuleLabel:                "pandoraTrack"
+        CaloModuleLabel:                 "pandoraGnoCalo"
+      	SpointModuleLabel:               "pandora"
+      	HitModuleLabel:                  "gaushit"
+      	WireModuleLabel:                 "wclsdatanfsp:gauss"
+      	RawDigitModuleLabel:             "tpcrawdecoder:daq"
+      	SaveAllChannelsInfo:             false
+      	SaveTrackHitsInfo:               false	
+      	ThroughGoingDownTrackOnly:       true
+        FiducialVolumeCutYZ:             25.
+        DqMinCut:                        3.
+        DqMaxCut:                        100.
+        FitDqdxNbins:                    100
+        FitDqdxXmin:                     4.
+        FitDqdxXmax:                     20.
+        FitDqdxTimeNXbins:               20
+        FitDqdxTimeNYbins:               100
+        FitDqdxTimeXmin:                 20.
+        FitDqdxTimeXmax:                 200.
+        FitDqdxTimeYmin:                 0.
+        FitDqdxTimeYmax:                 20.
+    }
+  }
+  analysis: [ coldboxtrackstudy ] 
+  end_paths: [ analysis ]
+}

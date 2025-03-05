@@ -8,9 +8,9 @@ art_make( BASENAME_ONLY
           larcorealg::Geometry
           larcore::Geometry_Geometry_service
           nurandom::RandomUtils_NuRandomService_service
-          larsim::Simulation lardataobj_Simulation
+          larsim::Simulation lardataobj::Simulation
 	  lardataobj::RecoBase
-          nusimdata_SimulationBase
+          nusimdata::SimulationBase
           art::Framework_Core
           art::Framework_Principal
           art::Framework_Services_Registry
@@ -20,14 +20,14 @@ art_make( BASENAME_ONLY
           art::Utilities 
 	  canvas::canvas
           messagefacility::MF_MessageLogger
-          hep_concurrency
+          hep_concurrency::hep_concurrency
           fhiclcpp::fhiclcpp
           cetlib::cetlib 
 	  cetlib_except::cetlib_except
-          ${CLHEP}
-          ROOT_BASIC_LIB_LIST
-          ${SQLITE3}
-          ${ROOT_EG}
+          CLHEP::CLHEP
+          ROOT::Core ROOT::Tree ROOT::Hist
+          SQLite::SQLite3
+          ROOT::EG
           ifdh::ifdh 
 	  duneprototypes::ProtoDUNEDataUtils
           ProtoDUNEUtilities

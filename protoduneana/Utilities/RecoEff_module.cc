@@ -25,6 +25,7 @@
 #include "canvas/Persistency/Common/FindOne.h"
 #include "canvas/Persistency/Common/FindOneP.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
@@ -216,7 +217,8 @@ private:
   std::string fProcess;
   std::string fEndProcess;
 
-  art::ServiceHandle<geo::Geometry> geom;  
+  art::ServiceHandle<geo::Geometry> geom;
+  geo::WireReadoutGeom const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
   double XDriftVelocity{};
   double WindowSize{};
 };
@@ -878,8 +880,7 @@ double pdune::RecoEff::GetLengthInTPC(detinfo::DetectorClocksData const& clockDa
 
     geo::TPCID tpcid = geom->FindTPCAtPosition(position);
     if(tpcid.isValid){
-      geo::TPCGeo const & tpc = geom->TPC(tpcid);
-      double XPlanePosition = tpc.Plane(0).GetCenter().X();
+      double XPlanePosition = wireReadout.Plane({tpcid, 0}).GetCenter().X();
       double DriftTimeCorrection = fabs( position.X() - XPlanePosition )/ XDriftVelocity;
       double TimeAtPlane = part.T() + DriftTimeCorrection;
       if( TimeAtPlane < trigger_offset(clockData) || TimeAtPlane > trigger_offset(clockData) + WindowSize){
@@ -905,8 +906,7 @@ TVector3 pdune::RecoEff::GetPositionInTPC(detinfo::DetectorClocksData const& clo
   // check if in TPC
   geo::TPCID tpcid = geom->FindTPCAtPosition(position);
   if(tpcid.isValid){
-    geo::TPCGeo const & tpc = geom->TPC(tpcid);
-    double XPlanePosition = tpc.Plane(0).GetCenter().X();
+    double XPlanePosition = wireReadout.Plane({tpcid, 0}).GetCenter().X();
     double DriftTimeCorrection = fabs( position.X() - XPlanePosition )/ XDriftVelocity;
     double TimeAtPlane = part.T() + DriftTimeCorrection;
     if( TimeAtPlane < trigger_offset(clockData) || TimeAtPlane > trigger_offset(clockData) + WindowSize){

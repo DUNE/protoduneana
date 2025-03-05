@@ -16,6 +16,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -517,7 +518,8 @@ void pionana::TruthAnalyzer::analyze(art::Event const& e)
     }
     std::cout << "Total len in LAr: " << total << std::endl;
      
-    double pitch = geom->WirePitch(geo::PlaneID{0, 1, 2});
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+    double pitch = wireReadout.Plane(geo::PlaneID{0, 1, 2}).WirePitch();
 
     std::vector<int> slices = MakeSlices(
         1.e3*true_beam_trajectory.E(first_point),

@@ -16,6 +16,7 @@ add_subdirectory(diffusion)
 add_subdirectory(efficiencystudy)
 add_subdirectory(SCEAna)
 add_subdirectory(PDCNN)
+add_subdirectory(pduneslice)
 
 #install(PROGRAMS evd3apa.py DESTINATION ${product}/${version}/python)
 install_scripts()

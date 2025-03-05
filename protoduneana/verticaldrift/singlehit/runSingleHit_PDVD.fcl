@@ -1,0 +1,51 @@
+#include "services_dune.fcl"
+#include "services_vdcoldbox.fcl" 
+#include "SingleHitParameters.fcl"
+
+#include "tools_dune.fcl" 
+
+process_name: SingleHit
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+}
+
+services:
+{
+  TFileService: { fileName: "singleHitOutput.root" }
+  
+  TimeTracker:           @local::dune_time_tracker
+  MemoryTracker:         @local::dune_memory_tracker
+  RandomNumberGenerator: {} #ART native random number generator
+   
+  #FileCatalogMetadata:  @local::art_file_catalog_mc
+  #                      @table::vdcb_crp2_services
+  #                      @table::vdcb_dataprep_base_services
+  #                      @table::vdcb_sim_base_services
+  WireReadout:                    @local::dune_wire_readout
+  DetectorPropertiesService:      @local::protodunevd_detproperties
+  FileCatalogMetadata:            @local::art_file_catalog_mc
+                                  @table::protodunevd_reco_services
+  LArPropertiesService:           @local::dunefd_properties
+
+}
+
+services.Geometry.Name: "protodunevd_v4"
+services.Geometry.GDML: "protodunevd_v4_refactored.gdml"
+services.Geometry.ROOT: "protodunevd_v4_refactored.gdml"
+
+physics:
+{
+  analyzers:
+  {
+    ana:@local::SingleHitParams
+  }
+
+  analysis: [ ana ]
+  end_paths: [ analysis ]
+}
+
+physics.analyzers.ana.IsPDVD: true
+

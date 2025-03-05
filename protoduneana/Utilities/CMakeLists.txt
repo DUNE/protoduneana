@@ -18,13 +18,14 @@ art_make( LIBRARY_NAME ProtoDUNEUtilities
                         geant4reweight::ReweightBaseLib
                         geant4reweight::PropBaseLib
                         dunecore::DuneObj
-                        dunepdlegacy_Services_ChannelMap_PdspChannelMapService_service
+                        duneopdet::OpticalDetector
+                        dunepdlegacy::Services_ChannelMap_PdspChannelMapService_service
                         larsim::MCCheater_PhotonBackTrackerService_service
                         larsim::MCCheater_BackTrackerService_service
                         larsim::MCCheater_ParticleInventoryService_service
                         nug4::ParticleNavigation 
                         nusimdata::SimulationBase
-                        CLHEP
+                        CLHEP::CLHEP
                         art::Framework_Core
                         art::Framework_Principal
                         art::Framework_Services_Registry
@@ -39,7 +40,7 @@ art_make( LIBRARY_NAME ProtoDUNEUtilities
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib
 			cetlib_except::cetlib_except
-                        ROOT_BASIC_LIB_LIST
+                        ROOT::Core ROOT::Tree ROOT::Hist
 	  MODULE_LIBRARIES
           ProtoDUNEUtilities
 )

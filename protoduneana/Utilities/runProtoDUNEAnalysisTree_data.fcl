@@ -17,6 +17,7 @@ services:
                                 @table::protodune_data_reco_services
   PdspChannelMapService:        @local::pdspchannelmap
   ChannelStatusService:         @local::pdsp_channel_status
+  AuxDetGeometry:               @local::protodune_auxdet_geo
   Geometry:                     @local::protodune_geo
   LArG4Parameters:              @local::protodune_largeantparameters
 }
@@ -36,13 +37,11 @@ physics:
  {
   pdAnalysisTree:          @local::proto_AnalysisTree
  }
- 
+
  ana:  [ pdAnalysisTree ]
- 
+
  end_paths:     [ ana ]
 
 }
 
 outputs: {}
-
-

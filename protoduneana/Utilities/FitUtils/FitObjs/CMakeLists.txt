@@ -23,8 +23,7 @@ cet_make(LIBRARIES PUBLIC
 		    messagefacility::MF_MessageLogger
 		    cetlib::cetlib 
 		    cetlib_except::cetlib_except
-		    ROOT_BASIC_LIB_LIST
-                    #asdf
+		    ROOT::Core
         DICT_LIBRARIES
                     ROOT::ROOTVecOps
 )

@@ -11,7 +11,7 @@ services:
   TFileService: { fileName: "hits_and_tracks_results.root" }
   TimeTracker:       {}
   RandomNumberGenerator: {}
-  ExptGeoHelperInterface:         @local::dune_geometry_helper
+  WireReadout:         @local::dune_wire_readout
   DetectorPropertiesService:      @local::protodunevd_detproperties
   FileCatalogMetadata:            @local::art_file_catalog_mc
                                   @table::protodunevd_reco_services

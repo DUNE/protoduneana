@@ -185,7 +185,7 @@ float ClusterCounter4::sumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) 
     float sum = 0;
     for (auto const & h : hits)
     {
-        sum += h->SummedADC();
+        sum += h->ROISummedADC();
     }
     return sum;
 }

@@ -1,0 +1,29 @@
+BEGIN_PROLOG
+
+SingleHitParams:
+{
+  module_type: "SingleHit"
+  LogLevel:     0
+
+  SpacePointLabel:   "reco3d"
+  ClusterLabel:      "pandora"
+  TrackLabel:        "pandoraTrack"
+  HitLabel:          "hitpdune"
+  G4Label:           "largeant"
+  RDTLabel:          "tpcrawdecoder:daq"
+
+  HitMultiplicity:      3
+
+  RadiusInt:            1   # in cm
+  RadiusExt:            20    # in cm
+  CoincidenceWindow1_right:   5   # in mus
+  CoincidenceWindow1_left:    5    # in mus
+  CoincidenceWindow2_left:    5    # in mus
+  CoincidenceWindow2_right:   5   # in mus
+
+  Is3ViewsCoincidence:  false #if false then only 2 views coincidence is imposed
+  HitTree:              false #if you want the hit tree or not
+
+}
+
+END_PROLOG

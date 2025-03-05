@@ -1,0 +1,37 @@
+#include "services_dune.fcl"
+
+process_name: Hit3D
+
+services:
+{
+  MemoryTracker:     {}
+  TimeTracker:       {}
+  @table::protodune_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  10        # Number of events to create
+}
+
+physics:
+{
+ analyzers:
+{
+}
+ ana:  [ hit3d ]
+
+ end_paths:     [ana]
+}
+
+physics.analyzers.hit3d: {
+    module_type: "SaveImageH5"
+    HDF5NAME: "hit3d.h5"
+    imageMaker:{
+        tool_type: Hit3D
+        HitModuleLabel: "hitpdune"
+    }
+}
+
+services.BackTrackerService.BackTracker.SimChannelModuleLabel: "tpcrawdecoder:simpleSC"

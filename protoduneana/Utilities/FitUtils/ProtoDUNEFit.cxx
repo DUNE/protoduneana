@@ -19,7 +19,7 @@
 #include <RooStats/ModelConfig.h>
 #include <RooStats/HistFactory/Sample.h>
 #include <RooStats/HistFactory/Systematics.h>
-#include <RooStats/HistFactory/HistoToWorkspaceFactory.h>
+//#include <RooStats/HistFactory/HistoToWorkspaceFactory.h>
 #include <RooStats/HistFactory/HistoToWorkspaceFactoryFast.h>
 #include <RooStats/HistFactory/MakeModelAndMeasurementsFast.h>
 #include <RooStats/HistFactory/PiecewiseInterpolation.h>

@@ -14,7 +14,7 @@
 #include "larsim/Simulation/LArVoxelData.h"
 #include "larsim/Simulation/LArVoxelList.h"
 #include "larsim/Simulation/SimListUtils.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -87,7 +87,7 @@ private:
   // Declare member data here.
 	void ResetVars();
 
-	geo::GeometryCore const * fGeometry;
+        geo::WireReadoutGeom const * fWireReadoutGeom;
 	double fElectronsToGeV;
 
 	bool Has(std::vector<int> v, int i) const;
@@ -156,7 +156,7 @@ proto::EdepCal::EdepCal(fhicl::ParameterSet const & p)
  // More initializers here.
 {
 	// get a pointer to the geometry service provider
-	fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+        fWireReadoutGeom = &art::ServiceHandle<geo::WireReadout>()->Get();
 	
 	reconfigure(p);
 }
@@ -282,7 +282,7 @@ double proto::EdepCal::GetEdepMC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				if (fGeometry->View(channel.Channel()) == fBestview) 
+                                if (fWireReadoutGeom->View(channel.Channel()) == fBestview)
 				{
 					// for every time slice in this channel:
 					auto const& timeSlices = channel.TDCIDEMap();
@@ -312,7 +312,7 @@ double proto::EdepCal::GetEdepAttenuatedMC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				if (fGeometry->View(channel.Channel()) == fBestview) 
+                                if (fWireReadoutGeom->View(channel.Channel()) == fBestview)
 				{
 					// for every time slice in this channel:
 					auto const& timeSlices = channel.TDCIDEMap();
@@ -343,7 +343,7 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				if (fGeometry->View(channel.Channel()) == fBestview)
+                                if (fWireReadoutGeom->View(channel.Channel()) == fBestview)
 				{ 
 					// for every time slice in this channel:
 					auto const& timeSlices = channel.TDCIDEMap();
@@ -399,7 +399,7 @@ double proto::EdepCal::GetEdepEMAttenuated_MC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				if (fGeometry->View(channel.Channel()) == fBestview)
+                                if (fWireReadoutGeom->View(channel.Channel()) == fBestview)
 				{
 					// for every time slice in this channel:
 					auto const& timeSlices = channel.TDCIDEMap();

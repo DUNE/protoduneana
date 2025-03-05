@@ -1,4 +1,5 @@
 #include "pduneana_Prod4a_MC_nosce.fcl"
+physics.analyzers.pduneana.BeamInstPFix: 6
 physics.analyzers.pduneana.ParameterSet: [
   {
     Cut: "inel"

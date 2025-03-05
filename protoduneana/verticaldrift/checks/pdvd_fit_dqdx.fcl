@@ -5,9 +5,10 @@ process_name: PDVPfitDqDx
 services:{
     TFileService:                 { fileName: "fit_dqdx_results-v09_69_01d00.root" }
     TimeTracker:                  {}
-    RandomNumberGenerator:        {} 
-    ExptGeoHelperInterface:       @local::dune_geometry_helper 
-    Geometry:                     @local::dunecrpcb_geo	
+    RandomNumberGenerator:        {}
+    AuxDetGeometry:               @local::dunecrpcb_auxdet_geo
+    WireReadout:                  @local::dune_wire_readout
+    Geometry:                     @local::dunecrpcb_geo
     LArPropertiesService:         @local::dunefd_properties
     DetectorClocksService:        @local::protodune_detectorclocks
     DetectorPropertiesService:    @local::protodune_detproperties
@@ -35,14 +36,14 @@ physics:
         module_type:                     "FitdQdx"
         LogLevel:                        1
         TrackModuleLabel:                "pandoraTrack"
-        TrackLenMin:                     23  
+        TrackLenMin:                     23
         TrackLenMax:                     430
         YZfid:                           25
         QMin:                             3
         DtBins:                          81
         DtMin:                           -2
-        DtMax:                           160 
-        DtFitMin:                        20 
+        DtMax:                           160
+        DtFitMin:                        20
         DtFitMax:                        140
         DQdxBins:                        200
         DQdxMin:                         0
@@ -55,6 +56,6 @@ physics:
         FieldDistortionCorrectionXSign:  false
     }
   }
-  analysis: [ fitdqdx ] 
+  analysis: [ fitdqdx ]
   end_paths: [ analysis ]
 }

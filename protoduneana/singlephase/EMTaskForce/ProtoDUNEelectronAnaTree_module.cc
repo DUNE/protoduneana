@@ -36,7 +36,7 @@
 #include "lardataobj/AnalysisBase/T0.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "dunecore/DuneObj/ProtoDUNEBeamEvent.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -105,7 +105,7 @@ private:
 
   // Track momentum algorithm calculates momentum based on track range
   trkf::TrackMomentumCalculator trmom;
-  geo::GeometryCore const * fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+  geo::WireReadoutGeom const& fWireReadoutGeom = art::ServiceHandle<geo::WireReadout>()->Get();
 
   // Initialize tree variables
   void Initialize();
@@ -618,7 +618,7 @@ void protoana::ProtoDUNEelectronAnaTree::FillPrimaryPFParticle(art::Event const 
       if( fbeamtrackID != -999 && fbeamtrackID == fprimaryTruth_trkID ) 
         fprimaryIsBeamparticle = 1;
 
-      double Edepo = truthUtil.GetDepEnergyMC(evt, fGeometry, mcparticle->TrackId(), 2 );
+      double Edepo = truthUtil.GetDepEnergyMC(evt,fWireReadoutGeom, mcparticle->TrackId(), 2 );
       double purity = truthUtil.GetPurity(clockData, *thisShower, evt, fShowerTag);
       fprimaryTruth_Edepo = Edepo;
       fprimaryTruth_purity = purity; //not really useful in this case
@@ -631,7 +631,7 @@ void protoana::ProtoDUNEelectronAnaTree::FillPrimaryPFParticle(art::Event const 
         int n_hits =0;
         for( size_t i=0; i<hitsFromMCPart.size(); ++i){
            if( hitsFromMCPart[i]->WireID().Plane != 2 ) continue;
-           const geo::WireGeo* pwire = fGeometry->WirePtr(hitsFromMCPart[i]->WireID());
+           const geo::WireGeo* pwire = fWireReadoutGeom.WirePtr(hitsFromMCPart[i]->WireID());
            auto xyzWire = pwire->GetCenter();
            tot_ch += hitsFromMCPart[i]->Integral(); 
            fprimaryTruthShower_hit_w[n_hits]=hitsFromMCPart[i]->WireID().Wire;
@@ -681,7 +681,7 @@ void protoana::ProtoDUNEelectronAnaTree::FillPrimaryPFParticle(art::Event const 
        if( sh_hits[j]->WireID().Plane != 2 ) continue;
        art::FindManyP<recob::Wire> wFromHits(sh_hits,evt,"hitpdune");
        std::vector<art::Ptr<recob::Wire>> wires = wFromHits.at(j);
-       const geo::WireGeo* pwire = fGeometry->WirePtr(sh_hits[j]->WireID());
+       const geo::WireGeo* pwire = fWireReadoutGeom.WirePtr(sh_hits[j]->WireID());
        auto xyzWire = pwire->GetCenter();
        std::array<float,4> cnn_out = hitResults.getOutput( tmp_sh_hits[j] );
        double p_trk_or_sh = cnn_out[ hitResults.getIndex("track") ]+ cnn_out[ hitResults.getIndex("em") ]; 

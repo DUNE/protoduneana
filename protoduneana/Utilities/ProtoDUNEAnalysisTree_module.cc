@@ -33,6 +33,7 @@
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -108,7 +109,8 @@ private:
   trkf::TrackMomentumCalculator trmom;
 
   // Geometry
-  geo::GeometryCore const * fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+  geo::GeometryCore const * fGeometry = art::ServiceHandle<geo::Geometry>().get();
+  geo::WireReadoutGeom const* fWireReadoutGeom = &art::ServiceHandle<geo::WireReadout>()->Get();
 
   // Initialise tree variables
   void Initialise();
@@ -1641,11 +1643,11 @@ void protoana::ProtoDUNEAnalysisTree::FillConfigTree(){
 
   fNCryostats     = fGeometry->Ncryostats();
   fNTPCs          = fGeometry->NTPC();
-  fNChannels      = fGeometry->Nchannels();
-  fNPlanes         = fGeometry->Nplanes();
+  fNChannels      = fWireReadoutGeom->Nchannels();
+  fNPlanes        = fWireReadoutGeom->Nplanes();
   fNAPAs          = fGeometry->NTPC()*fGeometry->Ncryostats()/2;
   if(fNAPAs > 0)
-    fNChansPerAPA = fGeometry->Nchannels()/fNAPAs;
+    fNChansPerAPA = fWireReadoutGeom->Nchannels()/fNAPAs;
 
   fActiveTPCBoundsX[0] = fActiveTPCBoundsY[0] = fActiveTPCBoundsZ[0] = 1000000.0;
   fActiveTPCBoundsX[1] = fActiveTPCBoundsY[1] = fActiveTPCBoundsZ[1] = -1000000.0;

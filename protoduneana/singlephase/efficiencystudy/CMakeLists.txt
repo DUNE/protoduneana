@@ -21,7 +21,7 @@ art_make(BASENAME_ONLY
   larsim::MCCheater_BackTrackerService_service           
   larsim::MCCheater_ParticleInventoryService_service
   larreco::RecoAlg
-  ROOT_BASIC_LIB_LIST
+  ROOT::Core ROOT::Tree ROOT::Hist
   duneprototypes::ProtoDUNEDataUtils
   ProtoDUNEUtilities
   art_root_io::tfile_support

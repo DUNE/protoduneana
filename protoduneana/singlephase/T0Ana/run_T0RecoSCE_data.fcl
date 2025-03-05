@@ -4,63 +4,63 @@
 #include "protodune_tools_dune.fcl"
 
 services.TFileService.fileName: "T0RecoSCE_data_ana.root"
+services.AuxDetGeometry: @local::protodunev6_auxdet_geo
 services.Geometry: @local::protodunev6_geo
 
 #source is now a root file
 source:
 {
-  module_type: 	RootInput
-  maxEvents:   	2000		# Number of events to create
+  module_type:  RootInput
+  maxEvents:    2000		# Number of events to create
 }
 
 physics:
 {
-	filters: {
-		FEMB: 	@local::pdsp_fembfilter_all
-		HV: 	@local::HVfilter
-		}
+        filters: {
+                FEMB:   @local::pdsp_fembfilter_all
+                HV:     @local::HVfilter
+                }
 
-	goodevents: [FEMB,HV]
+        goodevents: [FEMB,HV]
 
- 	analyzers: {
-       	t0ana:	@local::T0RecoSCE
-		}
+        analyzers: {
+        t0ana:	@local::T0RecoSCE
+                }
 
-	ana:     [t0ana]
-	end_paths:  [ana]
+        ana:     [t0ana]
+        end_paths:  [ana]
 
 }
 
-physics.analyzers.t0ana.Debug: 					false
-physics.analyzers.t0ana.UseMC: 					false
-physics.analyzers.t0ana.CathodeCrossers: 		false
-physics.analyzers.t0ana.AnodePiercers: 			true
-physics.analyzers.t0ana.FlashProducer : 		"opflashInternal"
-physics.analyzers.t0ana.TriggerProducer : 		"opflashExternal"
+physics.analyzers.t0ana.Debug:                                  false
+physics.analyzers.t0ana.UseMC:                                  false
+physics.analyzers.t0ana.CathodeCrossers:                false
+physics.analyzers.t0ana.AnodePiercers:                  true
+physics.analyzers.t0ana.FlashProducer :                 "opflashInternal"
+physics.analyzers.t0ana.TriggerProducer :               "opflashExternal"
 physics.analyzers.t0ana.AllFlashToTrackTimeDiffs:	false
 
-physics.analyzers.t0ana.FlashScaleFactor: 		1.0
-physics.analyzers.t0ana.FlashTPCOffset: 		0 #us
+physics.analyzers.t0ana.FlashScaleFactor:               1.0
+physics.analyzers.t0ana.FlashTPCOffset:                 0 #us
 
-physics.analyzers.t0ana.UseOpHits: 				false
-physics.analyzers.t0ana.OpHitProducer: 			"ophitInternal"
-physics.analyzers.t0ana.FirstOpChannel: 		60
-physics.analyzers.t0ana.LastOpChannel: 			63
+physics.analyzers.t0ana.UseOpHits:                              false
+physics.analyzers.t0ana.OpHitProducer:                  "ophitInternal"
+physics.analyzers.t0ana.FirstOpChannel:                 60
+physics.analyzers.t0ana.LastOpChannel:                  63
 
-physics.analyzers.t0ana.MinTrackLength: 		20 #cm
-physics.analyzers.t0ana.MinPE: 					100
+physics.analyzers.t0ana.MinTrackLength:                 20 #cm
+physics.analyzers.t0ana.MinPE:                                  100
 
 physics.analyzers.t0ana.CheckAssignedAnodeT0:	true
 physics.analyzers.t0ana.AnodeT0Producer:		anodet0reco
 
 outputs: {
 
- 	out1: {
-   		module_type: 		RootOutput
-		SelectEvents: 		[goodevents]
-   		fileName:  			"T0RecoSCE_data.root"
-  		dataTier:    		"ana"
-   		compressionLevel: 	1
-		}
-	}
-
+        out1: {
+                module_type:            RootOutput
+                SelectEvents:           [goodevents]
+                fileName:                       "T0RecoSCE_data.root"
+                dataTier:               "ana"
+                compressionLevel:       1
+                }
+        }

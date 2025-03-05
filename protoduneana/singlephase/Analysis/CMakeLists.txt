@@ -1,6 +1,7 @@
 art_make(BASENAME_ONLY
   MODULE_LIBRARIES
-  cetlib cetlib_except
+  cetlib::cetlib
+  cetlib_except::cetlib_except
   larsim::Simulation
   lardataobj::Simulation
   lardataobj::RecoBase
@@ -12,7 +13,7 @@ art_make(BASENAME_ONLY
   larsim::MCCheater_BackTrackerService_service           
   larsim::MCCheater_ParticleInventoryService_service
   larreco::RecoAlg
-  ROOT_BASIC_LIB_LIST
+  ROOT::Core ROOT::Tree ROOT::Hist
   ProtoDUNEUtilities
   geant4reweight::ReweightBaseLib
   geant4reweight::PropBaseLib

@@ -11,7 +11,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 //#include "larcore/Geometry/CryostatGeo.h"
 //#include "larcore/Geometry/TPCGeo.h"
 //#include "larcore/Geometry/PlaneGeo.h"
@@ -307,9 +307,9 @@ namespace protoana{
       std::cout<<"particle pdg code is "<<particle->PdgCode()<<std::endl;
       if(particle->PdgCode()==211 && particle->Process()=="primary"){
 	std::cout<<"found a pi+"<<std::endl;
-	art::ServiceHandle<geo::Geometry> geom;
 	simb::MCTrajectory truetraj=particle->Trajectory();
-	geo::View_t view = geom->View(2);
+	auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+        geo::View_t view = wireReadout.Plane({0, 0, 2}).View();
 	auto simIDE_prim=bt_serv->TrackIdToSimIDEs_Ps(particle->TrackId(),view);
 	std::map<double, sim::IDE> orderedSimIDE;
 	for (auto& ide : simIDE_prim) orderedSimIDE[ide->z]= *ide;
@@ -671,5 +671,3 @@ namespace protoana{
 	  
   DEFINE_ART_MODULE(truepionXsection)
 }
-
-

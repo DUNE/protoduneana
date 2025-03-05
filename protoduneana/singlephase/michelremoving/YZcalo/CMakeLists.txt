@@ -1,7 +1,7 @@
 
-cet_make_exec( make_yz_correction
+cet_make_exec( NAME make_yz_correction
                SOURCE protoDUNE_YZ_calib.C
                LIBRARIES
-               ROOT_BASIC_LIB_LIST
+               ROOT::Core ROOT::Tree ROOT::Hist
                )
 install_scripts()

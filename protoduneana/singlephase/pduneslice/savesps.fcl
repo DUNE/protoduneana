@@ -1,0 +1,37 @@
+#include "services_dune.fcl"
+
+process_name: SaveSPS
+
+services:
+{
+  MemoryTracker:     {}
+  TimeTracker:       {}
+  @table::protodune_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  10        # Number of events to create
+}
+
+physics:
+{
+ analyzers:
+{
+}
+ ana:  [ sps ]
+
+ end_paths:     [ana]
+}
+
+physics.analyzers.sps: {
+    module_type: "SaveImageH5"
+    HDF5NAME: "test.h5"
+    imageMaker:{
+        tool_type: SaveSPS
+        SpacePointModuleLabel: "reco3d"
+    }
+}
+
+services.BackTrackerService.BackTracker.SimChannelModuleLabel: "tpcrawdecoder:simpleSC"

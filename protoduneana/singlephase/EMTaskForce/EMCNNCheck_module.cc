@@ -20,6 +20,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "larcore/CoreUtils/ServiceUtil.h"
+#include "larcore/Geometry/Geometry.h"
 #include "lardata/ArtDataHelper/MVAReader.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"

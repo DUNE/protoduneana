@@ -6,12 +6,13 @@ services:
 {
   TFileService: { fileName: "pddp_diffusion_tracks.root" }
   TimeTracker:       {}
-  RandomNumberGenerator: {} 
-  ExptGeoHelperInterface:         @local::dune_geometry_helper 
-  Geometry:                       @local::protodunedphase_geo
-  DetectorPropertiesService:      @local::protodunedphase_detproperties
-  DetectorClocksService:          @local::protodunedphase_detectorclocks
-  LArPropertiesService:           @local::dunefddphase_properties
+  RandomNumberGenerator: {}
+  WireReadout:               @local::dune_wire_readout
+  AuxDetGeometry:            @local::protodunedphase_auxdet_geo
+  Geometry:                  @local::protodunedphase_geo
+  DetectorPropertiesService: @local::protodunedphase_detproperties
+  DetectorClocksService:     @local::protodunedphase_detectorclocks
+  LArPropertiesService:      @local::dunefddphase_properties
 
 }
 
@@ -43,25 +44,25 @@ physics:
         TrackDeltaStop:0.0
         TrackLenMin:   50.0
         TrackLenMax:   173.0
-        TrackThetaMin: 5.0  # cut horizontal tracks 
+        TrackThetaMin: 5.0  # cut horizontal tracks
         TrackThetaMax: 45.0 # cut vertical tracks
     }
     plotselect:
     {
-    	module_type:  "PlotSelectedTracks"
-	LogLevel:   0 
-	TrackModuleLabel:  "pandoraTrack"
+        module_type:  "PlotSelectedTracks"
+        LogLevel:   0
+        TrackModuleLabel:  "pandoraTrack"
         TrackType:         "anode"
         FiducialCut:   5.0
-	TrackCurvature:5.0  # cut curved reconstructed tracks
-	TrackDelta:    10.0
-	TrackDeltaStop:0.0
-	TrackLenMin:   50.0
-	TrackLenMax:   173.0
-	TrackThetaMin: 5.0  # cut horizontal tracks 
-	TrackThetaMax: 45.0 # cut vertical tracks
+        TrackCurvature:5.0  # cut curved reconstructed tracks
+        TrackDelta:    10.0
+        TrackDeltaStop:0.0
+        TrackLenMin:   50.0
+        TrackLenMax:   173.0
+        TrackThetaMin: 5.0  # cut horizontal tracks
+        TrackThetaMax: 45.0 # cut vertical tracks
      }
    }
-  analysis: [ getwf ] 
+  analysis: [ getwf ]
   end_paths: [ analysis ]
 }

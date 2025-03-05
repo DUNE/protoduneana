@@ -216,7 +216,7 @@ void test::HitNormCheck::analyze(art::Event const& e)
     hInfo.start  = hit->StartTick();
     hInfo.end    = hit->EndTick();
     hInfo.multiplicity = hit->Multiplicity();
-    hInfo.adcsum  = hit->SummedADC();
+    hInfo.adcsum  = hit->ROISummedADC();
     hInfo.hitint  = hit->Integral();
     hInfo.peak    = hit->PeakAmplitude();
     
