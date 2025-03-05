@@ -1,2 +1,0 @@
-#include "pdsp_save_beam_sps.fcl"
-physics.filters.fTruth.PDG: [211, -13, -11, 2212]

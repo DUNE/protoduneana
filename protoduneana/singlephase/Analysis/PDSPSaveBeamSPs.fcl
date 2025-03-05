@@ -1,9 +1,0 @@
-BEGIN_PROLOG
-pdspsavebeamsps: {
-  module_type: "PDSPSaveBeamSPs"
-  OutputName: "pdsp_sps.h5"
-  PFParticleTag: "pandora"
-  GeneratorTag: "generator"
-  SpacePointTag: "reco3d"
-}
-END_PROLOG

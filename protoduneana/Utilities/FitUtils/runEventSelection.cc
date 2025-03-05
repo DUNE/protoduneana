@@ -94,10 +94,11 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "reco_beam_endX", "reco_beam_endY", "reco_beam_endZ"})
            .Define("reco_daughter_allTrack_truncLibo_dEdX_pos",
                    truncatedMean_pos(pset.get<double>("Limit")),
-                   {"reco_daughter_allTrack_calibrated_dEdX_SCE"})
+                   {"reco_daughter_allTrack_dEdX_SCE"})
+                //    {"reco_daughter_allTrack_dEdX_SCE"})
            .Define("cal_up_daughter_chi2_proton",
                    recalc_chi2_proton(profile, 1.03),
-                   {"reco_daughter_allTrack_calibrated_dEdX_SCE",
+                   {"reco_daughter_allTrack_dEdX_SCE",
                     "reco_daughter_allTrack_resRange_SCE"})
            .Define("cal_up_has_noPion_daughter_simple",
                    secondary_noPion_simple(
@@ -112,7 +113,7 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "cal_up_daughter_chi2_proton"})
            .Define("cal_down_daughter_chi2_proton",
                    recalc_chi2_proton(profile, 0.97),
-                   {"reco_daughter_allTrack_calibrated_dEdX_SCE",
+                   {"reco_daughter_allTrack_dEdX_SCE",
                     "reco_daughter_allTrack_resRange_SCE"})
            .Define("cal_down_has_noPion_daughter_simple",
                    secondary_noPion_simple(
@@ -199,10 +200,10 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                    {"reco_beam_incidentEnergies", "reco_beam_interactingEnergy"})
            .Define("reco_beam_modified_interactingEnergy",
                    modified_interacting_energy(80.),
-                   {"beam_inst_P", "reco_beam_calibrated_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
+                   {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_beam_modified2_interactingEnergy",
                    modified_interacting_energy(20.),
-                   {"beam_inst_P", "reco_beam_calibrated_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
+                   {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("daughter_PDGs_types", daughter_PDG_types,
                    {"reco_daughter_PFP_true_byHits_PDG"})
            .Define("FV_vals",
@@ -443,16 +444,16 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "reco_beam_endX", "reco_beam_endY", "reco_beam_endZ"})
            .Define("reco_daughter_allTrack_truncLibo_dEdX_pos",
                    truncatedMean_pos(pset.get<double>("Limit")),
-                   {"reco_daughter_allTrack_calibrated_dEdX_SCE"})
+                   {"reco_daughter_allTrack_dEdX_SCE"})
            .Define("reco_beam_fixed_interactingEnergy",
                    fixed_interacting_energy(80.),
                    {"reco_beam_incidentEnergies", "reco_beam_interactingEnergy"})
            .Define("reco_beam_modified_interactingEnergy",
                    modified_interacting_energy(80.),
-                   {"beam_inst_P", "reco_beam_calibrated_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
+                   {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_beam_modified2_interactingEnergy",
                    modified_interacting_energy(20.),
-                   {"beam_inst_P", "reco_beam_calibrated_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
+                   {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_daughter_allTrack_Chi2_proton_ndof",
                    make_simple_chi2, 
                    {"reco_daughter_allTrack_Chi2_proton",
@@ -470,7 +471,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                     "cal_up_daughter_chi2_proton"})
            .Define("cal_down_daughter_chi2_proton",
                    recalc_chi2_proton(profile, 0.97),
-                   {"reco_daughter_allTrack_calibrated_dEdX_SCE",
+                   {"reco_daughter_allTrack_dEdX_SCE",
                     "reco_daughter_allTrack_resRange_SCE"})
            .Define("cal_down_has_noPion_daughter_simple",
                    secondary_noPion_simple(
