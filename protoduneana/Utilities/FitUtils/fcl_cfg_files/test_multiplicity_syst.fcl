@@ -1,0 +1,24 @@
+#include "asimov.fcl"
+RequireGoodHesse: true 
+
+MaxEntries: 40000 
+MaxDataEntries: @local::MaxEntries
+FitType: "None"
+FitFlux: false
+
+DoFakeData: false
+DoSysts: false
+AddSystTerm: false
+AnalysisOptions.DoMultiplicitySyst: true
+AnalysisOptions.MultiplicitySyst: {
+  #RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/bert_incl_compared.root"
+  RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/incl_multiplicity_vars.root"
+  Limits: [
+    [1, [0., 500., 600., 700., 800., 1250.]],
+    [2, [0., 500., 600., 700., 800., 1250.]],
+    [3, [0., 500., 600., 700., 800., 1250.]]
+  ]
+  #RatioName: "kes/r_pdsp_g4_Neutron_{topo}_{ke}" #"r_pdsp_genie_Proton_{topo}"
+  RatioName: "h_minus_{topo}_{ke}_Neutron"
+  PDG: 2112 
+}
