@@ -3353,11 +3353,13 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
       }
 
       reco_beam_incidentEnergies.push_back( init_KE );
-      for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
-        //use dedx * pitch or new hit calculation?
-        if (reco_beam_calo_points[i].dEdX < 0.) continue;
-        double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
-        reco_beam_incidentEnergies.push_back( this_energy );
+      if (reco_beam_calo_points.size() > 0) {
+        for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
+          //use dedx * pitch or new hit calculation?
+          if (reco_beam_calo_points[i].dEdX < 0.) continue;
+          double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
+          reco_beam_incidentEnergies.push_back( this_energy );
+        }
       }
       if( reco_beam_incidentEnergies.size() ) reco_beam_interactingEnergy = reco_beam_incidentEnergies.back();
     //} // END OF THIN SLICE
