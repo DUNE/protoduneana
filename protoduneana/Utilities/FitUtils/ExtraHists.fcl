@@ -1,0 +1,156 @@
+BEGIN_PROLOG
+
+ExtraHistEndZ: {
+    Category: "EndZ"
+    Name: "hEndZ"
+    Title: ";End Z [cm];Events per Bin"
+
+    DoFixedBins: true
+    Binning: [100, 0., 500.]
+    Bins: [0., 234., 500.]
+}
+
+ExtraHistSCEEndZ: {
+    Category: "SCEEndZ"
+    Name: "hSCEEndZ"
+    Title: ";SCE-Corrected End Z [cm];Events per Bin"
+
+    DoFixedBins: true
+    Binning: [50, 0., 250.]
+    Bins: [0., 234., 500.]
+}
+
+
+ExtraHistSCEEndZAbs: @local::ExtraHistSCEEndZ
+ExtraHistSCEEndZAbs.Category: "SCEEndZAbs"
+ExtraHistSCEEndZAbs.Name: "hSCEEndZAbs"
+
+ExtraHistSCEEndZCex: @local::ExtraHistSCEEndZ
+ExtraHistSCEEndZCex.Category: "SCEEndZCex"
+ExtraHistSCEEndZCex.Name: "hSCEEndZCex"
+
+ExtraHistSCEEndZOther: @local::ExtraHistSCEEndZ
+ExtraHistSCEEndZOther.Category: "SCEEndZOther"
+ExtraHistSCEEndZOther.Name: "hSCEEndZOther"
+
+ExtraHistShowerEnergy: {
+    Category: "ShowerEnergy"
+    Name: "hShowerEnergy"
+    Title: ";SCE-Corrected Shower Energy [cm];Events per Bin"
+
+    DoFixedBins: true
+    Binning: [100, 0., 1000.]
+    Bins: [0., 234., 500.]
+}
+
+ExtraHistEndZGoodReco: {
+    Category: "EndZGoodReco"
+    Name: "hEndZGoodReco"
+    Title: ";End Z [cm];Events per Bin"
+
+    DoFixedBins: true
+    Binning: [100, 0., 500.]
+    Bins: [0., 234., 500.]
+}
+
+ExtraHistStartX: {
+    Category: "StartX"
+    Name: "hStartX"
+    Title: ";Start X [cm];Events per Bin"
+    DoFixedBins: true
+    Binning: [100, -20., 20.]
+    Bins: [0., 234., 500.]
+
+    Options: {
+      MCMean: -30.81
+      MCSigma: 5.02
+      DataMean: -27.91
+      DataSigma: 4.71
+    }
+}
+ExtraHistStartY: {
+    Category: "StartY"
+    Name: "hStartY"
+    Title: ";Start Y [cm];Events per Bin"
+    DoFixedBins: true
+    Binning: [100, -20., 20.]
+    Bins: [0., 234., 500.]
+
+    Options: {
+      MCMean: 422.41
+      MCSigma: 4.51
+      DataMean: 424.36
+      DataSigma: 5.16
+    }
+}
+ExtraHistStartZ: {
+    Category: "StartZ"
+    Name: "hStartZ"
+    Title: ";Start Z [cm];Events per Bin"
+    DoFixedBins: true
+    Binning: [100, -20., 20.]
+    Bins: [0., 234., 500.]
+
+    Options: {
+      MCMean: 0.11
+      MCSigma: 0.22
+      #DataMean: 3.78
+      DataMean: 3.21
+      #DataSigma: 1.10
+      DataSigma: 1.24
+    }
+}
+
+
+ExtraHistTrackScore: {
+  Category: "TrackScore"
+  Name: "hTrackScore"
+  Title: ";CNN Track Score;Events per Bin"
+  DoFixedBins: true
+  Binning: [100, 0., 1.]
+  Bins: [0., 234., 500.]
+}
+ExtraHistVertexMichel: {
+  Category: "VertexMichel"
+  Name: "hVertexMichel"
+  Title: ";Vertex Michel Score;Events per Bin"
+  DoFixedBins: true
+  Binning: [26, -.04, 1.]
+  Bins: [0., 234., 500.]
+}
+
+ExtraHistChi2PerHit: {
+  Category: "Chi2PerHit"
+  Name: "hChi2PerHit"
+  Title: ";#xi;Events per Bin"
+  DoFixedBins: true
+  Binning: [100, 0., 500.]
+  Bins: [0., 234., 500.]
+}
+
+ExtraHistTrunc_dEdX: {
+  Category: "Trunc_dEdX"
+  Name: "hTrunc_dEdX"
+  Title: ";Truncated Mean dEdX [MeV/cm];Events per Bin"
+  DoFixedBins: true
+  Binning: [100, 0., 10.]
+  Bins: [0., 234., 500.]
+}
+
+AbsCexExtraHists: [
+  @local::ExtraHistSCEEndZ,
+  @local::ExtraHistSCEEndZAbs,
+  @local::ExtraHistSCEEndZCex,
+  @local::ExtraHistSCEEndZOther,
+  @local::ExtraHistShowerEnergy,
+  @local::ExtraHistEndZ,
+  @local::ExtraHistEndZGoodReco,
+  @local::ExtraHistStartX,
+  @local::ExtraHistStartY,
+  @local::ExtraHistStartZ,
+  @local::ExtraHistTrackScore,
+  @local::ExtraHistVertexMichel,
+  @local::ExtraHistChi2PerHit,
+  @local::ExtraHistTrunc_dEdX
+]
+END_PROLOG
