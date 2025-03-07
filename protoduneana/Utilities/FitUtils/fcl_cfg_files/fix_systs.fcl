@@ -1,0 +1,50 @@
+#include "asimov.fcl"
+
+MaxEntries: -1
+#MaxEntries: 40000
+MaxDataEntries: @local::MaxEntries
+DoThrows: false
+SplitMC: false 
+Shuffle: false 
+FluctuateStats: false #true
+FluctuateInSamples: false #true 
+FitType:  "Normal"
+FitFlux: false
+
+AddSystTerm: false
+DoFakeData: false
+AnalysisOptions.FakeDataRoutine: "Asimov"
+AnalysisOptions.ToSkip: [5, 6]
+
+SetSelVarCentrals: false #true
+SelectionVarSysts: [
+]
+
+FixVariables: true
+#Systs:
+#  @local::g4rw_proton_coeff
+#  ,@local::SystematicsList.end_z_no_track_weight
+#  ,@local::SystematicsList.beam_match_weight
+#  ,@local::g4rw_downstream_piplus_low_coeff
+#  ,@local::g4rw_downstream_piplus_high_coeff
+#  ,@local::SystematicsList.beam_scraper_weight
+Systematics[3]: @local::g4rw_full_piplus_low_coeff
+Systematics[4]: @local::g4rw_full_piplus_high_coeff
+CovarianceBins[3][0]: "g4rw_full_piplus_low_coeff"
+CovarianceBins[4][0]: "g4rw_full_piplus_high_coeff"
+
+SystsToFix: [
+  ["g4rw_proton_coeff", 1.0],
+  ["end_z_no_track_weight", 1.0],
+  ["beam_match_weight", 1.0],
+  ["g4rw_full_piplus_low_coeff", 1.0],
+  ["g4rw_full_piplus_high_coeff", 1.0],
+  ["beam_scraper_weight_pi", 1.0]
+  ,["beam_scraper_weight_lowp_mu", 1.0]
+  ,["beam_scraper_weight_highp_mu", 1.0]
+]
+
+
+ThrowAndFixSysts: false
+#SystsToThrowAndFix: [0]
+
