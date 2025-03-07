@@ -1,0 +1,23 @@
+#include "asimov.fcl"
+RequireGoodHesse: false
+
+MaxEntries: 80000 
+MaxDataEntries: @local::MaxEntries
+FitType: "None"
+
+DoFakeData: false
+DoSysts: false
+AddSystTerm: false
+AnalysisOptions.DoOutgoingSyst: true
+AnalysisOptions.OutgoingVarSyst: {
+  VaryMomentum: true #false
+  Combine: false 
+  RatioFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/FitInputs/hA_hN_vars.root"
+  Limits: [
+    [1, [0., 500., 600., 700., 800., 1250.]],
+    [2, [0., 500., 600., 700., 800., 1250.]],
+    [3, [0., 500., 600., 700., 800., 1250.]]
+  ]
+  RatioName: "h_plus_leading_{part}_{value}_ke"
+  PDGs: [2212, 211, 111]
+}
