@@ -17,7 +17,7 @@ cmake_minimum_required (VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
 project(protoduneana LANGUAGES CXX)
-set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 10.04.04d01)
+set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 10.04.05d00)
 
 # cetbuildtools contains our cmake modules
 
