@@ -56,7 +56,7 @@ protoana::AbsCexDriver::AbsCexDriver(
       fSliceMethod(extra_options.get<std::string>("SliceMethod")),
       fInclusive(extra_options.get<bool>("Inclusive", false)),
       fAltFluxVar(extra_options.get<bool>("AltFluxVar", false)),
-      fNewFVSelection(extra_options.get<bool>("NewFVSelection", false)),
+      // fNewFVSelection(extra_options.get<bool>("NewFVSelection", false)),
       fERecoSelections(extra_options.get<std::vector<int>>("ERecoSelections", {})),
       fEndZSelections(extra_options.get<std::vector<int>>("EndZSelections", {})),
       fOneBinSelections(extra_options.get<std::vector<int>>("OneBinSelections", {})),
@@ -199,678 +199,628 @@ protoana::AbsCexDriver::AbsCexDriver(
   std::cout << "Back Down: " << fMCBackDownSelection << std::endl;
 }
 
-void protoana::AbsCexDriver::FillMCEvents(
-    TTree * tree, std::vector<ThinSliceEvent> & events,
-    std::vector<ThinSliceEvent> & fake_data_events,
-    int & split_val, const bool & do_split, const bool & shuffle,
-    int max_entries, int max_fake_entries, const bool & do_fake_data) {
-  std::cout << "Filling MC Events" << std::endl;
 
-  int sample_ID, selection_ID, event, run, subrun;
-  int cal_up_selection_ID, cal_down_selection_ID;
-  int selection_ID_front_shift_up, selection_ID_front_shift_down,
-      selection_ID_back_shift_up, selection_ID_back_shift_down;
-  int true_beam_PDG;
-  double true_beam_interactingEnergy, reco_beam_interactingEnergy, reco_beam_alt_len;
-  double true_beam_endP, true_beam_mass, true_beam_endZ;
-  double reco_beam_endZ, true_beam_startP, reco_beam_startY;
-  double reco_beam_startX_SCE, reco_beam_startY_SCE, reco_beam_startZ_SCE;
-  double reco_beam_endZ_SCE;
-  double vertex_michel_score;
-  int vertex_nhits;
-  double beam_inst_P;
-  double leading_p_costheta, leading_piplus_costheta, leading_pi0_costheta;
-  double leading_p_momentum, leading_piplus_momentum, leading_pi0_momentum;
-  std::vector<double> * reco_beam_incidentEnergies = 0x0,
-                      * true_beam_incidentEnergies = 0x0,
-                      * true_beam_traj_Z = 0x0,
-                      * true_beam_traj_KE = 0x0,
-                      * reco_daughter_track_thetas = 0x0,
-                      * reco_daughter_track_scores = 0x0;
-  //std::vector<int> * true_beam_slices = 0x0;
-  tree->SetBranchAddress("event", &event); //good
-  tree->SetBranchAddress("subrun", &subrun); //good
-  tree->SetBranchAddress("run", &run); //good
+void protoana::AbsCexDriver::SetupExtraBranches() {}
+void protoana::AbsCexDriver::FillExtraBranches() {}
 
-  tree->SetBranchAddress("true_beam_PDG", &true_beam_PDG); //good
+// void protoana::AbsCexDriver::FillMCEvents(
+//     std::vector<ThinSliceEvent> & events,
+//     std::vector<ThinSliceEvent> & fake_data_events,
+//     int & split_val, const bool & do_split, const bool & shuffle,
+//     int max_entries, int max_fake_entries, const bool & do_fake_data) {
+//   std::cout << "Filling MC Events" << std::endl;
 
-  if (!fInclusive) { //good
-    tree->SetBranchAddress("new_interaction_topology", &sample_ID);
+//   int sample_ID, selection_ID, event, run, subrun;
+//   int cal_up_selection_ID, cal_down_selection_ID;
+//   int selection_ID_front_shift_up, selection_ID_front_shift_down,
+//       selection_ID_back_shift_up, selection_ID_back_shift_down;
+//   int true_beam_PDG;
+//   double true_beam_interactingEnergy, reco_beam_interactingEnergy, reco_beam_alt_len;
+//   double true_beam_endP, true_beam_mass, true_beam_endZ;
+//   double reco_beam_endZ, true_beam_startP, reco_beam_startY;
+//   double reco_beam_startX_SCE, reco_beam_startY_SCE, reco_beam_startZ_SCE;
+//   double reco_beam_endZ_SCE;
+//   double vertex_michel_score;
+//   int vertex_nhits;
+//   double beam_inst_P;
+//   double leading_p_costheta, leading_piplus_costheta, leading_pi0_costheta;
+//   double leading_p_momentum, leading_piplus_momentum, leading_pi0_momentum;
+//   std::vector<double> * reco_beam_incidentEnergies = 0x0,
+//                       * true_beam_incidentEnergies = 0x0,
+//                       * true_beam_traj_Z = 0x0,
+//                       * true_beam_traj_KE = 0x0,
+//                       * reco_daughter_track_thetas = 0x0,
+//                       * reco_daughter_track_scores = 0x0;
+//   fMCTree->SetBranchAddress("event", &event); //good
+//   fMCTree->SetBranchAddress("subrun", &subrun); //good
+//   fMCTree->SetBranchAddress("run", &run); //good
 
-    if (fNewFVSelection) {
-      tree->SetBranchAddress("selection_ID_FV", &selection_ID);
-    }
-    else {
-      tree->SetBranchAddress("selection_ID", &selection_ID);
-    }
-  }
-  else {
-    tree->SetBranchAddress("inclusive_topology", &sample_ID);
-    tree->SetBranchAddress("selection_ID_inclusive", &selection_ID);
-  }
-  tree->SetBranchAddress("cal_up_selection_ID", &cal_up_selection_ID);
-  tree->SetBranchAddress("cal_down_selection_ID", &cal_down_selection_ID);
+//   fMCTree->SetBranchAddress("true_beam_PDG", &true_beam_PDG); //good
 
-  tree->SetBranchAddress("selection_ID_front_shift_up",
-                         &selection_ID_front_shift_up);
-  tree->SetBranchAddress("selection_ID_front_shift_down",
-                         &selection_ID_front_shift_down);
+//   if (!fInclusive) { //good
+//     fMCTree->SetBranchAddress("new_interaction_topology", &sample_ID);
 
-  tree->SetBranchAddress("selection_ID_back_shift_up",
-                         &selection_ID_back_shift_up);
-  tree->SetBranchAddress("selection_ID_back_shift_down",
-                         &selection_ID_back_shift_down);
+//     if (fNewFVSelection) {
+//       fMCTree->SetBranchAddress("selection_ID_FV", &selection_ID);
+//     }
+//     else {
+//       fMCTree->SetBranchAddress("selection_ID", &selection_ID);
+//     }
+//   }
+//   else {
+//     fMCTree->SetBranchAddress("inclusive_topology", &sample_ID);
+//     fMCTree->SetBranchAddress("selection_ID_inclusive", &selection_ID);
+//   }
+//   fMCTree->SetBranchAddress("cal_up_selection_ID", &cal_up_selection_ID);
+//   fMCTree->SetBranchAddress("cal_down_selection_ID", &cal_down_selection_ID);
 
-  tree->SetBranchAddress("true_beam_interactingEnergy", //good
-                         &true_beam_interactingEnergy);
-  tree->SetBranchAddress("true_beam_endP", &true_beam_endP); //good
-  tree->SetBranchAddress("true_beam_endZ", &true_beam_endZ); //good
-  tree->SetBranchAddress("true_beam_mass", &true_beam_mass); //good
-  tree->SetBranchAddress("reco_beam_interactingEnergy", //good
-                         &reco_beam_interactingEnergy);
-  tree->SetBranchAddress("reco_beam_alt_len", &reco_beam_alt_len);
-  tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ); //good
-  tree->SetBranchAddress("reco_beam_calo_startX", &reco_beam_startX_SCE);
-  tree->SetBranchAddress("reco_beam_calo_startY", &reco_beam_startY_SCE);
-  tree->SetBranchAddress("reco_beam_calo_startZ", &reco_beam_startZ_SCE);
-  tree->SetBranchAddress("reco_beam_calo_endZ", &reco_beam_endZ_SCE);
-  tree->SetBranchAddress("reco_beam_vertex_michel_score", &vertex_michel_score);
-  tree->SetBranchAddress("reco_beam_vertex_nHits", &vertex_nhits);
-  tree->SetBranchAddress("reco_beam_startY", &reco_beam_startY); //good
-  tree->SetBranchAddress("reco_beam_incidentEnergies", //good
-                         &reco_beam_incidentEnergies);
-  tree->SetBranchAddress("true_beam_incidentEnergies", //good
-                         &true_beam_incidentEnergies);
-  /*tree->SetBranchAddress("true_beam_slices", //good
-                         &true_beam_slices);*/
-  tree->SetBranchAddress("true_beam_startP", &true_beam_startP); //good
-  tree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z); //good
-  tree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE); //good
-  /*std::vector<double> * calibrated_dQdX = 0x0, * beam_EField = 0x0, //good
-                      * track_pitch = 0x0; //good*/
-  //tree->SetBranchAddress("reco_beam_calibrated_dQdX_SCE", &calibrated_dQdX); //good
-  //tree->SetBranchAddress("reco_beam_EField_SCE", &beam_EField); //good
-  //tree->SetBranchAddress("reco_beam_TrkPitch_SCE", &track_pitch); //good
-  tree->SetBranchAddress("beam_inst_P", &beam_inst_P); //good
-  tree->SetBranchAddress("reco_daughter_allTrack_Theta", &reco_daughter_track_thetas); //good
-  tree->SetBranchAddress("reco_daughter_PFP_trackScore_collection", //good
-                            &reco_daughter_track_scores);
-  std::vector<int> * true_beam_daughter_PDG = 0x0;
-  tree->SetBranchAddress("true_beam_daughter_PDG", &true_beam_daughter_PDG);//good
+//   fMCTree->SetBranchAddress("selection_ID_front_shift_up",
+//                          &selection_ID_front_shift_up);
+//   fMCTree->SetBranchAddress("selection_ID_front_shift_down",
+//                          &selection_ID_front_shift_down);
 
-  int true_beam_ID, reco_beam_true_byHits_ID;
-  tree->SetBranchAddress("true_beam_ID", &true_beam_ID); //good
-  tree->SetBranchAddress("reco_beam_true_byHits_ID", &reco_beam_true_byHits_ID); //good
+//   fMCTree->SetBranchAddress("selection_ID_back_shift_up",
+//                          &selection_ID_back_shift_up);
+//   fMCTree->SetBranchAddress("selection_ID_back_shift_down",
+//                          &selection_ID_back_shift_down);
 
-  std::vector<std::vector<double>> * g4rw_full_grid_proton_coeffs = 0x0,
-                                   * g4rw_full_grid_piplus_coeffs = 0x0,
-                                   * g4rw_full_fine_piplus_coeffs = 0x0,
-                                   * g4rw_full_grid_abscex_coeffs = 0x0,
-                                   * g4rw_primary_grid_abscex_coeffs = 0x0,
-                                   * g4rw_downstream_grid_piplus_coeffs = 0x0;
-  tree->SetBranchAddress("g4rw_full_grid_proton_coeffs", //good
-                         &g4rw_full_grid_proton_coeffs);
-  tree->SetBranchAddress("g4rw_full_grid_piplus_coeffs",
-                         &g4rw_full_grid_piplus_coeffs);
-  tree->SetBranchAddress("g4rw_full_fine_piplus_coeffs",
-                         &g4rw_full_fine_piplus_coeffs);
-  tree->SetBranchAddress("g4rw_full_grid_abscex_coeffs",
-                         &g4rw_full_grid_abscex_coeffs);
-  tree->SetBranchAddress("g4rw_primary_grid_abscex_coeffs",
-                         &g4rw_primary_grid_abscex_coeffs);
-  tree->SetBranchAddress("g4rw_downstream_grid_piplus_coeffs", //good
-                         &g4rw_downstream_grid_piplus_coeffs);
+//   fMCTree->SetBranchAddress("true_beam_interactingEnergy", //good
+//                          &true_beam_interactingEnergy);
+//   fMCTree->SetBranchAddress("true_beam_endP", &true_beam_endP); //good
+//   fMCTree->SetBranchAddress("true_beam_endZ", &true_beam_endZ); //good
+//   fMCTree->SetBranchAddress("true_beam_mass", &true_beam_mass); //good
+//   fMCTree->SetBranchAddress("reco_beam_interactingEnergy", //good
+//                          &reco_beam_interactingEnergy);
+//   fMCTree->SetBranchAddress("reco_beam_alt_len", &reco_beam_alt_len);
+//   fMCTree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ); //good
+//   fMCTree->SetBranchAddress("reco_beam_calo_startX", &reco_beam_startX_SCE);
+//   fMCTree->SetBranchAddress("reco_beam_calo_startY", &reco_beam_startY_SCE);
+//   fMCTree->SetBranchAddress("reco_beam_calo_startZ", &reco_beam_startZ_SCE);
+//   fMCTree->SetBranchAddress("reco_beam_calo_endZ", &reco_beam_endZ_SCE);
+//   fMCTree->SetBranchAddress("reco_beam_vertex_michel_score", &vertex_michel_score);
+//   fMCTree->SetBranchAddress("reco_beam_vertex_nHits", &vertex_nhits);
+//   fMCTree->SetBranchAddress("reco_beam_startY", &reco_beam_startY); //good
+//   fMCTree->SetBranchAddress("reco_beam_incidentEnergies", //good
+//                          &reco_beam_incidentEnergies);
+//   fMCTree->SetBranchAddress("true_beam_incidentEnergies", //good
+//                          &true_beam_incidentEnergies);
 
-  std::vector<std::vector<double>> * daughter_dQdXs = 0x0,
-                                   * daughter_resRanges = 0x0,
-                                   * daughter_EFields = 0x0;
-  tree->SetBranchAddress(
-      "reco_daughter_allTrack_calibrated_dQdX_SCE", &daughter_dQdXs);//good
-  tree->SetBranchAddress(
-      "reco_daughter_allTrack_resRange_SCE", &daughter_resRanges);//good
-  tree->SetBranchAddress(
-      "reco_daughter_allTrack_EField_SCE", &daughter_EFields);//good
-  bool has_pi0_shower;
-  tree->SetBranchAddress("has_shower_dist_energy", &has_pi0_shower);//good 
-  std::vector<double> * true_beam_daughter_startP = 0x0;
-  tree->SetBranchAddress("true_beam_daughter_startP",  &true_beam_daughter_startP);//good
-  tree->SetBranchAddress("leading_p_costheta", &leading_p_costheta);//good
-  tree->SetBranchAddress("leading_piplus_costheta", &leading_piplus_costheta);//good
-  tree->SetBranchAddress("leading_pi0_costheta", &leading_pi0_costheta);//good
-  tree->SetBranchAddress("leading_p_momentum", &leading_p_momentum);//good
-  tree->SetBranchAddress("leading_piplus_momentum", &leading_piplus_momentum);//good
-  tree->SetBranchAddress("leading_pi0_momentum", &leading_pi0_momentum);//good
-  bool is_beam_scraper;
-  tree->SetBranchAddress("true_beam_is_scraper", &is_beam_scraper);//good
+//   fMCTree->SetBranchAddress("true_beam_startP", &true_beam_startP); //good
+//   fMCTree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z); //good
+//   fMCTree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE); //good
 
-  std::vector<double> * reco_daughter_chi2 = 0x0,
-                      * reco_daughter_truncated_dEdX = 0x0;
-  std::vector<int> * reco_daughter_chi2_nhits = 0x0;
-  tree->SetBranchAddress("reco_daughter_allTrack_Chi2_proton",
-                         &reco_daughter_chi2);
-  tree->SetBranchAddress("reco_daughter_allTrack_Chi2_ndof",
-                         &reco_daughter_chi2_nhits);
-  tree->SetBranchAddress("reco_daughter_allTrack_truncLibo_dEdX_pos",
-                         &reco_daughter_truncated_dEdX);
-  int true_n_neutrons, true_n_protons, true_n_piplus, true_n_piminus,
-      true_n_pi0;
-  tree->SetBranchAddress("true_daughter_nNeutron", &true_n_neutrons);
-  tree->SetBranchAddress("true_daughter_nProton", &true_n_protons);
-  tree->SetBranchAddress("true_daughter_nPiPlus", &true_n_piplus);
-  tree->SetBranchAddress("true_daughter_nPiMinus", &true_n_piminus);
-  tree->SetBranchAddress("true_daughter_nPi0", &true_n_pi0);
+//   fMCTree->SetBranchAddress("beam_inst_P", &beam_inst_P); //good
+//   fMCTree->SetBranchAddress("reco_daughter_allTrack_Theta", &reco_daughter_track_thetas); //good
+//   fMCTree->SetBranchAddress("reco_daughter_PFP_trackScore_collection", //good
+//                             &reco_daughter_track_scores);
+//   std::vector<int> * true_beam_daughter_PDG = 0x0;
+//   fMCTree->SetBranchAddress("true_beam_daughter_PDG", &true_beam_daughter_PDG);//good
 
-  std::vector<double> * reco_daughter_shower_energy = 0x0;
-  tree->SetBranchAddress("reco_daughter_allShower_energy",
-                         &reco_daughter_shower_energy);
+//   int true_beam_ID, reco_beam_true_byHits_ID;
+//   fMCTree->SetBranchAddress("true_beam_ID", &true_beam_ID); //good
+//   fMCTree->SetBranchAddress("reco_beam_true_byHits_ID", &reco_beam_true_byHits_ID); //good
 
-  int nentries = (max_entries < 0 ? tree->GetEntries() : max_entries);
-  if (max_entries > tree->GetEntries()) {
-      std::string message = "Requested more entries than in MC tree";
-      throw std::runtime_error(message);
-  }
+//   std::vector<std::vector<double>> * g4rw_full_grid_proton_coeffs = 0x0,
+//                                    * g4rw_full_grid_piplus_coeffs = 0x0,
+//                                    * g4rw_full_fine_piplus_coeffs = 0x0,
+//                                    * g4rw_full_grid_abscex_coeffs = 0x0,
+//                                    * g4rw_primary_grid_abscex_coeffs = 0x0,
+//                                    * g4rw_downstream_grid_piplus_coeffs = 0x0;
+//   fMCTree->SetBranchAddress("g4rw_full_grid_proton_coeffs", //good
+//                          &g4rw_full_grid_proton_coeffs);
+//   fMCTree->SetBranchAddress("g4rw_full_grid_piplus_coeffs",
+//                          &g4rw_full_grid_piplus_coeffs);
+//   fMCTree->SetBranchAddress("g4rw_full_fine_piplus_coeffs",
+//                          &g4rw_full_fine_piplus_coeffs);
+//   fMCTree->SetBranchAddress("g4rw_full_grid_abscex_coeffs",
+//                          &g4rw_full_grid_abscex_coeffs);
+//   fMCTree->SetBranchAddress("g4rw_primary_grid_abscex_coeffs",
+//                          &g4rw_primary_grid_abscex_coeffs);
+//   fMCTree->SetBranchAddress("g4rw_downstream_grid_piplus_coeffs", //good
+//                          &g4rw_downstream_grid_piplus_coeffs);
 
-  split_val = nentries;
+//   std::vector<std::vector<double>> * daughter_dQdXs = 0x0,
+//                                    * daughter_resRanges = 0x0,
+//                                    * daughter_EFields = 0x0;
+//   fMCTree->SetBranchAddress(
+//       "reco_daughter_allTrack_calibrated_dQdX_SCE", &daughter_dQdXs);//good
+//   fMCTree->SetBranchAddress(
+//       "reco_daughter_allTrack_resRange_SCE", &daughter_resRanges);//good
+//   fMCTree->SetBranchAddress(
+//       "reco_daughter_allTrack_EField_SCE", &daughter_EFields);//good
+//   bool has_pi0_shower;
+//   fMCTree->SetBranchAddress("has_shower_dist_energy", &has_pi0_shower);//good 
+//   std::vector<double> * true_beam_daughter_startP = 0x0;
+//   fMCTree->SetBranchAddress("true_beam_daughter_startP",  &true_beam_daughter_startP);//good
+//   fMCTree->SetBranchAddress("leading_p_costheta", &leading_p_costheta);//good
+//   fMCTree->SetBranchAddress("leading_piplus_costheta", &leading_piplus_costheta);//good
+//   fMCTree->SetBranchAddress("leading_pi0_costheta", &leading_pi0_costheta);//good
+//   fMCTree->SetBranchAddress("leading_p_momentum", &leading_p_momentum);//good
+//   fMCTree->SetBranchAddress("leading_piplus_momentum", &leading_piplus_momentum);//good
+//   fMCTree->SetBranchAddress("leading_pi0_momentum", &leading_pi0_momentum);//good
+//   bool is_beam_scraper;
+//   fMCTree->SetBranchAddress("true_beam_is_scraper", &is_beam_scraper);//good
 
-  int events_end = nentries;
-  int fake_start = 0;
+//   std::vector<double> * reco_daughter_chi2 = 0x0,
+//                       * reco_daughter_truncated_dEdX = 0x0;
+//   std::vector<int> * reco_daughter_chi2_nhits = 0x0;
+//   fMCTree->SetBranchAddress("reco_daughter_allTrack_Chi2_proton",
+//                          &reco_daughter_chi2);
+//   fMCTree->SetBranchAddress("reco_daughter_allTrack_Chi2_ndof",
+//                          &reco_daughter_chi2_nhits);
+//   fMCTree->SetBranchAddress("reco_daughter_allTrack_truncLibo_dEdX_pos",
+//                          &reco_daughter_truncated_dEdX);
+//   int true_n_neutrons, true_n_protons, true_n_piplus, true_n_piminus,
+//       true_n_pi0;
+//   fMCTree->SetBranchAddress("true_daughter_nNeutron", &true_n_neutrons);
+//   fMCTree->SetBranchAddress("true_daughter_nProton", &true_n_protons);
+//   fMCTree->SetBranchAddress("true_daughter_nPiPlus", &true_n_piplus);
+//   fMCTree->SetBranchAddress("true_daughter_nPiMinus", &true_n_piminus);
+//   fMCTree->SetBranchAddress("true_daughter_nPi0", &true_n_pi0);
 
-  std::vector<int> event_list, fake_event_list;
+//   std::vector<double> * reco_daughter_shower_energy = 0x0;
+//   fMCTree->SetBranchAddress("reco_daughter_allShower_energy",
+//                          &reco_daughter_shower_energy);
 
-  if (do_split) {
-    split_val = nentries/2;
-    events_end = nentries/2;
-    fake_start = events_end;
-    std::cout << "Note: Splitting MC in half. " <<
-                 split_val << "/" << nentries <<std::endl;
-    if (shuffle) {
-      for (int i = 0; i < nentries; ++i) {
-        event_list.push_back(i);
-      }
-      for (int i = 0; i < events_end; ++i) {
-        int r = fRNG.Integer(event_list.size());
-        fake_event_list.push_back(event_list[r]);
-        event_list.erase(event_list.begin()+r);
-      }
+//   int nentries = (max_entries < 0 ? fMCTree->GetEntries() : max_entries);
+//   if (max_entries > fMCTree->GetEntries()) {
+//       std::string message = "Requested more entries than in MC fMCTree";
+//       throw std::runtime_error(message);
+//   }
 
-      std::sort(event_list.begin(), event_list.end());
-      std::sort(fake_event_list.begin(), fake_event_list.end());
+//   split_val = nentries;
 
-      std::cout << "Shuffled " << event_list.size() << " " <<
-                   fake_event_list.size() << std::endl;
-      for (int & i : event_list) {
-        if (std::find(fake_event_list.begin(), fake_event_list.end(), i) !=
-            fake_event_list.end()) {
-          std::cout << "Incorrectly shuffled" << std::endl;
-        }
-      }
-    }
-    else {
-      for (int i = 0; i < events_end; ++i) {
-        event_list.push_back(i);
-      }
-      for (int i = fake_start; i < nentries; ++i) {
-        fake_event_list.push_back(i);
-      }
-      std::cout << "Split " << event_list.size() << " " <<
-                   fake_event_list.size() << std::endl;
-    }
-  }
-  else {
-    int nfake_entries = (max_fake_entries < 0 ? tree->GetEntries() : max_fake_entries);
-    if (max_fake_entries > tree->GetEntries()) {
-        std::string message = "Requested more fake_entries than in MC tree";
-        throw std::runtime_error(message);
-    }
-    for (int i = 0; i < events_end; ++i) {
-      event_list.push_back(i);
-    }
-    for (int i = 0; i < nfake_entries; ++i) {
-      fake_event_list.push_back(i);
-    }
-  }
+//   int events_end = nentries;
+//   int fake_start = 0;
 
-  /*
-  TEntryList event_list, fake_event_list;
-  for (int i = events_start; i < events_end; ++i) {
-    event_list.Enter(i);
-  }
-  for (int i = fake_start; i < fake_end; ++i) {
-    fake_event_list.Enter(i);
-  }
+//   std::vector<int> event_list, fake_event_list;
 
-  ROOT::EnableImplicitMT(fNThreads);
-  ROOT::TTreeProcessorMT tp(*tree, event_list);
+//   if (do_split) {
+//     split_val = nentries/2;
+//     events_end = nentries/2;
+//     fake_start = events_end;
+//     std::cout << "Note: Splitting MC in half. " <<
+//                  split_val << "/" << nentries <<std::endl;
+//     if (shuffle) {
+//       for (int i = 0; i < nentries; ++i) {
+//         event_list.push_back(i);
+//       }
+//       for (int i = 0; i < events_end; ++i) {
+//         int r = fRNG.Integer(event_list.size());
+//         fake_event_list.push_back(event_list[r]);
+//         event_list.erase(event_list.begin()+r);
+//       }
 
-  auto fill_func = [&](TTreeReader & myReader) {
-    TTreeReaderValue<int> runRV(myReader, "run");
-    TTreeReaderValue<int> eventRV(myReader, "event");
-    TTreeReaderValue<int> sample_IDRV(myReader, (!fInclusive ? 
-                                                 "new_interaction_topology" :
-                                                 "inclusive_topology"));
+//       std::sort(event_list.begin(), event_list.end());
+//       std::sort(fake_event_list.begin(), fake_event_list.end());
 
-    TTreeReaderValue<int> selection_IDRV(myReader, (!fInclusive ? 
-                                                    "selection_ID" :
-                                                    "selection_ID_inclusive"));
-    TTreeReaderValue<int> subrunRV(myReader, "subrun");
-    TTreeReaderValue<int> true_beam_PDGRV(myReader, "true_beam_PDG");
+//       std::cout << "Shuffled " << event_list.size() << " " <<
+//                    fake_event_list.size() << std::endl;
+//       for (int & i : event_list) {
+//         if (std::find(fake_event_list.begin(), fake_event_list.end(), i) !=
+//             fake_event_list.end()) {
+//           std::cout << "Incorrectly shuffled" << std::endl;
+//         }
+//       }
+//     }
+//     else {
+//       for (int i = 0; i < events_end; ++i) {
+//         event_list.push_back(i);
+//       }
+//       for (int i = fake_start; i < nentries; ++i) {
+//         fake_event_list.push_back(i);
+//       }
+//       std::cout << "Split " << event_list.size() << " " <<
+//                    fake_event_list.size() << std::endl;
+//     }
+//   }
+//   else {
+//     int nfake_entries = (max_fake_entries < 0 ? fMCTree->GetEntries() : max_fake_entries);
+//     if (max_fake_entries > fMCTree->GetEntries()) {
+//         std::string message = "Requested more fake_entries than in MC fMCTree";
+//         throw std::runtime_error(message);
+//     }
+//     for (int i = 0; i < events_end; ++i) {
+//       event_list.push_back(i);
+//     }
+//     for (int i = 0; i < nfake_entries; ++i) {
+//       fake_event_list.push_back(i);
+//     }
+//   }
 
-    TTreeReaderValue<double> true_beam_interactingEnergyRV(myReader, "true_beam_interactingEnergy");
-    TTreeReaderValue<double> reco_beam_interactingEnergyRV(myReader, "reco_beam_interactingEnergy");
-    TTreeReaderValue<double> true_beam_endPRV(myReader, "true_beam_endP");
-    TTreeReaderValue<double> true_beam_massRV(myReader, "true_beam_mass");
-    TTreeReaderValue<double> true_beam_endZRV(myReader, "true_beam_endZ");
-    TTreeReaderValue<double> reco_beam_endZRV(myReader, "reco_beam_endZ");
-    TTreeReaderValue<double> true_beam_startPRV(myReader, "true_beam_startP");
-    TTreeReaderValue<double> reco_beam_startYRV(myReader, "reco_beam_startY");
-    TTreeReaderValue<double> beam_inst_PRV(myReader, "beam_inst_P");
-    TTreeReaderValue<double> leading_p_costhetaRV(myReader, "leading_p_costheta");
-    TTreeReaderValue<double> leading_piplus_costhetaRV(myReader, "leading_piplus_costheta");
-    TTreeReaderValue<double> leading_pi0_costhetaRV(myReader, "leading_pi0_costheta");
+//   /*
+//   TEntryList event_list, fake_event_list;
+//   for (int i = events_start; i < events_end; ++i) {
+//     event_list.Enter(i);
+//   }
+//   for (int i = fake_start; i < fake_end; ++i) {
+//     fake_event_list.Enter(i);
+//   }
 
-    TTreeReaderValue<std::vector<double>> reco_beam_incidentEnergiesRV(myReader, "reco_beam_incidentEnergies");
-    TTreeReaderValue<std::vector<double>> true_beam_incidentEnergiesRV(myReader, "true_beam_incidentEnergies");
-    TTreeReaderValue<std::vector<double>> true_beam_traj_ZRV(myReader, "true_beam_traj_Z");
-    TTreeReaderValue<std::vector<double>> true_beam_traj_KERV(myReader, "true_beam_traj_KE");
-    TTreeReaderValue<std::vector<double>> reco_daughter_track_thetasRV(myReader, "reco_daughter_allTrack_Theta");
-    TTreeReaderValue<std::vector<double>> reco_daughter_track_scoresRV(myReader, "reco_daughter_PFP_trackScore_collection");
-    TTreeReaderValue<std::vector<int>> true_beam_slicesRV(myReader, "true_beam_slices");
-    TTreeReaderValue<std::vector<double>> calibrated_dQdXRV(myReader, "reco_beam_calibrated_dQdX_SCE");
-    TTreeReaderValue<std::vector<double>> beam_EFieldRV(myReader, "reco_beam_EField_SCE");
-    TTreeReaderValue<std::vector<double>> track_pitchRV(myReader, "reco_beam_TrkPitch_SCE");
-    TTreeReaderValue<std::vector<int>> true_beam_daughter_PDGRV(myReader, "true_beam_daughter_PDG");
+//   ROOT::EnableImplicitMT(fNThreads);
+//   ROOT::TTreeProcessorMT tp(*fMCTree, event_list);
+
+//   auto fill_func = [&](TTreeReader & myReader) {
+//     TTreeReaderValue<int> runRV(myReader, "run");
+//     TTreeReaderValue<int> eventRV(myReader, "event");
+//     TTreeReaderValue<int> sample_IDRV(myReader, (!fInclusive ? 
+//                                                  "new_interaction_topology" :
+//                                                  "inclusive_topology"));
+
+//     TTreeReaderValue<int> selection_IDRV(myReader, (!fInclusive ? 
+//                                                     "selection_ID" :
+//                                                     "selection_ID_inclusive"));
+//     TTreeReaderValue<int> subrunRV(myReader, "subrun");
+//     TTreeReaderValue<int> true_beam_PDGRV(myReader, "true_beam_PDG");
+
+//     TTreeReaderValue<double> true_beam_interactingEnergyRV(myReader, "true_beam_interactingEnergy");
+//     TTreeReaderValue<double> reco_beam_interactingEnergyRV(myReader, "reco_beam_interactingEnergy");
+//     TTreeReaderValue<double> true_beam_endPRV(myReader, "true_beam_endP");
+//     TTreeReaderValue<double> true_beam_massRV(myReader, "true_beam_mass");
+//     TTreeReaderValue<double> true_beam_endZRV(myReader, "true_beam_endZ");
+//     TTreeReaderValue<double> reco_beam_endZRV(myReader, "reco_beam_endZ");
+//     TTreeReaderValue<double> true_beam_startPRV(myReader, "true_beam_startP");
+//     TTreeReaderValue<double> reco_beam_startYRV(myReader, "reco_beam_startY");
+//     TTreeReaderValue<double> beam_inst_PRV(myReader, "beam_inst_P");
+//     TTreeReaderValue<double> leading_p_costhetaRV(myReader, "leading_p_costheta");
+//     TTreeReaderValue<double> leading_piplus_costhetaRV(myReader, "leading_piplus_costheta");
+//     TTreeReaderValue<double> leading_pi0_costhetaRV(myReader, "leading_pi0_costheta");
+
+//     TTreeReaderValue<std::vector<double>> reco_beam_incidentEnergiesRV(myReader, "reco_beam_incidentEnergies");
+//     TTreeReaderValue<std::vector<double>> true_beam_incidentEnergiesRV(myReader, "true_beam_incidentEnergies");
+//     TTreeReaderValue<std::vector<double>> true_beam_traj_ZRV(myReader, "true_beam_traj_Z");
+//     TTreeReaderValue<std::vector<double>> true_beam_traj_KERV(myReader, "true_beam_traj_KE");
+//     TTreeReaderValue<std::vector<double>> reco_daughter_track_thetasRV(myReader, "reco_daughter_allTrack_Theta");
+//     TTreeReaderValue<std::vector<double>> reco_daughter_track_scoresRV(myReader, "reco_daughter_PFP_trackScore_collection");
+//     TTreeReaderValue<std::vector<int>> true_beam_slicesRV(myReader, "true_beam_slices");
+//     TTreeReaderValue<std::vector<double>> calibrated_dQdXRV(myReader, "reco_beam_calibrated_dQdX_SCE");
+//     TTreeReaderValue<std::vector<double>> beam_EFieldRV(myReader, "reco_beam_EField_SCE");
+//     TTreeReaderValue<std::vector<double>> track_pitchRV(myReader, "reco_beam_TrkPitch_SCE");
+//     TTreeReaderValue<std::vector<int>> true_beam_daughter_PDGRV(myReader, "true_beam_daughter_PDG");
 
 
-    TTreeReaderValue<std::vector<std::vector<double>>> g4rw_full_grid_proton_coeffsRV(myReader, "g4rw_full_grid_proton_coeffs");
-    TTreeReaderValue<std::vector<std::vector<double>>> g4rw_downstream_grid_piplus_coeffsRV(myReader, "g4rw_downstream_grid_piplus_coeffs");
-    TTreeReaderValue<std::vector<std::vector<double>>> daughter_dQdXsRV(myReader, "reco_daughter_allTrack_calibrated_dQdX_SCE");
-    TTreeReaderValue<std::vector<std::vector<double>>> daughter_resRangesRV(myReader, "reco_daughter_allTrack_resRange_SCE");
-    TTreeReaderValue<std::vector<std::vector<double>>> daughter_EFieldsRV(myReader, "reco_daughter_allTrack_EField_SCE");
+//     TTreeReaderValue<std::vector<std::vector<double>>> g4rw_full_grid_proton_coeffsRV(myReader, "g4rw_full_grid_proton_coeffs");
+//     TTreeReaderValue<std::vector<std::vector<double>>> g4rw_downstream_grid_piplus_coeffsRV(myReader, "g4rw_downstream_grid_piplus_coeffs");
+//     TTreeReaderValue<std::vector<std::vector<double>>> daughter_dQdXsRV(myReader, "reco_daughter_allTrack_calibrated_dQdX_SCE");
+//     TTreeReaderValue<std::vector<std::vector<double>>> daughter_resRangesRV(myReader, "reco_daughter_allTrack_resRange_SCE");
+//     TTreeReaderValue<std::vector<std::vector<double>>> daughter_EFieldsRV(myReader, "reco_daughter_allTrack_EField_SCE");
 
-    TTreeReaderValue<std::vector<double>> true_beam_daughter_startPRV(myReader, "true_beam_daughter_startP");
-    TTreeReaderValue<int> true_beam_IDRV(myReader, "true_beam_ID");
-    TTreeReaderValue<int> reco_beam_true_byHits_IDRV(myReader, "reco_beam_true_byHits_ID");
-    TTreeReaderValue<bool> has_pi0_showerRV(myReader, "has_shower_dist_energy");
-    TTreeReaderValue<bool> is_beam_scraperRV(myReader, "true_beam_is_scraper");
+//     TTreeReaderValue<std::vector<double>> true_beam_daughter_startPRV(myReader, "true_beam_daughter_startP");
+//     TTreeReaderValue<int> true_beam_IDRV(myReader, "true_beam_ID");
+//     TTreeReaderValue<int> reco_beam_true_byHits_IDRV(myReader, "reco_beam_true_byHits_ID");
+//     TTreeReaderValue<bool> has_pi0_showerRV(myReader, "has_shower_dist_energy");
+//     TTreeReaderValue<bool> is_beam_scraperRV(myReader, "true_beam_is_scraper");
 
 
-    std::cout << "Starting thread" << std::endl;
-    while (myReader.Next()) {
-      auto run = *runRV;
-      auto subrun = *subrunRV;
-      auto event = *eventRV;
+//     std::cout << "Starting thread" << std::endl;
+//     while (myReader.Next()) {
+//       auto run = *runRV;
+//       auto subrun = *subrunRV;
+//       auto event = *eventRV;
 
-      ThinSliceEvent thin_slice_event(event, subrun, run);
-      thin_slice_event.SetSampleID(*sample_IDRV);
-      thin_slice_event.SetSelectionID(*selection_IDRV);
-      thin_slice_event.SetTrueInteractingEnergy(*true_beam_interactingEnergyRV);
-      thin_slice_event.SetRecoInteractingEnergy(*reco_beam_interactingEnergyRV);
-      thin_slice_event.SetTrueEndP(*true_beam_endPRV);
-      thin_slice_event.SetTrueEndZ(*true_beam_endZRV);
-      thin_slice_event.SetTrueStartP(*true_beam_startPRV);
-      thin_slice_event.SetTrueMass(*true_beam_massRV);
-      thin_slice_event.SetRecoEndZ(*reco_beam_endZRV);
-      thin_slice_event.SetRecoStartY(*reco_beam_startYRV);
+//       ThinSliceEvent thin_slice_event(event, subrun, run);
+//       thin_slice_event.SetSampleID(*sample_IDRV);
+//       thin_slice_event.SetSelectionID(*selection_IDRV);
+//       thin_slice_event.SetTrueInteractingEnergy(*true_beam_interactingEnergyRV);
+//       thin_slice_event.SetRecoInteractingEnergy(*reco_beam_interactingEnergyRV);
+//       thin_slice_event.SetTrueEndP(*true_beam_endPRV);
+//       thin_slice_event.SetTrueEndZ(*true_beam_endZRV);
+//       thin_slice_event.SetTrueStartP(*true_beam_startPRV);
+//       thin_slice_event.SetTrueMass(*true_beam_massRV);
+//       thin_slice_event.SetRecoEndZ(*reco_beam_endZRV);
+//       thin_slice_event.SetRecoStartY(*reco_beam_startYRV);
 
-      thin_slice_event.SetTrueID(*true_beam_IDRV);
-      thin_slice_event.SetRecoToTrueID(*reco_beam_true_byHits_IDRV);
+//       thin_slice_event.SetTrueID(*true_beam_IDRV);
+//       thin_slice_event.SetRecoToTrueID(*reco_beam_true_byHits_IDRV);
 
-      thin_slice_event.SetRecoIncidentEnergies(*reco_beam_incidentEnergiesRV);
-      thin_slice_event.SetTrueIncidentEnergies(*true_beam_incidentEnergiesRV);
-      thin_slice_event.SetTrueTrajZ(*true_beam_traj_ZRV);
-      thin_slice_event.SetTrueTrajKE(*true_beam_traj_KERV);
-      thin_slice_event.SetTrueSlices(*true_beam_slicesRV);
-      thin_slice_event.SetdQdXCalibrated(*calibrated_dQdXRV);
-      thin_slice_event.SetEField(*beam_EFieldRV);
-      thin_slice_event.SetTrackPitch(*track_pitchRV);
-      thin_slice_event.SetBeamInstP(*beam_inst_PRV);
-      thin_slice_event.SetPDG(*true_beam_PDGRV);
-      thin_slice_event.SetRecoDaughterTrackThetas(*reco_daughter_track_thetasRV);
-      thin_slice_event.SetRecoDaughterTrackScores(*reco_daughter_track_scoresRV);
-      thin_slice_event.SetHasPi0Shower(*has_pi0_showerRV);
-      thin_slice_event.SetLeadingPCostheta(*leading_p_costhetaRV);
-      thin_slice_event.SetLeadingPiPlusCostheta(*leading_piplus_costhetaRV);
-      thin_slice_event.SetLeadingPi0Costheta(*leading_pi0_costhetaRV);
-      thin_slice_event.SetIsBeamScraper(*is_beam_scraperRV);
-      for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
-        thin_slice_event.AddRecoDaughterTrackdQdX((*daughter_dQdXsRV)[j]);
-        thin_slice_event.AddRecoDaughterTrackResRange((*daughter_resRangesRV)[j]);
-        thin_slice_event.AddRecoDaughterEField((*daughter_EFieldsRV)[j]);
-      }
+//       thin_slice_event.SetRecoIncidentEnergies(*reco_beam_incidentEnergiesRV);
+//       thin_slice_event.SetTrueIncidentEnergies(*true_beam_incidentEnergiesRV);
+//       thin_slice_event.SetTrueTrajZ(*true_beam_traj_ZRV);
+//       thin_slice_event.SetTrueTrajKE(*true_beam_traj_KERV);
+//       thin_slice_event.SetTrueSlices(*true_beam_slicesRV);
+//       thin_slice_event.SetdQdXCalibrated(*calibrated_dQdXRV);
+//       thin_slice_event.SetEField(*beam_EFieldRV);
+//       thin_slice_event.SetTrackPitch(*track_pitchRV);
+//       thin_slice_event.SetBeamInstP(*beam_inst_PRV);
+//       thin_slice_event.SetPDG(*true_beam_PDGRV);
+//       thin_slice_event.SetRecoDaughterTrackThetas(*reco_daughter_track_thetasRV);
+//       thin_slice_event.SetRecoDaughterTrackScores(*reco_daughter_track_scoresRV);
+//       thin_slice_event.SetHasPi0Shower(*has_pi0_showerRV);
+//       thin_slice_event.SetLeadingPCostheta(*leading_p_costhetaRV);
+//       thin_slice_event.SetLeadingPiPlusCostheta(*leading_piplus_costhetaRV);
+//       thin_slice_event.SetLeadingPi0Costheta(*leading_pi0_costhetaRV);
+//       thin_slice_event.SetIsBeamScraper(*is_beam_scraperRV);
+//       for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
+//         thin_slice_event.AddRecoDaughterTrackdQdX((*daughter_dQdXsRV)[j]);
+//         thin_slice_event.AddRecoDaughterTrackResRange((*daughter_resRangesRV)[j]);
+//         thin_slice_event.AddRecoDaughterEField((*daughter_EFieldsRV)[j]);
+//       }
 
-      for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
-        std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
-                                     std::to_string(j);
-        thin_slice_event.MakeG4RWCoeff(name_downstream,
-                                    (*g4rw_downstream_grid_piplus_coeffsRV)[j]);
-      }
-      thin_slice_event.MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
-                                  (*g4rw_full_grid_proton_coeffsRV)[0]);
+//       for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
+//         std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
+//                                      std::to_string(j);
+//         thin_slice_event.MakeG4RWCoeff(name_downstream,
+//                                     (*g4rw_downstream_grid_piplus_coeffsRV)[j]);
+//       }
+//       thin_slice_event.MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
+//                                   (*g4rw_full_grid_proton_coeffsRV)[0]);
 
-      bool found_start = false;
-      for (size_t j = 1; j < true_beam_traj_ZRV->size(); ++j) {
+//       bool found_start = false;
+//       for (size_t j = 1; j < true_beam_traj_ZRV->size(); ++j) {
          
-        if ((*true_beam_traj_ZRV)[j] < fTrajZStart) continue;
+//         if ((*true_beam_traj_ZRV)[j] < fTrajZStart) continue;
 
-        double delta = (*true_beam_traj_KERV)[0] - (*true_beam_traj_KERV)[j];
-        thin_slice_event.SetDeltaEToTPC(delta);
-        found_start = true;
-        break;
-      }
-      if (!found_start) {
-        thin_slice_event.SetDeltaEToTPC(-999.);
-      }
+//         double delta = (*true_beam_traj_KERV)[0] - (*true_beam_traj_KERV)[j];
+//         thin_slice_event.SetDeltaEToTPC(delta);
+//         found_start = true;
+//         break;
+//       }
+//       if (!found_start) {
+//         thin_slice_event.SetDeltaEToTPC(-999.);
+//       }
 
-      std::lock_guard<std::mutex> guard(fFillMutex);
-      events.push_back(thin_slice_event);
-    }
-  };
+//       std::lock_guard<std::mutex> guard(fFillMutex);
+//       events.push_back(thin_slice_event);
+//     }
+//   };
 
-  tp.Process(fill_func);*/
+//   tp.Process(fill_func);*/
 
 
-  //for (int i = events_start; i < events_end; ++i) {
-  for (int & i : event_list) {
-    if (!(i % 20000)) std::cout << i << "/" << split_val << std::endl;
-    tree->GetEntry(i);
+//   for (int & i : event_list) {
+//     if (!(i % 20000)) std::cout << i << "/" << split_val << std::endl;
+//     fMCTree->GetEntry(i);
 
-    //ThinSliceEvent thin_slice_event(event, subrun, run);
-    events.push_back(ThinSliceEvent(event, subrun, run));
-    events.back().SetMCStatVarWeight(fRNG.Poisson(1));
-    events.back().SetSampleID(sample_ID);
-    events.back().SetSelectionID(selection_ID);
-    events.back().SetCalUpSelectionID(cal_up_selection_ID);
-    events.back().SetCalDownSelectionID(cal_down_selection_ID);
+//     //ThinSliceEvent thin_slice_event(event, subrun, run);
+//     events.push_back(ThinSliceEvent(event, subrun, run));
+//     events.back().SetMCStatVarWeight(fRNG.Poisson(1));
+//     events.back().SetSampleID(sample_ID);
+//     events.back().SetSelectionID(selection_ID);
+//     events.back().SetCalUpSelectionID(cal_up_selection_ID);
+//     events.back().SetCalDownSelectionID(cal_down_selection_ID);
 
-    events.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
-    events.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
-    events.back().SetBackUpSelectionID(selection_ID_back_shift_up);
-    events.back().SetBackDownSelectionID(selection_ID_back_shift_down);
+//     events.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
+//     events.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
+//     events.back().SetBackUpSelectionID(selection_ID_back_shift_up);
+//     events.back().SetBackDownSelectionID(selection_ID_back_shift_down);
 
-    events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
-    if (fDoEnergyByLen) {
-      events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
-    }
-    else {
-      events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
-    }
-    events.back().SetTrueEndP(true_beam_endP);
-    events.back().SetTrueEndZ(true_beam_endZ);
-    events.back().SetTrueStartP(true_beam_startP);
-    events.back().SetTrueMass(true_beam_mass);
-    events.back().SetRecoEndZ(reco_beam_endZ);
-    events.back().SetRecoStartY(reco_beam_startY);
-    events.back().SetRecoStartX_SCE(reco_beam_startX_SCE);
-    events.back().SetRecoStartY_SCE(reco_beam_startY_SCE);
-    events.back().SetRecoStartZ_SCE(reco_beam_startZ_SCE);
-    events.back().SetRecoEndZ_SCE(reco_beam_endZ_SCE);
+//     events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
+//     if (fDoEnergyByLen) {
+//       events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
+//     }
+//     else {
+//       events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+//     }
+//     events.back().SetTrueEndP(true_beam_endP);
+//     events.back().SetTrueEndZ(true_beam_endZ);
+//     events.back().SetTrueStartP(true_beam_startP);
+//     events.back().SetTrueMass(true_beam_mass);
+//     events.back().SetRecoEndZ(reco_beam_endZ);
+//     events.back().SetRecoStartY(reco_beam_startY);
+//     events.back().SetRecoStartX_SCE(reco_beam_startX_SCE);
+//     events.back().SetRecoStartY_SCE(reco_beam_startY_SCE);
+//     events.back().SetRecoStartZ_SCE(reco_beam_startZ_SCE);
+//     events.back().SetRecoEndZ_SCE(reco_beam_endZ_SCE);
 
-    events.back().SetVertexMichelScore(vertex_michel_score);
-    events.back().SetVertexNHits(vertex_nhits);
+//     events.back().SetVertexMichelScore(vertex_michel_score);
+//     events.back().SetVertexNHits(vertex_nhits);
 
-    events.back().SetTrueID(true_beam_ID);
-    events.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
+//     events.back().SetTrueID(true_beam_ID);
+//     events.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
 
-    events.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
-    //events.back().SetTrueIncidentEnergies(*true_beam_incidentEnergies);
-    events.back().SetTrueInitEnergy(
-      (true_beam_incidentEnergies->size() > 0 ?
-       true_beam_incidentEnergies->at(0) : -999.)); // TODO -- CHANGE THIS WITH NEW VAL 
-    events.back().SetTrueTrajZ(*true_beam_traj_Z);
-    events.back().SetTrueTrajKE(*true_beam_traj_KE);
-    events.back().SetTrueNNeutrons(true_n_neutrons);
-    events.back().SetTrueNProtons(true_n_protons);
-    events.back().SetTrueNPiPlus(true_n_piplus);
-    events.back().SetTrueNPiMinus(true_n_piminus);
-    events.back().SetTrueNPi0(true_n_pi0);
-    //events.back().SetTrueSlices(*true_beam_slices);
-    //events.back().SetdQdXCalibrated(*calibrated_dQdX);
-    //events.back().SetEField(*beam_EField);
-    //events.back().SetTrackPitch(*track_pitch);
-    events.back().SetBeamInstP(beam_inst_P);
-    events.back().SetPDG(true_beam_PDG);
-    //events.back().SetRecoDaughterTrackThetas(*reco_daughter_track_thetas);
-    events.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
-    events.back().SetHasPi0Shower(has_pi0_shower);
-    events.back().SetLeadingPCostheta(leading_p_costheta);
-    events.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
-    events.back().SetLeadingPi0Costheta(leading_pi0_costheta);
-    events.back().SetLeadingPMomentum(leading_p_momentum);
-    events.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
-    events.back().SetLeadingPi0Momentum(leading_pi0_momentum);
-    events.back().SetIsBeamScraper(is_beam_scraper);
+//     events.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
+//     events.back().SetTrueInitEnergy(
+//       (true_beam_incidentEnergies->size() > 0 ?
+//        true_beam_incidentEnergies->at(0) : -999.)); // TODO -- CHANGE THIS WITH NEW VAL 
+//     events.back().SetTrueTrajZ(*true_beam_traj_Z);
+//     events.back().SetTrueTrajKE(*true_beam_traj_KE);
+//     events.back().SetTrueNNeutrons(true_n_neutrons);
+//     events.back().SetTrueNProtons(true_n_protons);
+//     events.back().SetTrueNPiPlus(true_n_piplus);
+//     events.back().SetTrueNPiMinus(true_n_piminus);
+//     events.back().SetTrueNPi0(true_n_pi0);
 
-    events.back().SetRecoShowerEnergy(*reco_daughter_shower_energy);
+//     events.back().SetBeamInstP(beam_inst_P);
+//     events.back().SetPDG(true_beam_PDG);
+//     events.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
+//     events.back().SetHasPi0Shower(has_pi0_shower);
+//     events.back().SetLeadingPCostheta(leading_p_costheta);
+//     events.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
+//     events.back().SetLeadingPi0Costheta(leading_pi0_costheta);
+//     events.back().SetLeadingPMomentum(leading_p_momentum);
+//     events.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
+//     events.back().SetLeadingPi0Momentum(leading_pi0_momentum);
+//     events.back().SetIsBeamScraper(is_beam_scraper);
 
-    for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
-      //events.back().AddRecoDaughterTrackdQdX((*daughter_dQdXs)[j]);
-      //events.back().AddRecoDaughterTrackResRange((*daughter_resRanges)[j]);
-      events.back().AddRecoDaughterEField((*daughter_EFields)[j]);
-      auto nhits = (*reco_daughter_chi2_nhits)[j];
-      events.back().AddOneChi2PerHit(
-          (nhits > 0) ?
-          (*reco_daughter_chi2)[j]/nhits :
-          -999.
-      );
-      events.back().AddOneTrunc_dEdX(
-        (*reco_daughter_truncated_dEdX)[j]
-      );
-    }
+//     events.back().SetRecoShowerEnergy(*reco_daughter_shower_energy);
 
-    for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
-      std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
-                                   std::to_string(j);
-      events.back().MakeG4RWCoeff(name_downstream,
-                                  (*g4rw_downstream_grid_piplus_coeffs)[j]);
+//     for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
+//       events.back().AddRecoDaughterEField((*daughter_EFields)[j]);
+//       auto nhits = (*reco_daughter_chi2_nhits)[j];
+//       events.back().AddOneChi2PerHit(
+//           (nhits > 0) ?
+//           (*reco_daughter_chi2)[j]/nhits :
+//           -999.
+//       );
+//       events.back().AddOneTrunc_dEdX(
+//         (*reco_daughter_truncated_dEdX)[j]
+//       );
+//     }
 
-      std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
-      events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
-    }
+//     for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
+//       std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
+//                                    std::to_string(j);
+//       events.back().MakeG4RWCoeff(name_downstream,
+//                                   (*g4rw_downstream_grid_piplus_coeffs)[j]);
 
-    for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
-      std::string fine_full = "g4rw_full_fine_piplus_coeffs_" + std::to_string(j);
-      events.back().MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
-    }
+//       std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
+//       events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
+//     }
 
-    for (size_t j = 0; j < g4rw_full_grid_abscex_coeffs->size(); ++j) {
-      std::string abscex = "g4rw_full_grid_abscex_coeffs_" + std::to_string(j);
-      events.back().MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
-    }
+//     for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
+//       std::string fine_full = "g4rw_full_fine_piplus_coeffs_" + std::to_string(j);
+//       events.back().MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
+//     }
 
-    /*
-    for (size_t j = 0; j < g4rw_primary_grid_abscex_coeffs->size(); ++j) {
-      std::string abscex = "g4rw_primary_grid_abscex_coeffs_" + std::to_string(j);
-      events.back().MakeG4RWCoeff(abscex, (*g4rw_primary_grid_abscex_coeffs)[j]);
-    }*/
+//     for (size_t j = 0; j < g4rw_full_grid_abscex_coeffs->size(); ++j) {
+//       std::string abscex = "g4rw_full_grid_abscex_coeffs_" + std::to_string(j);
+//       events.back().MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
+//     }
 
-    events.back().MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
-                                (*g4rw_full_grid_proton_coeffs)[0]);
 
-    bool found_start = false;
-    for (size_t j = 1; j < true_beam_traj_Z->size(); ++j) {
+//     events.back().MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
+//                                 (*g4rw_full_grid_proton_coeffs)[0]);
+
+//     bool found_start = false;
+//     for (size_t j = 1; j < true_beam_traj_Z->size(); ++j) {
        
-      if ((*true_beam_traj_Z)[j] < fTrajZStart) continue;
+//       if ((*true_beam_traj_Z)[j] < fTrajZStart) continue;
 
-      double delta = (*true_beam_traj_KE)[0] - (*true_beam_traj_KE)[j];
-      events.back().SetDeltaEToTPC(delta);
-      found_start = true;
-      break;
-    }
-    if (!found_start) {
-      events.back().SetDeltaEToTPC(-999.);
-    }
+//       double delta = (*true_beam_traj_KE)[0] - (*true_beam_traj_KE)[j];
+//       events.back().SetDeltaEToTPC(delta);
+//       found_start = true;
+//       break;
+//     }
+//     if (!found_start) {
+//       events.back().SetDeltaEToTPC(-999.);
+//     }
 
-    //events.push_back(thin_slice_event);
-    //events.emplace_back(std::move(thin_slice_event));
-  }
+//   }
 
-  if (do_fake_data) {
-    std::cout << "Filling fake data " << fake_event_list.size() << std::endl;
-    //for (int i = fake_start; i < fake_end; ++i) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-    for (int & i : fake_event_list) {
-      //std::cout << "Fake event " << i << std::endl;
-      tree->GetEntry(i);
+//   if (do_fake_data) {
+//     std::cout << "Filling fake data " << fake_event_list.size() << std::endl;
+//     //for (int i = fake_start; i < fake_end; ++i) {
+//     auto start_time = std::chrono::high_resolution_clock::now();
+//     for (int & i : fake_event_list) {
+//       //std::cout << "Fake event " << i << std::endl;
+//       fMCTree->GetEntry(i);
 
-      fake_data_events.push_back(ThinSliceEvent(event, subrun, run));
-      if (!(fake_data_events.size() % 20000))
-        std::cout << fake_data_events.size() << std::endl;
-      fake_data_events.back().SetMCStatVarWeight(fRNG.Poisson(1));
-      fake_data_events.back().SetSampleID(sample_ID);
-      fake_data_events.back().SetSelectionID(selection_ID);
-      fake_data_events.back().SetCalUpSelectionID(cal_up_selection_ID);
-      fake_data_events.back().SetCalDownSelectionID(cal_down_selection_ID);
+//       fake_data_events.push_back(ThinSliceEvent(event, subrun, run));
+//       if (!(fake_data_events.size() % 20000))
+//         std::cout << fake_data_events.size() << std::endl;
+//       fake_data_events.back().SetMCStatVarWeight(fRNG.Poisson(1));
+//       fake_data_events.back().SetSampleID(sample_ID);
+//       fake_data_events.back().SetSelectionID(selection_ID);
+//       fake_data_events.back().SetCalUpSelectionID(cal_up_selection_ID);
+//       fake_data_events.back().SetCalDownSelectionID(cal_down_selection_ID);
 
-      fake_data_events.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
-      fake_data_events.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
-      fake_data_events.back().SetBackUpSelectionID(selection_ID_back_shift_up);
-      fake_data_events.back().SetBackDownSelectionID(selection_ID_back_shift_down);
+//       fake_data_events.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
+//       fake_data_events.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
+//       fake_data_events.back().SetBackUpSelectionID(selection_ID_back_shift_up);
+//       fake_data_events.back().SetBackDownSelectionID(selection_ID_back_shift_down);
 
-      fake_data_events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
-      //fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
-      if (fDoEnergyByLen) {
-        fake_data_events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
-      }
-      else {
-        fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
-      }
-      fake_data_events.back().SetTrueEndP(true_beam_endP);
-      fake_data_events.back().SetTrueEndZ(true_beam_endZ);
-      fake_data_events.back().SetTrueStartP(true_beam_startP);
-      fake_data_events.back().SetTrueMass(true_beam_mass);
-      fake_data_events.back().SetRecoEndZ(reco_beam_endZ);
-      fake_data_events.back().SetRecoStartX_SCE(reco_beam_startX_SCE);
-      fake_data_events.back().SetRecoStartY_SCE(reco_beam_startY_SCE);
-      fake_data_events.back().SetRecoStartZ_SCE(reco_beam_startZ_SCE);
-      fake_data_events.back().SetRecoEndZ_SCE(reco_beam_endZ_SCE);
-      fake_data_events.back().SetVertexMichelScore(vertex_michel_score);
-      fake_data_events.back().SetVertexNHits(vertex_nhits);
+//       fake_data_events.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
+//       if (fDoEnergyByLen) {
+//         fake_data_events.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
+//       }
+//       else {
+//         fake_data_events.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+//       }
+//       fake_data_events.back().SetTrueEndP(true_beam_endP);
+//       fake_data_events.back().SetTrueEndZ(true_beam_endZ);
+//       fake_data_events.back().SetTrueStartP(true_beam_startP);
+//       fake_data_events.back().SetTrueMass(true_beam_mass);
+//       fake_data_events.back().SetRecoEndZ(reco_beam_endZ);
+//       fake_data_events.back().SetRecoStartX_SCE(reco_beam_startX_SCE);
+//       fake_data_events.back().SetRecoStartY_SCE(reco_beam_startY_SCE);
+//       fake_data_events.back().SetRecoStartZ_SCE(reco_beam_startZ_SCE);
+//       fake_data_events.back().SetRecoEndZ_SCE(reco_beam_endZ_SCE);
+//       fake_data_events.back().SetVertexMichelScore(vertex_michel_score);
+//       fake_data_events.back().SetVertexNHits(vertex_nhits);
 
-      fake_data_events.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
-      //fake_data_events.back().SetTrueIncidentEnergies(*true_beam_incidentEnergies);
-      fake_data_events.back().SetTrueInitEnergy(
-          (true_beam_incidentEnergies->size() > 0 ?
-           true_beam_incidentEnergies->at(0) : -999.));
-      fake_data_events.back().SetTrueTrajZ(*true_beam_traj_Z);
-      fake_data_events.back().SetTrueTrajKE(*true_beam_traj_KE);
-      //fake_data_events.back().SetTrueSlices(*true_beam_slices);
-      //fake_data_events.back().SetdQdXCalibrated(*calibrated_dQdX);
-      //fake_data_events.back().SetEField(*beam_EField);
-      //fake_data_events.back().SetTrackPitch(*track_pitch);
-      fake_data_events.back().SetBeamInstP(beam_inst_P);
-      fake_data_events.back().SetPDG(true_beam_PDG);
-      if (fFakeDataRoutine == "EffVar") {
-        fake_data_events.back().SetRecoDaughterTrackThetas(*reco_daughter_track_thetas); }
-      fake_data_events.back().SetTrueDaughterPDGs(*true_beam_daughter_PDG);
-      fake_data_events.back().SetTrueDaughterStartPs(*true_beam_daughter_startP);
-      fake_data_events.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
-      fake_data_events.back().SetHasPi0Shower(has_pi0_shower);
-      fake_data_events.back().SetLeadingPCostheta(leading_p_costheta);
-      fake_data_events.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
-      fake_data_events.back().SetLeadingPi0Costheta(leading_pi0_costheta);
-      fake_data_events.back().SetLeadingPMomentum(leading_p_momentum);
-      fake_data_events.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
-      fake_data_events.back().SetLeadingPi0Momentum(leading_pi0_momentum);
-      fake_data_events.back().SetIsBeamScraper(is_beam_scraper);
-      fake_data_events.back().SetRecoShowerEnergy(*reco_daughter_shower_energy);
+//       fake_data_events.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
+//       fake_data_events.back().SetTrueInitEnergy(
+//           (true_beam_incidentEnergies->size() > 0 ?
+//            true_beam_incidentEnergies->at(0) : -999.));
+//       fake_data_events.back().SetTrueTrajZ(*true_beam_traj_Z);
+//       fake_data_events.back().SetTrueTrajKE(*true_beam_traj_KE);
 
-      fake_data_events.back().SetTrueID(true_beam_ID);
-      fake_data_events.back().SetTrueNNeutrons(true_n_neutrons);
-      fake_data_events.back().SetTrueNProtons(true_n_protons);
-      fake_data_events.back().SetTrueNPiPlus(true_n_piplus);
-      fake_data_events.back().SetTrueNPiMinus(true_n_piminus);
-      fake_data_events.back().SetTrueNPi0(true_n_pi0);
-      fake_data_events.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
+//       fake_data_events.back().SetBeamInstP(beam_inst_P);
+//       fake_data_events.back().SetPDG(true_beam_PDG);
+//       if (fFakeDataRoutine == "EffVar") {
+//         fake_data_events.back().SetRecoDaughterTrackThetas(*reco_daughter_track_thetas); }
+//       fake_data_events.back().SetTrueDaughterPDGs(*true_beam_daughter_PDG);
+//       fake_data_events.back().SetTrueDaughterStartPs(*true_beam_daughter_startP);
+//       fake_data_events.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
+//       fake_data_events.back().SetHasPi0Shower(has_pi0_shower);
+//       fake_data_events.back().SetLeadingPCostheta(leading_p_costheta);
+//       fake_data_events.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
+//       fake_data_events.back().SetLeadingPi0Costheta(leading_pi0_costheta);
+//       fake_data_events.back().SetLeadingPMomentum(leading_p_momentum);
+//       fake_data_events.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
+//       fake_data_events.back().SetLeadingPi0Momentum(leading_pi0_momentum);
+//       fake_data_events.back().SetIsBeamScraper(is_beam_scraper);
+//       fake_data_events.back().SetRecoShowerEnergy(*reco_daughter_shower_energy);
 
-      //fake_data_events.back().MakeG4RWBranch("g4rw_alt_primary_plus_sigma_weight",
-      //                              *g4rw_alt_primary_plus_sigma_weight);
-      //fake_data_events.back().MakeG4RWBranch("g4rw_alt_primary_minus_sigma_weight",
-      //                              *g4rw_alt_primary_minus_sigma_weight);
-      //fake_data_events.back().MakeG4RWBranch("g4rw_full_primary_plus_sigma_weight",
-      //                              *g4rw_full_primary_plus_sigma_weight);
-      //fake_data_events.back().MakeG4RWBranch("g4rw_full_primary_minus_sigma_weight",
-      //                              *g4rw_full_primary_minus_sigma_weight);
-      for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
-        //fake_data_events.back().AddRecoDaughterTrackdQdX((*daughter_dQdXs)[j]);
-        //fake_data_events.back().AddRecoDaughterTrackResRange((*daughter_resRanges)[j]);
-        fake_data_events.back().AddRecoDaughterEField((*daughter_EFields)[j]);
-        auto nhits = (*reco_daughter_chi2_nhits)[j];
-        fake_data_events.back().AddOneChi2PerHit(
-            (nhits > 0) ?
-            (*reco_daughter_chi2)[j]/nhits :
-            -999.
-        );
-        fake_data_events.back().AddOneTrunc_dEdX(
-          (*reco_daughter_truncated_dEdX)[j]
-        );
-      }
+//       fake_data_events.back().SetTrueID(true_beam_ID);
+//       fake_data_events.back().SetTrueNNeutrons(true_n_neutrons);
+//       fake_data_events.back().SetTrueNProtons(true_n_protons);
+//       fake_data_events.back().SetTrueNPiPlus(true_n_piplus);
+//       fake_data_events.back().SetTrueNPiMinus(true_n_piminus);
+//       fake_data_events.back().SetTrueNPi0(true_n_pi0);
+//       fake_data_events.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
 
-      for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
-        std::string fine_full = "g4rw_full_fine_piplus_coeffs_" + std::to_string(j);
-        fake_data_events.back().MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
-      }
-      for (size_t j = 0; j < g4rw_full_grid_abscex_coeffs->size(); ++j) {
-        std::string abscex = "g4rw_full_grid_abscex_coeffs_" + std::to_string(j);
-        fake_data_events.back().MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
+//       for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
 
-      }
-      /*for (size_t j = 0; j < g4rw_primary_grid_abscex_coeffs->size(); ++j) {
-        std::string abscex = "g4rw_primary_grid_abscex_coeffs_" + std::to_string(j);
-        fake_data_events.back().MakeG4RWCoeff(abscex, (*g4rw_primary_grid_abscex_coeffs)[j]);
-      }*/
+//         fake_data_events.back().AddRecoDaughterEField((*daughter_EFields)[j]);
+//         auto nhits = (*reco_daughter_chi2_nhits)[j];
+//         fake_data_events.back().AddOneChi2PerHit(
+//             (nhits > 0) ?
+//             (*reco_daughter_chi2)[j]/nhits :
+//             -999.
+//         );
+//         fake_data_events.back().AddOneTrunc_dEdX(
+//           (*reco_daughter_truncated_dEdX)[j]
+//         );
+//       }
 
-      for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
-        //std::string name_full = "g4rw_full_grid_weights_" + std::to_string(j);
-        //fake_data_events.back().MakeG4RWBranch(name_full, (*g4rw_full_grid_weights)[j]);
-        std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
-        fake_data_events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
+//       for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
+//         std::string fine_full = "g4rw_full_fine_piplus_coeffs_" + std::to_string(j);
+//         fake_data_events.back().MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
+//       }
+//       for (size_t j = 0; j < g4rw_full_grid_abscex_coeffs->size(); ++j) {
+//         std::string abscex = "g4rw_full_grid_abscex_coeffs_" + std::to_string(j);
+//         fake_data_events.back().MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
 
-        //std::string name_primary = "g4rw_primary_grid_weights_" +
-        //                           std::to_string(j);
-        //std::cout << "Adding " << name_primary << std::endl;
-        //if (!(*g4rw_primary_grid_weights)[j].size())
-        //  std::cout << "Adding empty branch " << event << " " << run << " " << subrun << std::endl;
-        //std::string name_downstream_branch = "g4rw_downstream_grid_piplus_weights_" +
-        //                             std::to_string(j);
-        //fake_data_events.back().MakeG4RWBranch(name_downstream_branch,
-        //                            (*g4rw_downstream_grid_piplus_weights)[j]);
+//       }
+
+//       for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
+//         std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
+//         fake_data_events.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
 
 
-        //fake_data_events.back().MakeG4RWBranch(name_primary,
-        //                              (*g4rw_primary_grid_weights)[j]);
-        std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
-                                     std::to_string(j);
-        fake_data_events.back().MakeG4RWCoeff(name_downstream,
-                                    (*g4rw_downstream_grid_piplus_coeffs)[j]);
-      }
-      //fake_data_events.back().MakeG4RWBranch("g4rw_full_grid_proton_weights",
-      //                              (*g4rw_full_grid_proton_weights)[0]);
-      fake_data_events.back().MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
-                                            (*g4rw_full_grid_proton_coeffs)[0]);
-      bool found_start = false;
-      for (size_t j = 1; j < true_beam_traj_Z->size(); ++j) {
-        if ((*true_beam_traj_Z)[j-1] < fTrajZStart &&
-            fTrajZStart < (*true_beam_traj_Z)[j+1]) {
-          double delta = (*true_beam_traj_KE)[0] - (*true_beam_traj_KE)[j];
-          fake_data_events.back().SetDeltaEToTPC(delta);
-          found_start = true;
-          break;
-        }
-      }
-      if (!found_start) fake_data_events.back().SetDeltaEToTPC(-999.);
-    }
-    auto new_time = std::chrono::high_resolution_clock::now();
-    auto delta =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            new_time - start_time).count();
-    std::cout << "Filling " << fake_data_events.size() <<
-                 " fake data took " << delta << std::endl;
-  }
+//         std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
+//                                      std::to_string(j);
+//         fake_data_events.back().MakeG4RWCoeff(name_downstream,
+//                                     (*g4rw_downstream_grid_piplus_coeffs)[j]);
+//       }
 
-  std::cout << "Filled MC Events" << std::endl;
+//       fake_data_events.back().MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
+//                                             (*g4rw_full_grid_proton_coeffs)[0]);
+//       bool found_start = false;
+//       for (size_t j = 1; j < true_beam_traj_Z->size(); ++j) {
+//         if ((*true_beam_traj_Z)[j-1] < fTrajZStart &&
+//             fTrajZStart < (*true_beam_traj_Z)[j+1]) {
+//           double delta = (*true_beam_traj_KE)[0] - (*true_beam_traj_KE)[j];
+//           fake_data_events.back().SetDeltaEToTPC(delta);
+//           found_start = true;
+//           break;
+//         }
+//       }
+//       if (!found_start) fake_data_events.back().SetDeltaEToTPC(-999.);
+//     }
+//     auto new_time = std::chrono::high_resolution_clock::now();
+//     auto delta =
+//         std::chrono::duration_cast<std::chrono::milliseconds>(
+//             new_time - start_time).count();
+//     std::cout << "Filling " << fake_data_events.size() <<
+//                  " fake data took " << delta << std::endl;
+//   }
+
+//   std::cout << "Filled MC Events" << std::endl;
 
 
-}
+// }
 
 void protoana::AbsCexDriver::BuildMCSamples(
     const std::vector<ThinSliceEvent> & events,
@@ -3048,7 +2998,7 @@ void protoana::AbsCexDriver::FillExtraHistsMC(ThinSliceSample & sample,
 }
 
 void protoana::AbsCexDriver::BuildDataHists(
-    TTree * tree, ThinSliceDataSet & data_set, double & flux,
+    TTree * fMCTree, ThinSliceDataSet & data_set, double & flux,
     const std::vector<double> & beam_energy_bins,
     std::vector<double> & beam_fluxes,
     int split_val) {
@@ -3058,45 +3008,45 @@ void protoana::AbsCexDriver::BuildDataHists(
          reco_beam_startX, reco_beam_startY, reco_beam_startZ;
   std::vector<double> * reco_beam_incidentEnergies = 0x0;
   if (!fInclusive) {
-    tree->SetBranchAddress("selection_ID", &selection_ID);
+    fMCTree->SetBranchAddress("selection_ID", &selection_ID);
   }
   else {
-    tree->SetBranchAddress("selection_ID_inclusive", &selection_ID);
+    fMCTree->SetBranchAddress("selection_ID_inclusive", &selection_ID);
   }
-  tree->SetBranchAddress("reco_beam_interactingEnergy",
+  fMCTree->SetBranchAddress("reco_beam_interactingEnergy",
                         &reco_beam_interactingEnergy);
-  tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
-  tree->SetBranchAddress("reco_beam_alt_len", &reco_beam_alt_len);
-  tree->SetBranchAddress("reco_beam_calo_startX", &reco_beam_startX);
-  tree->SetBranchAddress("reco_beam_calo_startY", &reco_beam_startY);
-  tree->SetBranchAddress("reco_beam_calo_startZ", &reco_beam_startZ);
-  tree->SetBranchAddress("reco_beam_calo_endZ", &reco_beam_calo_endZ);
-  tree->SetBranchAddress("reco_beam_incidentEnergies",
+  fMCTree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
+  fMCTree->SetBranchAddress("reco_beam_alt_len", &reco_beam_alt_len);
+  fMCTree->SetBranchAddress("reco_beam_calo_startX", &reco_beam_startX);
+  fMCTree->SetBranchAddress("reco_beam_calo_startY", &reco_beam_startY);
+  fMCTree->SetBranchAddress("reco_beam_calo_startZ", &reco_beam_startZ);
+  fMCTree->SetBranchAddress("reco_beam_calo_endZ", &reco_beam_calo_endZ);
+  fMCTree->SetBranchAddress("reco_beam_incidentEnergies",
                         &reco_beam_incidentEnergies);
   double vertex_michel_score;
   int vertex_nhits;
-  tree->SetBranchAddress("reco_beam_vertex_michel_score", &vertex_michel_score);
-  tree->SetBranchAddress("reco_beam_vertex_nHits", &vertex_nhits);
+  fMCTree->SetBranchAddress("reco_beam_vertex_michel_score", &vertex_michel_score);
+  fMCTree->SetBranchAddress("reco_beam_vertex_nHits", &vertex_nhits);
   double beam_inst_P;
-  tree->SetBranchAddress("beam_inst_P", &beam_inst_P);
+  fMCTree->SetBranchAddress("beam_inst_P", &beam_inst_P);
 
   std::vector<double> * reco_daughter_track_scores = 0x0;
-  tree->SetBranchAddress("reco_daughter_PFP_trackScore_collection",
+  fMCTree->SetBranchAddress("reco_daughter_PFP_trackScore_collection",
                          &reco_daughter_track_scores);
 
   std::vector<double> * reco_daughter_shower_energy = 0x0;
-  tree->SetBranchAddress("reco_daughter_allShower_energy",
+  fMCTree->SetBranchAddress("reco_daughter_allShower_energy",
                          &reco_daughter_shower_energy);
 
   std::vector<double> * reco_daughter_truncated_dEdXs = 0x0,
                       * reco_daughter_chi2s = 0x0;
-  tree->SetBranchAddress("reco_daughter_allTrack_truncLibo_dEdX_pos",
+  fMCTree->SetBranchAddress("reco_daughter_allTrack_truncLibo_dEdX_pos",
                          &reco_daughter_truncated_dEdXs);
-  tree->SetBranchAddress("reco_daughter_allTrack_Chi2_proton",
+  fMCTree->SetBranchAddress("reco_daughter_allTrack_Chi2_proton",
                          &reco_daughter_chi2s);
 
   std::vector<int> * reco_daughter_chi2_nhits = 0x0;
-  tree->SetBranchAddress("reco_daughter_allTrack_Chi2_ndof",
+  fMCTree->SetBranchAddress("reco_daughter_allTrack_Chi2_ndof",
                          &reco_daughter_chi2_nhits);
 
   //SetupExtraHists(data_set);
@@ -3107,8 +3057,8 @@ void protoana::AbsCexDriver::BuildDataHists(
   auto & beam_bin_selected_hists
       = data_set.GetBeamBinSelectionHists();
 
-  if (split_val < 0 || split_val > tree->GetEntries()) {
-    flux = tree->GetEntries()/* - split_val*/;
+  if (split_val < 0 || split_val > fMCTree->GetEntries()) {
+    flux = fMCTree->GetEntries()/* - split_val*/;
   }
   else {
     flux = split_val;
@@ -3117,8 +3067,8 @@ void protoana::AbsCexDriver::BuildDataHists(
   double pi_mass_sq = 139.57*139.57;
   for (size_t i = 0; i < beam_energy_bins.size()-1; ++i) {beam_fluxes.push_back(0.);}
   int n_skipped = 0;
-  for (int i = 0/*split_val*/; i < flux/*tree->GetEntries()*/; ++i) {
-    tree->GetEntry(i);
+  for (int i = 0/*split_val*/; i < flux/*fMCTree->GetEntries()*/; ++i) {
+    fMCTree->GetEntry(i);
 
     double beam_inst_P_scaled = fBeamInstPScale*beam_inst_P;
     int beam_bin = GetBeamBin(beam_energy_bins, beam_inst_P_scaled/*beam_inst_P*/,
@@ -3245,7 +3195,7 @@ void protoana::AbsCexDriver::BuildDataHists(
 }
 
 void protoana::AbsCexDriver::BuildFakeData(
-    TTree * tree,
+    TTree * fMCTree,
     const std::vector<ThinSliceEvent> & events,
     std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
     const std::map<int, bool> & signal_sample_checks,
@@ -3280,19 +3230,19 @@ void protoana::AbsCexDriver::BuildFakeData(
                  sample_scales, split_val);
   }
   else if (fFakeDataRoutine == "BinnedScales") {
-    FakeDataBinnedScales(tree, samples, signal_sample_checks, data_set, flux,
+    FakeDataBinnedScales(fMCTree, samples, signal_sample_checks, data_set, flux,
                          sample_scales, split_val);
   }
   else if (fFakeDataRoutine == "dEdX") {
-    FakeDatadEdX(tree, samples, signal_sample_checks, data_set, flux,
+    FakeDatadEdX(fMCTree, samples, signal_sample_checks, data_set, flux,
                  sample_scales, split_val);
   }
   else if (fFakeDataRoutine == "PionAngle") {
-    FakeDataPionAngle(tree, samples, signal_sample_checks, data_set, flux,
+    FakeDataPionAngle(fMCTree, samples, signal_sample_checks, data_set, flux,
                       sample_scales, split_val);
   }
   else if (fFakeDataRoutine == "AngleVar") {
-    FakeDataAngleVar(events/*tree*/, samples, signal_sample_checks, data_set, flux,
+    FakeDataAngleVar(events/*fMCTree*/, samples, signal_sample_checks, data_set, flux,
                      beam_energy_bins, beam_fluxes,
                      sample_scales, split_val, scale_to_data_beam_p);
   }
@@ -3521,7 +3471,7 @@ void protoana::AbsCexDriver::FakeDataSampleScales(
 }
 
 void protoana::AbsCexDriver::FakeDataBinnedScales(
-    TTree * tree,
+    TTree * fMCTree,
     std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
     const std::map<int, bool> & signal_sample_checks,
     ThinSliceDataSet & data_set, double & flux,
@@ -3541,21 +3491,21 @@ void protoana::AbsCexDriver::FakeDataBinnedScales(
                       * true_beam_traj_Z = 0x0;
   //std::vector<int>    * true_beam_slices = 0x0;
   double reco_beam_endZ;
-  tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
-  tree->SetBranchAddress("new_interaction_topology", &sample_ID);
-  tree->SetBranchAddress("selection_ID", &selection_ID);
-  tree->SetBranchAddress("true_beam_interactingEnergy",
+  fMCTree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
+  fMCTree->SetBranchAddress("new_interaction_topology", &sample_ID);
+  fMCTree->SetBranchAddress("selection_ID", &selection_ID);
+  fMCTree->SetBranchAddress("true_beam_interactingEnergy",
                          &true_beam_interactingEnergy);
-  tree->SetBranchAddress("true_beam_endP", &true_beam_endP);
-  tree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
-  //tree->SetBranchAddress("true_beam_slices", &true_beam_slices);
-  tree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
-  tree->SetBranchAddress("reco_beam_interactingEnergy",
+  fMCTree->SetBranchAddress("true_beam_endP", &true_beam_endP);
+  fMCTree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
+  //fMCTree->SetBranchAddress("true_beam_slices", &true_beam_slices);
+  fMCTree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
+  fMCTree->SetBranchAddress("reco_beam_interactingEnergy",
                          &reco_beam_interactingEnergy);
-  tree->SetBranchAddress("reco_beam_incidentEnergies",
+  fMCTree->SetBranchAddress("reco_beam_incidentEnergies",
                          &reco_beam_incidentEnergies);
   //std::vector<double> * true_beam_incidentEnergies = 0x0;
-  //tree->SetBranchAddress("true_beam_incidentEnergies",
+  //fMCTree->SetBranchAddress("true_beam_incidentEnergies",
   //                       &true_beam_incidentEnergies);
 
   TH1D & incident_hist = data_set.GetIncidentHist();
@@ -3563,15 +3513,15 @@ void protoana::AbsCexDriver::FakeDataBinnedScales(
 
 
   double new_flux = 0.;
-  flux = tree->GetEntries() - split_val;
+  flux = fMCTree->GetEntries() - split_val;
 
   std::map<int, std::vector<double>> nominal_samples;
   for (auto it = sample_scales.begin(); it != sample_scales.end(); ++it) {
     nominal_samples[it->first] = std::vector<double>(it->second.size(), 0.);
   }
 
-  for (int i = /*0*/split_val; i < tree->GetEntries(); ++i) {
-    tree->GetEntry(i);
+  for (int i = /*0*/split_val; i < fMCTree->GetEntries(); ++i) {
+    fMCTree->GetEntry(i);
 
     double end_energy = true_beam_interactingEnergy;
     if (fSliceMethod == "Traj") {
@@ -3787,7 +3737,7 @@ void protoana::AbsCexDriver::FakeDataG4RWGrid(
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   double new_flux = 0.;
-  flux = events.size(); //tree->GetEntries() - split_val;
+  flux = events.size(); //fMCTree->GetEntries() - split_val;
   
 
   std::map<int, std::vector<double>> nominal_samples;
@@ -4013,7 +3963,7 @@ void protoana::AbsCexDriver::ScaleSamples(
 }
 
 void protoana::AbsCexDriver::FakeDataPionAngle(
-    TTree * tree,
+    TTree * fMCTree,
     std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
     const std::map<int, bool> & signal_sample_checks,
     ThinSliceDataSet & data_set, double & flux,
@@ -4032,33 +3982,33 @@ void protoana::AbsCexDriver::FakeDataPionAngle(
                       * true_beam_daughter_startP = 0x0;
   std::vector<double> * reco_beam_incidentEnergies = 0x0;
   double reco_beam_endZ;
-  tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
-  tree->SetBranchAddress("new_interaction_topology", &sample_ID);
-  tree->SetBranchAddress("selection_ID", &selection_ID);
-  tree->SetBranchAddress("true_beam_interactingEnergy",
+  fMCTree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
+  fMCTree->SetBranchAddress("new_interaction_topology", &sample_ID);
+  fMCTree->SetBranchAddress("selection_ID", &selection_ID);
+  fMCTree->SetBranchAddress("true_beam_interactingEnergy",
                          &true_beam_interactingEnergy);
-  tree->SetBranchAddress("true_beam_endP", &true_beam_endP);
-  tree->SetBranchAddress("true_beam_endPx", &true_beam_endPx);
-  tree->SetBranchAddress("true_beam_endPy", &true_beam_endPy);
-  tree->SetBranchAddress("true_beam_endPz", &true_beam_endPz);
-  tree->SetBranchAddress("true_beam_daughter_startPx", &true_beam_daughter_startPx);
-  tree->SetBranchAddress("true_beam_daughter_startPy", &true_beam_daughter_startPy);
-  tree->SetBranchAddress("true_beam_daughter_startPz", &true_beam_daughter_startPz);
-  tree->SetBranchAddress("true_beam_daughter_startP",  &true_beam_daughter_startP);
+  fMCTree->SetBranchAddress("true_beam_endP", &true_beam_endP);
+  fMCTree->SetBranchAddress("true_beam_endPx", &true_beam_endPx);
+  fMCTree->SetBranchAddress("true_beam_endPy", &true_beam_endPy);
+  fMCTree->SetBranchAddress("true_beam_endPz", &true_beam_endPz);
+  fMCTree->SetBranchAddress("true_beam_daughter_startPx", &true_beam_daughter_startPx);
+  fMCTree->SetBranchAddress("true_beam_daughter_startPy", &true_beam_daughter_startPy);
+  fMCTree->SetBranchAddress("true_beam_daughter_startPz", &true_beam_daughter_startPz);
+  fMCTree->SetBranchAddress("true_beam_daughter_startP",  &true_beam_daughter_startP);
   std::vector<int> * true_beam_daughter_PDG = 0x0;
-  tree->SetBranchAddress("true_beam_daughter_PDG", &true_beam_daughter_PDG);
-  tree->SetBranchAddress("reco_beam_interactingEnergy",
+  fMCTree->SetBranchAddress("true_beam_daughter_PDG", &true_beam_daughter_PDG);
+  fMCTree->SetBranchAddress("reco_beam_interactingEnergy",
                          &reco_beam_interactingEnergy);
-  tree->SetBranchAddress("reco_beam_incidentEnergies",
+  fMCTree->SetBranchAddress("reco_beam_incidentEnergies",
                          &reco_beam_incidentEnergies);
   std::vector<double> * true_beam_traj_Z = 0x0,
                       * true_beam_traj_KE = 0x0;
   //std::vector<int>    * true_beam_slices = 0x0;
-  tree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
-  tree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
-  //tree->SetBranchAddress("true_beam_slices", &true_beam_slices);
+  fMCTree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
+  fMCTree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
+  //fMCTree->SetBranchAddress("true_beam_slices", &true_beam_slices);
   //std::vector<double> * true_beam_incidentEnergies = 0x0;
-  //tree->SetBranchAddress("true_beam_incidentEnergies",
+  //fMCTree->SetBranchAddress("true_beam_incidentEnergies",
   //                       &true_beam_incidentEnergies);
 
   TH1D & incident_hist = data_set.GetIncidentHist();
@@ -4075,7 +4025,7 @@ void protoana::AbsCexDriver::FakeDataPionAngle(
   std::vector<double> limits = options.get<std::vector<double>>("Limits");
 
   double new_flux = 0.;
-  flux = tree->GetEntries() - split_val;
+  flux = fMCTree->GetEntries() - split_val;
   
 
   std::map<int, std::vector<double>> nominal_samples;
@@ -4083,8 +4033,8 @@ void protoana::AbsCexDriver::FakeDataPionAngle(
     nominal_samples[it->first] = std::vector<double>(it->second.size(), 0.);
   }
 
-  for (int i = split_val; i < tree->GetEntries(); ++i) {
-    tree->GetEntry(i);
+  for (int i = split_val; i < fMCTree->GetEntries(); ++i) {
+    fMCTree->GetEntry(i);
 
     if (samples.find(sample_ID) == samples.end())
       continue;
@@ -4768,7 +4718,7 @@ void protoana::AbsCexDriver::FakeDataBeamWeight(
   TH1D * ratio = (TH1D*)ratio_file.Get("r");
 
   double new_flux = 0.;
-  flux = events.size(); //tree->GetEntries() - split_val;
+  flux = events.size(); //fMCTree->GetEntries() - split_val;
 
   std::map<int, std::vector<double>> nominal_samples;
   for (auto it = sample_scales.begin(); it != sample_scales.end(); ++it) {
@@ -4928,7 +4878,7 @@ void protoana::AbsCexDriver::FakeDataBeamWeight(
 }
 
 void protoana::AbsCexDriver::FakeDatadEdX(
-    TTree * tree,
+    TTree * fMCTree,
     std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
     const std::map<int, bool> & signal_sample_checks,
     ThinSliceDataSet & data_set, double & flux,
@@ -4968,35 +4918,35 @@ void protoana::AbsCexDriver::FakeDatadEdX(
   double reco_beam_endZ;
   std::vector<double> * calibrated_dQdX = 0x0, * beam_EField = 0x0,
                       * track_pitch = 0x0, * reco_beam_incidentEnergies = 0x0;
-  tree->SetBranchAddress("selection_ID", &selection_ID);
-  tree->SetBranchAddress("new_interaction_topology", &sample_ID);
-  tree->SetBranchAddress("reco_beam_calibrated_dQdX_SCE", &calibrated_dQdX);
-  tree->SetBranchAddress("reco_beam_EField_SCE", &beam_EField);
-  tree->SetBranchAddress("reco_beam_TrkPitch_SCE", &track_pitch);
-  tree->SetBranchAddress("reco_beam_incidentEnergies",
+  fMCTree->SetBranchAddress("selection_ID", &selection_ID);
+  fMCTree->SetBranchAddress("new_interaction_topology", &sample_ID);
+  fMCTree->SetBranchAddress("reco_beam_calibrated_dQdX_SCE", &calibrated_dQdX);
+  fMCTree->SetBranchAddress("reco_beam_EField_SCE", &beam_EField);
+  fMCTree->SetBranchAddress("reco_beam_TrkPitch_SCE", &track_pitch);
+  fMCTree->SetBranchAddress("reco_beam_incidentEnergies",
                          &reco_beam_incidentEnergies);
-  tree->SetBranchAddress("beam_inst_P", &beam_inst_P);
-  tree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
+  fMCTree->SetBranchAddress("beam_inst_P", &beam_inst_P);
+  fMCTree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
 
   std::vector<double> * true_beam_traj_Z = 0x0,
                       * true_beam_traj_KE = 0x0;
   //std::vector<int>    * true_beam_slices = 0x0;
-  tree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
-  tree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
-  //tree->SetBranchAddress("true_beam_slices", &true_beam_slices);
+  fMCTree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
+  fMCTree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
+  //fMCTree->SetBranchAddress("true_beam_slices", &true_beam_slices);
   //std::vector<double> * true_beam_incidentEnergies = 0x0;
-  //tree->SetBranchAddress("true_beam_incidentEnergies",
+  //fMCTree->SetBranchAddress("true_beam_incidentEnergies",
   //                       &true_beam_incidentEnergies);
   double true_beam_endP;
   double true_beam_interactingEnergy;
-  tree->SetBranchAddress("true_beam_interactingEnergy",
+  fMCTree->SetBranchAddress("true_beam_interactingEnergy",
                          &true_beam_interactingEnergy);
-  tree->SetBranchAddress("true_beam_endP", &true_beam_endP);
+  fMCTree->SetBranchAddress("true_beam_endP", &true_beam_endP);
 
   std::map<int, TH1 *> & selection_hists = data_set.GetSelectionHists();
-  flux = tree->GetEntries() - split_val;
-  for (int i = /*0*/split_val; i < tree->GetEntries(); ++i) {
-    tree->GetEntry(i);
+  flux = fMCTree->GetEntries() - split_val;
+  for (int i = /*0*/split_val; i < fMCTree->GetEntries(); ++i) {
+    fMCTree->GetEntry(i);
     TH1D * selection_hist = (TH1D*)selection_hists[selection_ID];
 
     double val = 1.;
@@ -5112,7 +5062,7 @@ void protoana::AbsCexDriver::FakeDataEffVar(
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
  // double new_flux = 0.;
-  flux = events.size();//tree->GetEntries() - split_val;
+  flux = events.size();//fMCTree->GetEntries() - split_val;
   
 
   std::map<int, std::vector<double>> nominal_samples;
@@ -6915,36 +6865,36 @@ int protoana::AbsCexDriver::GetBeamBin(
   return bin;
 }
 
-void protoana::AbsCexDriver::ConstructCovariances(
-    const std::vector<ThinSliceEvent> & events,
-    std::map<int, std::vector<std::vector<ThinSliceSample>>> & nominal_samples,
-    std::map<int, std::vector<std::vector<ThinSliceSample>>> & covariance_samples,
-    const std::map<int, bool> & signal_sample_checks,
-    std::vector<double> & beam_energy_bins,
-    std::map<int, double> & nominal_fluxes,
-    std::map<int, std::vector<std::vector<double>>> & fluxes_by_sample,
-    const std::map<int, std::vector<double>> & signal_pars,
-    const std::map<int, double> & flux_pars,
-    const std::map<std::string, ThinSliceSystematic> & syst_pars,
-    const std::map<std::string, ThinSliceSystematic> & g4rw_pars,
-    bool fit_under_over, bool tie_under_over, bool use_beam_inst_P
+// void protoana::AbsCexDriver::ConstructCovariances(
+//     const std::vector<ThinSliceEvent> & events,
+//     std::map<int, std::vector<std::vector<ThinSliceSample>>> & nominal_samples,
+//     std::map<int, std::vector<std::vector<ThinSliceSample>>> & covariance_samples,
+//     const std::map<int, bool> & signal_sample_checks,
+//     std::vector<double> & beam_energy_bins,
+//     std::map<int, double> & nominal_fluxes,
+//     std::map<int, std::vector<std::vector<double>>> & fluxes_by_sample,
+//     const std::map<int, std::vector<double>> & signal_pars,
+//     const std::map<int, double> & flux_pars,
+//     const std::map<std::string, ThinSliceSystematic> & syst_pars,
+//     const std::map<std::string, ThinSliceSystematic> & g4rw_pars,
+//     bool fit_under_over, bool tie_under_over, bool use_beam_inst_P
 
-    /*const std::vector<ThinSliceEvent> & events,
-    std::map<int, std::vector<std::vector<ThinSliceSample>>> & nominal_samples,
-    std::map<int, std::vector<std::vector<ThinSliceSample>>> & covariance_samples,
-    const std::map<int, bool> & signal_sample_checks,
-    std::map<int, double> & nominal_fluxes,
-    std::map<int, std::vector<std::vector<double>>> & fluxes_by_sample,
-    std::vector<double> & beam_energy_bins, bool use_beam_inst_P*/) {
-  for (auto & routine : fCovarianceRoutines) {
-    if (routine == "BeamShift") {
-      CovarianceRoutineBeamShift(
-          events, nominal_samples, covariance_samples, signal_sample_checks,
-          beam_energy_bins, nominal_fluxes, fluxes_by_sample, signal_pars,
-          flux_pars, syst_pars, g4rw_pars, fit_under_over, tie_under_over, use_beam_inst_P);
-    }
-  }
-}
+//     /*const std::vector<ThinSliceEvent> & events,
+//     std::map<int, std::vector<std::vector<ThinSliceSample>>> & nominal_samples,
+//     std::map<int, std::vector<std::vector<ThinSliceSample>>> & covariance_samples,
+//     const std::map<int, bool> & signal_sample_checks,
+//     std::map<int, double> & nominal_fluxes,
+//     std::map<int, std::vector<std::vector<double>>> & fluxes_by_sample,
+//     std::vector<double> & beam_energy_bins, bool use_beam_inst_P*/) {
+//   for (auto & routine : fCovarianceRoutines) {
+//     if (routine == "BeamShift") {
+//       CovarianceRoutineBeamShift(
+//           events, nominal_samples, covariance_samples, signal_sample_checks,
+//           beam_energy_bins, nominal_fluxes, fluxes_by_sample, signal_pars,
+//           flux_pars, syst_pars, g4rw_pars, fit_under_over, tie_under_over, use_beam_inst_P);
+//     }
+//   }
+// }
 
 void protoana::AbsCexDriver::SetupBeamShiftCovRoutine(fhicl::ParameterSet & routine) {
   fBeamShiftCovP0 = routine.get<std::pair<double, double>>("P0");

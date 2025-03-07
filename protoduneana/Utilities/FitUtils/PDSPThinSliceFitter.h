@@ -34,7 +34,6 @@ class PDSPThinSliceFitter {
                       std::string mc_file = "", std::string data_file = "",
                       std::string refit_file = "", std::string tune_file = "",
                       bool retune = false, int njobs = -1);
-  void FillMCEvents();
   void BuildMCSamples();
   void Tune(std::string tune_file);
   void SaveMCSamples();

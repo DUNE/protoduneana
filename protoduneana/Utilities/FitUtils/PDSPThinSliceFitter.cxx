@@ -753,12 +753,11 @@ void protoana::PDSPThinSliceFitter::InitializeMCSamples() {
 //Good
 void protoana::PDSPThinSliceFitter::BuildMCSamples() {
   //Open the MC file and set branches
-  TFile * fMCFile = TFile::Open(fMCFileName.c_str(), "OPEN");
-  fMCTree = (TTree*)fMCFile->Get(fTreeName.c_str());
+  fThinSliceDriver->OpenFile(fMCFileName, fTreeName);
 
   std::cout << "FakeData: " << fDoFakeData << " Routine: " <<
                fFakeDataRoutine << std::endl;
-  fThinSliceDriver->FillMCEvents(fMCTree, fEvents, fFakeDataEvents, fSplitVal,
+  fThinSliceDriver->FillMCEvents(fEvents, fFakeDataEvents, fSplitVal,
                                  fSplitMC, fShuffle, fMaxEntries,
                                  fMaxDataEntries, fDoFakeData);
   fThinSliceDriver->BuildMCSamples(fEvents, fSamples, fIsSignalSample,
@@ -767,7 +766,7 @@ void protoana::PDSPThinSliceFitter::BuildMCSamples() {
   fThinSliceDriver->BuildMCSamples(fFakeDataEvents, fFakeSamples, fIsSignalSample,
                                    fFakeFluxes, fFakeFluxesBySample,
                                    fBeamEnergyBins, fScaleToDataBeamProfile);
-  fMCFile->Close();
+  fThinSliceDriver->CloseFile();
 
   if (fDoSysts) {
     std::cout << "Setting up systs" << std::endl;
@@ -784,354 +783,6 @@ void protoana::PDSPThinSliceFitter::BuildMCSamples() {
       }
     }
   }
-
-}
-
-void protoana::PDSPThinSliceFitter::FillMCEvents() {
-
-  std::cout << "Filling MC Events" << std::endl;
-
-  int sample_ID, selection_ID, event, run, subrun;
-  int true_beam_PDG;
-  double true_beam_interactingEnergy, reco_beam_interactingEnergy;
-  double true_beam_endP, true_beam_mass, true_beam_endZ;
-  double reco_beam_endZ, true_beam_startP;
-  double beam_inst_P;
-  std::vector<double> * reco_beam_incidentEnergies = 0x0,
-                      * true_beam_incidentEnergies = 0x0,
-                      * true_beam_traj_Z = 0x0,
-                      * true_beam_traj_KE = 0x0,
-                      * reco_daughter_track_thetas = 0x0,
-                      * reco_daughter_track_scores = 0x0;
-  std::vector<int> * true_beam_slices = 0x0;
-  fMCTree->SetBranchAddress("event", &event);
-  fMCTree->SetBranchAddress("subrun", &subrun);
-  fMCTree->SetBranchAddress("run", &run);
-
-  fMCTree->SetBranchAddress("true_beam_PDG", &true_beam_PDG);
-
-  fMCTree->SetBranchAddress("new_interaction_topology", &sample_ID);
-  fMCTree->SetBranchAddress("selection_ID", &selection_ID);
-  fMCTree->SetBranchAddress("true_beam_interactingEnergy",
-                         &true_beam_interactingEnergy);
-  fMCTree->SetBranchAddress("true_beam_endP", &true_beam_endP);
-  fMCTree->SetBranchAddress("true_beam_endZ", &true_beam_endZ);
-  fMCTree->SetBranchAddress("true_beam_mass", &true_beam_mass);
-  fMCTree->SetBranchAddress("reco_beam_interactingEnergy",
-                         &reco_beam_interactingEnergy);
-  fMCTree->SetBranchAddress("reco_beam_endZ", &reco_beam_endZ);
-  fMCTree->SetBranchAddress("reco_beam_incidentEnergies",
-                         &reco_beam_incidentEnergies);
-  fMCTree->SetBranchAddress("true_beam_incidentEnergies",
-                         &true_beam_incidentEnergies);
-  fMCTree->SetBranchAddress("true_beam_slices",
-                         &true_beam_slices);
-  fMCTree->SetBranchAddress("true_beam_startP", &true_beam_startP);
-  fMCTree->SetBranchAddress("true_beam_traj_Z", &true_beam_traj_Z);
-  fMCTree->SetBranchAddress("true_beam_traj_KE", &true_beam_traj_KE);
-  std::vector<double> * calibrated_dQdX = 0x0, * beam_EField = 0x0,
-                      * track_pitch = 0x0;
-  fMCTree->SetBranchAddress("reco_beam_calibrated_dQdX_SCE", &calibrated_dQdX);
-  fMCTree->SetBranchAddress("reco_beam_EField_SCE", &beam_EField);
-  fMCTree->SetBranchAddress("reco_beam_TrkPitch_SCE", &track_pitch);
-  fMCTree->SetBranchAddress("beam_inst_P", &beam_inst_P);
-  fMCTree->SetBranchAddress("reco_daughter_allTrack_Theta", &reco_daughter_track_thetas);
-  fMCTree->SetBranchAddress("reco_daughter_PFP_trackScore_collection",
-                            &reco_daughter_track_scores);
-
-  std::vector<double> * g4rw_alt_primary_plus_sigma_weight = 0x0,
-                      * g4rw_alt_primary_minus_sigma_weight = 0x0,
-                      * g4rw_full_primary_plus_sigma_weight = 0x0,
-                      * g4rw_full_primary_minus_sigma_weight = 0x0;
-  std::vector<std::vector<double>> * g4rw_primary_grid_weights = 0x0,
-                                   * g4rw_full_grid_weights = 0x0,
-                                   * g4rw_full_grid_proton_weights = 0x0;
-  fMCTree->SetBranchAddress("g4rw_alt_primary_plus_sigma_weight",
-                            &g4rw_alt_primary_plus_sigma_weight);
-  fMCTree->SetBranchAddress("g4rw_alt_primary_minus_sigma_weight",
-                            &g4rw_alt_primary_minus_sigma_weight);
-  fMCTree->SetBranchAddress("g4rw_full_primary_plus_sigma_weight",
-                            &g4rw_full_primary_plus_sigma_weight);
-  fMCTree->SetBranchAddress("g4rw_full_primary_minus_sigma_weight",
-                            &g4rw_full_primary_minus_sigma_weight);
-  fMCTree->SetBranchAddress("g4rw_full_grid_weights", &g4rw_full_grid_weights);
-  fMCTree->SetBranchAddress("g4rw_full_grid_proton_weights", &g4rw_full_grid_proton_weights);
-
-  fMCTree->SetBranchAddress("g4rw_primary_grid_weights",
-                            &g4rw_primary_grid_weights);
-
-  std::vector<std::vector<double>> * daughter_dQdXs = 0x0,
-                                   * daughter_resRanges = 0x0,
-                                   * daughter_EFields = 0x0;
-  fMCTree->SetBranchAddress(
-      "reco_daughter_allTrack_calibrated_dQdX_SCE", &daughter_dQdXs);
-  fMCTree->SetBranchAddress(
-      "reco_daughter_allTrack_resRange_SCE", &daughter_resRanges);
-  fMCTree->SetBranchAddress(
-      "reco_daughter_allTrack_EField_SCE", &daughter_EFields);
-  bool has_pi0_shower;
-  fMCTree->SetBranchAddress("has_shower_dist_energy", &has_pi0_shower);
-
-  int nentries = fMCTree->GetEntries();
-  if (fSplitMC) {
-    fSplitVal = fMCTree->GetEntries()/2;
-    std::cout << "Note: Splitting MC in half. " <<
-                 fSplitVal << "/" << fMCTree->GetEntries() <<std::endl;
-    nentries = fSplitVal;
-  }
-  for (int i = 0; i < nentries; ++i) {
-    fMCTree->GetEntry(i);
-
-    fEvents.push_back(ThinSliceEvent(event, subrun, run));
-    fEvents.back().SetSampleID(sample_ID);
-    fEvents.back().SetSelectionID(selection_ID);
-    fEvents.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
-    fEvents.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
-    fEvents.back().SetTrueEndP(true_beam_endP);
-    fEvents.back().SetTrueEndZ(true_beam_endZ);
-    fEvents.back().SetTrueStartP(true_beam_startP);
-    fEvents.back().SetTrueMass(true_beam_mass);
-    fEvents.back().SetRecoEndZ(reco_beam_endZ);
-
-    fEvents.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
-    fEvents.back().SetTrueIncidentEnergies(*true_beam_incidentEnergies);
-    fEvents.back().SetTrueTrajZ(*true_beam_traj_Z);
-    fEvents.back().SetTrueTrajKE(*true_beam_traj_KE);
-    fEvents.back().SetTrueSlices(*true_beam_slices);
-    fEvents.back().SetdQdXCalibrated(*calibrated_dQdX);
-    fEvents.back().SetEField(*beam_EField);
-    fEvents.back().SetTrackPitch(*track_pitch);
-    fEvents.back().SetBeamInstP(beam_inst_P);
-    fEvents.back().SetPDG(true_beam_PDG);
-    fEvents.back().SetRecoDaughterTrackThetas(*reco_daughter_track_thetas);
-    fEvents.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
-    fEvents.back().SetHasPi0Shower(has_pi0_shower);
-    fEvents.back().MakeG4RWBranch("g4rw_alt_primary_plus_sigma_weight",
-                                  *g4rw_alt_primary_plus_sigma_weight);
-    fEvents.back().MakeG4RWBranch("g4rw_alt_primary_minus_sigma_weight",
-                                  *g4rw_alt_primary_minus_sigma_weight);
-    fEvents.back().MakeG4RWBranch("g4rw_full_primary_plus_sigma_weight",
-                                  *g4rw_full_primary_plus_sigma_weight);
-    fEvents.back().MakeG4RWBranch("g4rw_full_primary_minus_sigma_weight",
-                                  *g4rw_full_primary_minus_sigma_weight);
-    for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
-      fEvents.back().AddRecoDaughterTrackdQdX((*daughter_dQdXs)[j]);
-      fEvents.back().AddRecoDaughterTrackResRange((*daughter_resRanges)[j]);
-      fEvents.back().AddRecoDaughterEField((*daughter_EFields)[j]);
-    }
-
-    for (size_t j = 0; j < g4rw_primary_grid_weights->size(); ++j) {
-      std::string name_full = "g4rw_full_grid_weights_" + std::to_string(j);
-      fEvents.back().MakeG4RWBranch(name_full, (*g4rw_full_grid_weights)[j]);
-
-      std::string name_primary = "g4rw_primary_grid_weights_" +
-                                 std::to_string(j);
-      fEvents.back().MakeG4RWBranch(name_primary,
-                                    (*g4rw_primary_grid_weights)[j]);
-    }
-    fEvents.back().MakeG4RWBranch("g4rw_full_grid_proton_weights",
-                                  (*g4rw_full_grid_proton_weights)[0]);
-  }
-  std::cout << std::endl;
-
-  for (int i = fSplitVal; i < fMCTree->GetEntries(); ++i) {
-    fMCTree->GetEntry(i);
-
-    fFakeDataEvents.push_back(ThinSliceEvent(event, subrun, run));
-    fFakeDataEvents.back().SetSampleID(sample_ID);
-    fFakeDataEvents.back().SetSelectionID(selection_ID);
-    fFakeDataEvents.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
-    fFakeDataEvents.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
-    fFakeDataEvents.back().SetTrueEndP(true_beam_endP);
-    fFakeDataEvents.back().SetTrueEndZ(true_beam_endZ);
-    fFakeDataEvents.back().SetTrueStartP(true_beam_startP);
-    fFakeDataEvents.back().SetTrueMass(true_beam_mass);
-    fFakeDataEvents.back().SetRecoEndZ(reco_beam_endZ);
-
-    fFakeDataEvents.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
-    fFakeDataEvents.back().SetTrueIncidentEnergies(*true_beam_incidentEnergies);
-    fFakeDataEvents.back().SetTrueTrajZ(*true_beam_traj_Z);
-    fFakeDataEvents.back().SetTrueTrajKE(*true_beam_traj_KE);
-    fFakeDataEvents.back().SetTrueSlices(*true_beam_slices);
-    fFakeDataEvents.back().SetdQdXCalibrated(*calibrated_dQdX);
-    fFakeDataEvents.back().SetEField(*beam_EField);
-    fFakeDataEvents.back().SetTrackPitch(*track_pitch);
-    fFakeDataEvents.back().SetBeamInstP(beam_inst_P);
-    fFakeDataEvents.back().SetPDG(true_beam_PDG);
-    fFakeDataEvents.back().SetRecoDaughterTrackThetas(*reco_daughter_track_thetas);
-    fFakeDataEvents.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
-    fFakeDataEvents.back().SetHasPi0Shower(has_pi0_shower);
-    fFakeDataEvents.back().MakeG4RWBranch("g4rw_alt_primary_plus_sigma_weight",
-                                  *g4rw_alt_primary_plus_sigma_weight);
-    fFakeDataEvents.back().MakeG4RWBranch("g4rw_alt_primary_minus_sigma_weight",
-                                  *g4rw_alt_primary_minus_sigma_weight);
-    fFakeDataEvents.back().MakeG4RWBranch("g4rw_full_primary_plus_sigma_weight",
-                                  *g4rw_full_primary_plus_sigma_weight);
-    fFakeDataEvents.back().MakeG4RWBranch("g4rw_full_primary_minus_sigma_weight",
-                                  *g4rw_full_primary_minus_sigma_weight);
-    for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
-      fFakeDataEvents.back().AddRecoDaughterTrackdQdX((*daughter_dQdXs)[j]);
-      fFakeDataEvents.back().AddRecoDaughterTrackResRange((*daughter_resRanges)[j]);
-      fFakeDataEvents.back().AddRecoDaughterEField((*daughter_EFields)[j]);
-    }
-
-    for (size_t j = 0; j < g4rw_primary_grid_weights->size(); ++j) {
-      std::string name_full = "g4rw_full_grid_weights_" + std::to_string(j);
-      fFakeDataEvents.back().MakeG4RWBranch(name_full, (*g4rw_full_grid_weights)[j]);
-
-      std::string name_primary = "g4rw_primary_grid_weights_" +
-                                 std::to_string(j);
-      fFakeDataEvents.back().MakeG4RWBranch(name_primary,
-                                    (*g4rw_primary_grid_weights)[j]);
-    }
-    fFakeDataEvents.back().MakeG4RWBranch("g4rw_full_grid_proton_weights",
-                                  (*g4rw_full_grid_proton_weights)[0]);
-  }
-
-  std::cout << "Filled MC Events" << std::endl;
-}
-
-
-void protoana::PDSPThinSliceFitter::ScaleMCToData() {
-  double total_nominal = 0.;
-
-  for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-    for (size_t i = 0; i < it->second.size(); ++i) {
-      for (size_t j = 0; j < it->second[i].size(); ++j) {
-        total_nominal += it->second[i][j].GetNominalFlux();
-      }
-    }
-  }
-
-  fMCDataScale = fDataFlux/total_nominal;
-  for (auto it = fNominalFluxes.begin(); it != fNominalFluxes.end(); ++it) {
-    it->second *= fMCDataScale;
-  }
-
-  for (auto it = fFluxesBySample.begin();
-       it != fFluxesBySample.end(); ++it) {
-    for (size_t i = 0; i < it->second.size(); ++i) {
-      for (size_t j = 0; j < it->second[i].size(); ++j) {
-        it->second[i][j] *= fMCDataScale;
-      }
-    }
-  }
-
-  std::cout << "MC Data Scale: " << fMCDataScale << std::endl;
-
-
-  std::vector<double> factors_by_beam_bin(fDataBeamFluxes.size(), 0.);
-  if (fScaleToDataBeamProfile /*&& !fDoFakeData*/) {
-    for (auto it = fFluxesBySample.begin();
-         it != fFluxesBySample.end(); ++it) {
-      for (size_t i = 0; i < it->second.size(); ++i) {//beam bins
-        for (size_t j = 0; j < it->second[i].size(); ++j) {//sample bins
-          factors_by_beam_bin[i] += it->second[i][j];
-        }
-      }
-    }
-
-    double total_mc_by_beam = 0.;
-    std::cout << "Scaled MC by beam bin: ";
-    for (const auto & f : factors_by_beam_bin) {
-      std::cout << f << " ";
-      total_mc_by_beam += f;
-    }
-
-    double total_data_by_beam = 0.;
-    std::cout << std::endl << " Data by beam bin: ";
-    for (const auto & f : fDataBeamFluxes) {
-      std::cout << f << " ";
-      total_data_by_beam += f;
-    }
-    std::cout << "Total (mc, data): " << total_mc_by_beam << " " <<
-                 total_data_by_beam << std::endl;
-
-    std::cout << "scales: ";
-    for (size_t i = 0; i < factors_by_beam_bin.size(); ++i) {
-      factors_by_beam_bin[i] = fDataBeamFluxes[i]/factors_by_beam_bin[i];
-      std::cout << factors_by_beam_bin[i] << " ";
-    }
-    std::cout << std::endl;
-
-    double new_total = 0.;
-    for (auto it = fFluxesBySample.begin();
-         it != fFluxesBySample.end(); ++it) {
-      for (size_t i = 0; i < it->second.size(); ++i) {
-        for (size_t j = 0; j < it->second[i].size(); ++j) {
-          it->second[i][j] *= factors_by_beam_bin[i];
-          new_total += it->second[i][j];
-        }
-      }
-    }
-    std::cout << "New total MC: " << new_total << std::endl;
-  }
-
-  double new_total_mc = 0., new_total_data = 0., mc_flux = 0.;
-  double data_bins = 0., mc_bins = 0.;
-  for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-    for (size_t i = 0; i < it->second.size(); ++i) {
-      for (size_t j = 0; j < it->second[i].size(); ++j) {
-        it->second[i][j].SetDataMCScale(fMCDataScale);
-        if (fScaleToDataBeamProfile /*&& !fDoFakeData*/)
-          it->second[i][j].ExtraFactor(factors_by_beam_bin[i]);
-
-        mc_flux += it->second[i][j].GetNominalFlux();
-        //const std::map<int, TH1 *> & hists
-        const auto & hists
-            = it->second[i][j].GetSelectionHists();
-        for (auto it2 = hists.begin(); it2 != hists.end(); ++it2) {
-          new_total_mc += it2->second->Integral();
-          for (int k = 1; k <= it2->second->GetNbinsX(); ++k) {
-            mc_bins += it2->second->GetBinContent(k);
-          }
-        }
-      }
-    }
-  }
-  std::map<int, TH1 *> & selected_hists = fDataSet.GetSelectionHists();
-  for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
-    new_total_data += it->second->Integral();
-    for (int k = 1; k <= it->second->GetNbinsX(); ++k) {
-      data_bins += it->second->GetBinContent(k);
-    }
-  }
-
-  if (fDebugMCDataScale) {
-  std::cout << "Data: " << std::setprecision(20) << fDataFlux << std::endl;
-  std::cout << "MC: " << mc_flux << std::endl;
-  std::cout << "MC hists: " << new_total_mc << std::endl;
-  std::cout << "Data hists: " << new_total_data << std::endl;
-  std::cout << "MC bins: " << mc_bins << std::endl;
-  std::cout << "Data bins: " << data_bins << std::endl;
-
-  std::cout << "Data/MC: " << data_bins/mc_bins << std::endl;
-  }
-  double new_factor = data_bins/mc_bins;
-
-  //mc_bins = 0.;
-  for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-    for (size_t i = 0; i < it->second.size(); ++i) {
-      for (size_t j = 0; j < it->second[i].size(); ++j) {
-
-        it->second[i][j].ExtraFactor(new_factor);
-
-        
-        /*
-        const std::map<int, TH1 *> & hists
-            = it->second[i][j].GetSelectionHists();
-        for (auto it2 = hists.begin(); it2 != hists.end(); ++it2) {
-          //new_total_mc += it2->second->Integral();
-          for (int k = 1; k <= it2->second->GetNbinsX(); ++k) {
-            mc_bins += it2->second->GetBinContent(k);
-          }
-        }*/
-      }
-    }
-  }
-
-
-  //std::cout << "New MC bins: " << mc_bins << std::endl;
 
 }
 
@@ -2569,14 +2220,14 @@ void protoana::PDSPThinSliceFitter::RunFitAndSave() {
         Do1DShifts(fPreFitParsNormal, true);
     }
   }
-  else if (fFitType == "ConstructCovariance") {
-    fThinSliceDriver->ConstructCovariances(
-        fEvents, fSamples, fCovSamples, fIsSignalSample,
-        fBeamEnergyBins, fNominalFluxes, fFluxesBySample,
-        fSignalParameters, fFluxParameters,
-        fSystParameters, fG4RWParameters, fFitUnderOverflow, fTieUnderOver,
-        fScaleToDataBeamProfile);
-  }
+  // else if (fFitType == "ConstructCovariance") {
+  //   fThinSliceDriver->ConstructCovariances(
+  //       fEvents, fSamples, fCovSamples, fIsSignalSample,
+  //       fBeamEnergyBins, fNominalFluxes, fFluxesBySample,
+  //       fSignalParameters, fFluxParameters,
+  //       fSystParameters, fG4RWParameters, fFitUnderOverflow, fTieUnderOver,
+  //       fScaleToDataBeamProfile);
+  // }
   else if (fFitType == "ThrowsOnly") {
     //Load up parsHist and covariance
     TFile * prior_fit_file = TFile::Open(fFitResultsFile.c_str());
@@ -2764,10 +2415,6 @@ void protoana::PDSPThinSliceFitter::BuildDataFromToy() {
                         //rand_times_chol[bins[i]] + init_vals[base_par + i] :
                         (rand_times_chol[fCovarianceBinsSimple[i]] +
                          init_vals[base_par + i]) : fSystsToFix[names[i]]);
-          //std::cout << (fSystsToFix.find(names[i]) == fSystsToFix.end()) << std::endl;
-          //std::cout << names[i] << " " << val << " " <<
-          //             rand_times_chol[bins[i]] << " " << bins[i] << " " <<
-          //             init_vals[base_par + i] << " " << base_par << " " << i << std::endl;
 
           vals.push_back(val);
           fToyValues[names[i]] = val;
@@ -3133,16 +2780,6 @@ void protoana::PDSPThinSliceFitter::DoThrows(const TH1D & pars, const TMatrixD *
 
     hist->Write();
     cov->Write(TString::Format("throws_cov_%s", cat.c_str()));
-
-    /*for (size_t i = 0; i < fExtraArraysThrows[cat].size(); ++i) {
-      TVectorD as_vec(fExtraArraysThrows[cat][i].size());
-      for (size_t j = 0; j < fExtraArraysThrows[cat][i].size(); ++j) {
-        as_vec[j] = fExtraArraysThrows[cat][i][j];
-      }
-      as_vec.Write(name.c_str());
-
-      fExtraHistsThrows[cat]. 
-    }*/
   }
   fOutputFile.cd();
 }
@@ -3199,151 +2836,6 @@ void protoana::PDSPThinSliceFitter::Do1DShifts(const TH1D & pars, bool prefit) {
   }
 }
 
-/*void protoana::PDSPThinSliceFitter::DefineFitFunctionSimple() {
-  fFitFunction = ROOT::Math::Functor(
-      [&](double const * coeffs) {
-        auto new_time = std::chrono::high_resolution_clock::now();
-        auto delta =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                new_time - fTime).count();
-        fTime = new_time;
-        if (fCoutLevel > 0)
-          std::cout << "Fit step " << fNFitSteps << " took " << delta << std::endl;
-
-        //Set all the parameters
-        //coeffs are ordered according to
-        //keys of signal par map
-        //----vector for given signal
-        //then keys of flux par map
-        //then values of syst parameters
-        size_t par_position = 0;
-        for (auto it = fSignalParameters.begin();
-             it != fSignalParameters.end(); ++it) {
-          for (size_t i = 0; i < it->second.size(); ++i) {
-            it->second.at(i) = coeffs[par_position];
-            ++par_position;
-            //if (fDebugPars) 
-            //  std::cout << "\t" << par_position << " " << coeffs[par_position] << std::endl;
-          }
-        }
-        for (auto it = fFluxParameters.begin();
-             it != fFluxParameters.end(); ++it) {
-          it->second = coeffs[par_position];
-          ++par_position;
-          //if (fDebugPars) 
-          //  std::cout << "\t" << par_position << " " << coeffs[par_position] << std::endl;
-        }
-
-        for (auto it = fSystParameters.begin();
-             it != fSystParameters.end(); ++it) {
-          it->second.SetValue(coeffs[par_position]);
-          //std::cout << it->first << " " << it->second.GetValue() << std::endl;
-          //if (fDebugPars) 
-          //  std::cout << "\t" << par_position << " " << coeffs[par_position] << std::endl;
-          ++par_position;
-        }
-
-        for (auto & sel_par_vec : fSelVarSystPars) {
-          for (auto & par : sel_par_vec) {
-            par.SetValue(coeffs[par_position]);
-            ++par_position;
-            //if (fDebugPars) 
-            //  std::cout << "\t" << par_position << " " << coeffs[par_position] << std::endl;
-          }
-        }
-        for (auto it = fG4RWParameters.begin();
-             it != fG4RWParameters.end(); ++it) {
-          it->second.SetValue(coeffs[par_position]);
-          //std::cout << it->first << " " << it->second.GetValue() << std::endl;
-          //if (fDebugPars) 
-          //  std::cout << "\t" << par_position << " " << coeffs[par_position] << std::endl;
-          ++par_position;
-        }
-
-        std::pair<double, size_t> chi2_points= (
-          fCalcChi2InFCN ?
-          fThinSliceDriver->CalculateChi2(fSamples, fDataSet) :
-          std::make_pair<double, size_t>(0., 0)
-        );
-        ++fNFitSteps;
-
-        auto begin_time = std::chrono::high_resolution_clock::now();
-        double syst_chi2 = (fAddSystTerm ? CalcChi2SystTerm() : 0.);
-        auto end_time = std::chrono::high_resolution_clock::now();
-        delta =
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                end_time - begin_time).count();
-        if (fCoutLevel > 0)
-          std::cout << "Syst chi2 took " << delta << " us" << std::endl;
-
-        double reg_term  = (fAddRegTerm ? CalcRegTerm() : 0.);
-        double sig_term = (fAddSignalConstraint ? CalcSignalConstraint() : 0.);
-
-        if (fDebugChi2)
-          std::cout << chi2_points.first << " " << syst_chi2 << std::endl;
-        //if (chi2_points.first < 0.) {
-        if (chi2_points.first < -1.*FLT_EPSILON ||
-            std::isnan(chi2_points.first)) {
-          std::string message = "Chi2 went negative " +
-                                std::to_string(chi2_points.first) + "\n";
-
-
-          size_t a = 0;
-          for (auto it = fSignalParameters.begin();
-               it != fSignalParameters.end(); ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-               message += std::to_string(a) + " " +
-                          std::to_string(it->second.at(i)) + "\n";
-              ++a;
-            }
-          }
-          for (auto it = fFluxParameters.begin();
-               it != fFluxParameters.end(); ++it) {
-            if (fCoutLevel > 0)
-              std::cout << a << " " << it->second << std::endl;
-            message += std::to_string(a) + " " + std::to_string(it->second) +
-                       "\n";
-            ++a;
-          }
-
-          for (auto it = fSystParameters.begin();
-               it != fSystParameters.end(); ++it) {
-            //it->second.SetValue(coeffs[a]);
-            message += std::to_string(a) + " " +
-                       std::to_string(it->second.GetValue()) + " " +
-                       it->second.GetName() + "\n";
-            ++a;
-          }
-
-          for (auto & sel_var_vec : fSelVarSystPars) {
-            for (auto & par : sel_var_vec) {
-              message += std::to_string(a) + " " +
-                         std::to_string(par.GetValue()) + " " +
-                         par.GetName() + "\n";
-              ++a;
-            }
-          }
-
-          for (auto it = fG4RWParameters.begin();
-               it != fG4RWParameters.end(); ++it) {
-            //it->second.SetValue(coeffs[a]);
-            message += std::to_string(a) + " " +
-                       std::to_string(it->second.GetValue()) + " " +
-                       it->second.GetName() + "\n";
-            ++a;
-          }
-          throw std::runtime_error(message);
-        }
-
-
-        if (fCoutLevel > 0)
-          std::cout << (chi2_points.first + syst_chi2 + reg_term + sig_term) << std::endl;
-        return (chi2_points.first + syst_chi2 + reg_term + sig_term);
-      },
-      fTotalSignalParameters + fTotalFluxParameters + fTotalSystParameters + fTotalG4RWParameters);
-      std::cout << "Done F2" << std::endl;
-  }
-}*/
 void protoana::PDSPThinSliceFitter::DefineFitFunction() {
   ///use samples
   fFitFunction = ROOT::Math::Functor(
@@ -3462,96 +2954,8 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
           }
         }
 
-        /*//if (!fInitializeMCs) {
-        //Scale to Data
-        if (!fUseFakeSamples) {
-          for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                it->second[i][j].ScaleToDataMC();
-              }
-            }
-          }
-        }
-        else {
-          for (auto it = fFakeSamples.begin(); it != fFakeSamples.end(); ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                it->second[i][j].ScaleToDataMC();
-              }
-            }
-          }
-        }
-
-
-        double total_varied_flux = 0.;
-        double total_nominal_flux = 0.;
-        std::vector<double> varied_flux(fBeamEnergyBins.size() - 1, 0.);
-        std::vector<double> nominal_flux(fBeamEnergyBins.size() - 1, 0.);
-
-        //Go through and determine the scaled flux
-        //Two styles:
-        //--Scaling to true incident momentum for pions/primary only
-        //--Scaling to reco beam inst momentum for all types of particles
-        //----(Set by fScaleToDataBeamProfile)
-        if (!fUseFakeSamples) {
-        for (auto it = fFluxesBySample.begin();
-             it != fFluxesBySample.end(); ++it) {
-          int sample_ID = it->first;
-          std::vector<std::vector<ThinSliceSample>> & samples_2D
-              = (!fUseFakeSamples ? fSamples[sample_ID] :
-                                   fFakeSamples[sample_ID]);
-          for (size_t i = 0; i < samples_2D.size(); ++i) {
-            std::vector<ThinSliceSample> & samples = samples_2D[i];
-            for (size_t j = 0; j < samples.size(); ++j) {
-              ThinSliceSample & sample = samples.at(j);
-              int flux_type = sample.GetFluxType();
-              if (fScaleToDataBeamProfile || flux_type == 1) {
-                nominal_flux[i] += (!fUseFakeSamples ?
-                                    fFluxesBySample[sample_ID][i][j] :
-                                    fFakeFluxesBySample[sample_ID][i][j]);
-                varied_flux[i] += sample.GetVariedFlux();
-              }
-              total_nominal_flux += (!fUseFakeSamples ?
-                                    fFluxesBySample[sample_ID][i][j] :
-                                    fFakeFluxesBySample[sample_ID][i][j]);
-              total_varied_flux += sample.GetVariedFlux();
-              
-            }
-          }
-        }
-
-          std::vector<double> flux_factor = nominal_flux;
-          for (size_t i = 0; i < flux_factor.size(); ++i) {
-            flux_factor[i] = (nominal_flux[i] > 1.e-7 ?
-                              flux_factor[i] / varied_flux[i] :
-                              0.);
-          }
-
-          for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
-               it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                it->second[i][j].SetFactorAndScale(
-                    flux_factor[i]);
-              }
-            }
-          }
-
-        }
-        //}*/
-
-
         //Simpler renormalization...
         if (fDataBeamFluxes.size()) {
-          /*std::cout << "Data ";
-          double total = 0.;
-          for (const auto & bf : fDataBeamFluxes) {
-            std::cout << bf << " ";
-            total += bf;
-          }
-          std::cout << total << std::endl;*/
-
           std::vector<double> fluxes(fDataBeamFluxes.size());
           for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
                it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
@@ -3562,13 +2966,6 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
             }
           }
 
-          /*std::cout << "MC ";
-          total = 0.;
-          for (const auto & bf : fluxes) {
-            std::cout << bf << " ";
-            total += bf;
-          }
-          std::cout << total << std::endl;*/
 
           std::vector<double> new_fluxes(fluxes.size());
           for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
@@ -3580,92 +2977,7 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
               }
             }
           }
-          /*std::cout << "New ";
-          total = 0.;
-          for (const auto & bf : new_fluxes) {
-            std::cout << bf << " ";
-            total += bf;
-          }
-          std::cout << total << std::endl;*/
         }
-
-        /*if (fAltFluxVar && fFitFlux) {
-          //std::cout << "Varying flux alt" << std::endl;
-          auto begin = (!fUseFakeSamples ? fSamples.begin() :
-                     fFakeSamples.begin());
-          auto end = (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end());
-          //
-          //Hardcoding this now -- fuck it
-          double total = 0.;
-          double mu = 0.;
-          for (auto it = begin; it != end; ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                double this_flux = it->second[i][j].GetVariedFlux();
-                total += this_flux;
-                if (it->second[i][j].GetFluxType() == 2) {
-                  mu += this_flux;
-                }
-              }
-            }
-          }
-
-          if (fFirstFlux < 0.) {
-            fFirstFlux = mu;
-            std::cout << "First flux " << fFirstFlux << std::endl;
-          }
-
-          double mu_frac = mu/total;
-          std::cout << "Total: " << total << " Mu: " << mu << " Pi: " << total - mu << std::endl;
-          //double mu_scale = fFluxParameters[2]/mu;
-          double mu_scale = fFluxParameters[2]*fFirstFlux/mu;
-          double pi_scale = (1. - mu_scale*mu_frac)/(1 - mu_frac);
-          std::cout << "\tmu_scale: " << mu_scale << " pi_scale: " << pi_scale << std::endl;
-          double new_mu_1 = 0., new_mu_2 = 0.;
-          for (auto it = begin; it != end; ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                if (it->second[i][j].GetFluxType() == 2) {
-                  //it->second[i][j].SetFactorAndScale(mu_scale);
-                  it->second[i][j].ExtraFactor(mu_scale);
-                  new_mu_1 += it->second[i][j].GetVariedFlux();
-                }
-                else {
-                  it->second[i][j].ExtraFactor(pi_scale);
-                }
-              }
-            }
-          }
-
-          //Redo this too
-          if (fDataBeamFluxes.size()) {
-            std::vector<double> fluxes(fDataBeamFluxes.size());
-            for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
-                 it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
-              for (size_t i = 0; i < it->second.size(); ++i) {
-                for (size_t j = 0; j < it->second[i].size(); ++j) {
-                  fluxes[i] += it->second[i][j].GetVariedFlux();
-                }
-              }
-            }
-
-            for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
-                 it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
-              for (size_t i = 0; i < it->second.size(); ++i) {
-                for (size_t j = 0; j < it->second[i].size(); ++j) {
-                 // it->second[i][j].SetFactorAndScale(fDataBeamFluxes[i]/fluxes[i]);
-                  
-                  it->second[i][j].ExtraFactor(fDataBeamFluxes[i]/fluxes[i]);
-                  if (it->second[i][j].GetFluxType() == 2) {
-                    new_mu_2 += it->second[i][j].GetVariedFlux();
-                  }
-                }
-              }
-            }
-          }
-
-          std::cout << "\tNew mus: " << new_mu_1 << " " << new_mu_2 << std::endl;
-        }*/
 
         std::pair<double, size_t> chi2_points= (
           fCalcChi2InFCN ?
