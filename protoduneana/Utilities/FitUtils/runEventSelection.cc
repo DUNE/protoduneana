@@ -34,8 +34,9 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
            .Define("testing2", testing(2)/*testing2*/)
            .Define("beam_P_range",
                    beam_P_range(pset.get<double>("BeamPLow", 0.),
-                                pset.get<double>("BeamPHigh", 1.e6)),
-                   {"beam_inst_P"})
+                                pset.get<double>("BeamPHigh", 1.e6),
+				pset.get<double>("MCBeamPScale", 1.)),
+		   {"beam_inst_P"})
            .Define("beam_XY_cuts",
                    beam_XY_cuts(pset.get<double>("BeamXMean", 0.),
                                 pset.get<double>("BeamYMean", 0.),
@@ -162,6 +163,15 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                    {"true_beam_PDG",
                     "true_beam_endZ", "true_beam_endProcess", "true_daughter_nPi0",
                     "true_beam_daughter_PDG", "true_beam_daughter_startP"})
+           .Define("interaction_topology_4_signals",
+                   interaction_topology_4_signals(pset.get<double>("EndZLow"),
+						  pset.get<double>("EndZHigh"),
+						  pset.get<double>("Threshold"),
+						  pset.get<bool>("CexNPi0"),
+						  pset.get<bool>("SignalPastFV", true)),
+                   {"true_beam_PDG",
+                    "true_beam_endZ", "true_beam_endProcess", "true_daughter_nPi0",
+                    "true_beam_daughter_PDG", "true_beam_daughter_startP"})
            .Define("inclusive_topology", inclusive_topology(),
                    {"new_interaction_topology"})
            .Define("beam_backtrack", backtrack_beam,
@@ -199,10 +209,16 @@ auto DefineMC(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                    fixed_interacting_energy(80.),
                    {"reco_beam_incidentEnergies", "reco_beam_interactingEnergy"})
            .Define("reco_beam_modified_interactingEnergy",
-                   modified_interacting_energy(80.),
+                   modified_interacting_energy(
+					       80.,
+					       pset.get<double>("MCBeamPScale", 1.)
+					       ),
                    {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_beam_modified2_interactingEnergy",
-                   modified_interacting_energy(20.),
+                   modified_interacting_energy(
+					       20.,
+					       pset.get<double>("MCBeamPScale", 1.)
+					       ),
                    {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("daughter_PDGs_types", daughter_PDG_types,
                    {"reco_daughter_PFP_true_byHits_PDG"})
@@ -387,7 +403,8 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
            .Define("beamPID", data_beam_PID, {"beam_inst_PDG_candidates", "MC", "true_beam_PDG"})
            .Define("beam_P_range",
                    beam_P_range(pset.get<double>("BeamPLow", 0.),
-                                pset.get<double>("BeamPHigh", 1.e6)),
+                                pset.get<double>("BeamPHigh", 1.e6),
+				pset.get<double>("DataBeamPScale", 1.)),
                    {"beam_inst_P"})
            .Define("beam_XY_cuts",
                    beam_XY_cuts(pset.get<double>("DataBeamXMean", 0.),
@@ -449,10 +466,16 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                    fixed_interacting_energy(80.),
                    {"reco_beam_incidentEnergies", "reco_beam_interactingEnergy"})
            .Define("reco_beam_modified_interactingEnergy",
-                   modified_interacting_energy(80.),
+                   modified_interacting_energy(
+					       80.,
+					       pset.get<double>("DtaBeamPScale", 1.)
+					       ),
                    {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_beam_modified2_interactingEnergy",
-                   modified_interacting_energy(20.),
+                   modified_interacting_energy(
+					       20.,
+					       pset.get<double>("DataBeamPScale", 1.)
+					       ),
                    {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_daughter_allTrack_Chi2_proton_ndof",
                    make_simple_chi2, 
@@ -492,7 +515,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
                        pset.get<double>("dEdXMed"),
                        pset.get<double>("dEdXHigh")),
                    {track_score_string,
-                    "reco_daughter_allTrack_ID", 
+                    "reco_daughter_allTrack_ID",
                     "reco_daughter_allTrack_truncLibo_dEdX_pos",
                     "reco_daughter_allTrack_Chi2_proton_ndof"})
            .Define("has_noPion_daughter",
