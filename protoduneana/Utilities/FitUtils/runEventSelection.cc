@@ -468,7 +468,7 @@ auto DefineData(ROOT::RDataFrame & frame, const fhicl::ParameterSet & pset,
            .Define("reco_beam_modified_interactingEnergy",
                    modified_interacting_energy(
 					       80.,
-					       pset.get<double>("DtaBeamPScale", 1.)
+					       pset.get<double>("DataBeamPScale", 1.)
 					       ),
                    {"beam_inst_P", "reco_beam_dEdX_SCE", "reco_beam_TrkPitch_SCE"})
            .Define("reco_beam_modified2_interactingEnergy",

@@ -1141,7 +1141,7 @@ class modified_interacting_energy {
     double operator()(const double & beam_inst_P,
                       const std::vector<double> & dedxs,
                       const std::vector<double> & track_pitches) {
-     double energy = sqrt(beam_inst_P*beam_inst_P*1.e6*fPScale + 139.57*139.57) - 139.57;
+     double energy = sqrt(beam_inst_P*beam_inst_P*1.e6*fPScale*fPScale + 139.57*139.57) - 139.57;
      for (size_t k = 0; k < dedxs.size(); ++k) {
        double dedx = dedxs[k];
        if (dedx > fEnergyFix && fEnergyFix > 0.) {
