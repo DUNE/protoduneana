@@ -18,7 +18,7 @@ DataColumnList: @local::datacolumnlist
 RestrictBeamP: false
 BeamPLow: 420.
 BeamPHigh: 600.
-MCBeamPScale: 2.
+MCBeamPScale: 1.
 DataBeamPScale: 1.
 
 ## -- spectrometer track multiplicity: nP == 1, required ntrack == 1 too?
@@ -48,7 +48,7 @@ EndZHigh: 215
 ## == True event topology
 #######################################
 EndZLow: -.49375
-Threshold: .150 ## -- secondary charged pion momentum threshold
+Threshold: .135 ## -- secondary charged pion momentum threshold
 CexNPi0: true
 SignalPastFV: true
 

@@ -15,6 +15,7 @@ BEGIN_PROLOG
     "cal_up_has_noPion_daughter_simple",
     "cal_down_has_noPion_daughter_simple",
     "new_interaction_topology",
+    "interaction_topology_4_signals",
     "inclusive_topology",
     "beam_backtrack",
     "daughter_categories",

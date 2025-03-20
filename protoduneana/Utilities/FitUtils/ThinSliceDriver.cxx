@@ -162,7 +162,7 @@ std::vector<std::vector<double>> * daughter_dQdXs = 0x0,
                                  * daughter_resRanges = 0x0,
                                  * daughter_EFields = 0x0;
 fMCTree->SetBranchAddress(
-    "reco_daughter_allTrack_calibrated_dQdX_SCE", &daughter_dQdXs);//good
+    "reco_daughter_allTrack_dQdX_SCE", &daughter_dQdXs);//good
 fMCTree->SetBranchAddress(
     "reco_daughter_allTrack_resRange_SCE", &daughter_resRanges);//good
 fMCTree->SetBranchAddress(
@@ -202,9 +202,9 @@ fMCTree->SetBranchAddress("reco_daughter_allShower_energy",
                        &reco_daughter_shower_energy);
 
 int nentries = (max_entries < 0 ? fMCTree->GetEntries() : max_entries);
-if (max_entries > fMCTree->GetEntries()) {
-    std::string message = "Requested more entries than in MC fMCTree";
-    throw std::runtime_error(message);
+if(max_entries > fMCTree->GetEntries()) {
+  nentries = fMCTree->GetEntries();
+  std::string message = "Requested more entries than in MC fMCTree. Setting nentries to fMCTree's numer of entries.";
 }
 
 split_val = nentries;
