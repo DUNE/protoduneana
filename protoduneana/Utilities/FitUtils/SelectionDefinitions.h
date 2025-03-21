@@ -7,6 +7,8 @@
 #include "TMath.h"
 #include <map>
 class new_interaction_topology {
+  // == topologies for 1 GeV/c pi+ x-sec
+  // ==== 1: Abs., 2: CEX, 3: Others, 4: Upstream interactions, 5: muons, 6: Past FV, 7: Decaying pions
  private:
   double fEndZLow, fEndZHigh;
   double fThreshold;
@@ -67,6 +69,81 @@ class new_interaction_topology {
     }
     else {
       topology = 7;
+    }
+
+    return topology;
+
+  }
+};
+
+class interaction_topology_4_signals {
+  // == topologies with pi0 multiplicity cut for at least pi+- region
+  // ==== 1: Abs., 2: CEX, 3: QE-like, 4: Others, 5: Upstream interactions, 6: muons, 7: Past FV, 8: Decaying pions
+ private:
+  double fEndZLow, fEndZHigh;
+  double fThreshold;
+  bool fCexNPi0, fSignalPastFV;
+ public:
+  interaction_topology_4_signals(double endz_low, double endz_high,
+				 double threshold, bool cex_nPi0, bool sig_past_fv=false)
+    : fEndZLow(endz_low), fEndZHigh(endz_high), fThreshold(threshold),
+      fCexNPi0(cex_nPi0), fSignalPastFV(sig_past_fv) {}
+
+  int operator()(int pdg, double endZ,
+                 std::string process, int nPi0,
+                 std::vector<int> & true_daughter_pdg,
+                 std::vector<double> & true_daughter_startP/*,
+                 std::vector<double> & incidentEnergies*/) {
+
+    int topology = -1;
+    if (pdg == 211) {
+      if (endZ < fEndZLow/*-.49375*/) {
+        topology = 5;
+      }
+
+      else if ((endZ > fEndZHigh)/*222.10561*/ && //After FV
+               ((!fSignalPastFV) || //If we don't want to consider inel. ints past APA cut
+                (fSignalPastFV && process != "pi+Inelastic"))) { //If we want to consider inel past APA
+        topology = 7;
+      }
+      else if (process == "pi+Inelastic") {
+        //daughters with & without thresholds
+        bool has_pion_above_threshold = false;
+        for (size_t i = 0; i < true_daughter_startP.size(); ++i) {
+          if (abs(true_daughter_pdg[i]) == 211 &&
+              true_daughter_startP[i] > fThreshold/*.150*/) {
+            has_pion_above_threshold = true;
+            break;
+          }
+        }
+
+        if (has_pion_above_threshold || (!fCexNPi0 && nPi0 > 1)) {
+	  if(nPi0 == 0) {
+	    topology = 3;
+	  }
+          else{
+	    topology = 4;
+	  }
+        }
+        else if (nPi0 == 0) {
+          topology = 1;
+        }
+        else if ((fCexNPi0 && nPi0 > 0) || (!fCexNPi0 && nPi0 == 1)) {
+          topology = 2;
+        }
+        else {
+          std::cout << "warning" << std::endl;
+        }
+      }
+      else {
+        topology = 8;
+      }
+    }
+    else if (pdg == -13) {
+      topology = 6;
+    }
+    else {
+      topology = 8;
     }
 
     return topology;
@@ -927,41 +1004,11 @@ class beam_cut_FV {
      : fZMin(zmin), fCosCut(coscut),
        fMeanX(mean_x), fMeanY(mean_y), fMeanR(mean_r),
        fSigmaX(sigma_x), fSigmaY(sigma_y), fSigmaR(sigma_r) {}
-    bool operator()(/*std::vector<double> & calo_X,
-                    std::vector<double> & calo_Y,
-                    std::vector<double> & calo_Z, */
-                    std::array<double, 6> fv_vals,
-                    double calo_endZ/*,
-                    double beam_inst_X, double beam_inst_Y, double beam_inst_Z,
-                    double beam_inst_dirX, double beam_inst_dirY,
-                    double beam_inst_dirZ*/) {
+    bool operator()(std::array<double, 6> fv_vals,
+                    double calo_endZ) {
+
       //If upstream of FV -- reject
       if (calo_endZ < fZMin) return false;
-
-      //Find the point the track enters FV
-      /*size_t fv_index = 0;
-      for (; fv_index < calo_Z.size(); ++fv_index) {
-        if (calo_Z[fv_index] > fZMin) break;
-      }
-
-      //To prevent indexing issues 
-      if (fv_index == 0) ++fv_index;
-
-      double x1 = calo_X[fv_index];
-      double y1 = calo_Y[fv_index];
-      double z1 = calo_Z[fv_index];
-
-      double x0 = calo_X[fv_index-1];
-      double y0 = calo_Y[fv_index-1];
-      double z0 = calo_Z[fv_index-1];
-
-      double xl = calo_X.back();
-      double yl = calo_Y.back();
-      double zl = calo_Z.back();*/
-
-      //project to the FV face
-      //double x = (fZMin - z0)*(x1 - x0)/(z1 - z0) + x0;
-      //double y = (fZMin - z0)*(y1 - y0)/(z1 - z0) + y0;
 
       //check if in cut region
       double beam_x = fv_vals[3];//beam_inst_X + beam_inst_dirX*fZMin/beam_inst_dirZ;
@@ -974,22 +1021,15 @@ class beam_cut_FV {
       double dx = (fv_x-beam_x);
       double dy = (fv_y-beam_y);
       //double r = sqrt(dx*dx + dy*dy);
-      if ((abs((dx - fMeanX)/fSigmaX) > 3.) ||
-          (abs((dy - fMeanY)/fSigmaY) > 3.) ||
-          (abs((r - fMeanR)/fSigmaR) > 3.) ||
-          (costheta < fCosCut)) return false;
 
-      //get the angle between pt on FV face and end of track
-      //double r_end = sqrt((xl-x)*(xl-x) + (yl-y)*(yl-y) + (zl-fZMin)*(zl-fZMin));
-      //double costheta = (
-      //  (xl-x)/r_end*beam_inst_dirX +
-      //  (yl-y)/r_end*beam_inst_dirY +
-      //  (zl-fZMin)/r_end*beam_inst_dirZ);
-
-      //if (costheta < fCosCut) return false;
+      bool pass_dx = abs((dx - fMeanX)/fSigmaX) < 3.;
+      bool pass_dy = abs((dy - fMeanY)/fSigmaY) < 3.;
+      bool pass_r = abs((r - fMeanR)/fSigmaR) < 3.;
+      bool pass_costheta = costheta > fCosCut;
+      if(fMeanR < 0. || fSigmaR < 0.) pass_r = true;
+      if( !pass_dx || !pass_dy || !pass_r || !pass_costheta) return false;
 
       return true;
-
     }
 };
 
@@ -1095,13 +1135,13 @@ double BetheBloch(double energy, double mass) {
 
 class modified_interacting_energy {
   private:
-    double fEnergyFix;
+  double fEnergyFix, fPScale;
   public:
-    modified_interacting_energy(double fix_val = -1.) : fEnergyFix(fix_val) {}
+  modified_interacting_energy(double fix_val = -1., double p_scale = 1.) : fEnergyFix(fix_val), fPScale(p_scale) {}
     double operator()(const double & beam_inst_P,
                       const std::vector<double> & dedxs,
                       const std::vector<double> & track_pitches) {
-     double energy = sqrt(beam_inst_P*beam_inst_P*1.e6 + 139.57*139.57) - 139.57;
+     double energy = sqrt(beam_inst_P*beam_inst_P*1.e6*fPScale*fPScale + 139.57*139.57) - 139.57;
      for (size_t k = 0; k < dedxs.size(); ++k) {
        double dedx = dedxs[k];
        if (dedx > fEnergyFix && fEnergyFix > 0.) {
@@ -1137,12 +1177,12 @@ class fixed_interacting_energy {
 
 class beam_P_range {
   private:
-    double fRangeLow, fRangeHigh;
+  double fRangeLow, fRangeHigh, fPScale;
   public:
-    beam_P_range(double range_low, double range_high)
-     : fRangeLow(range_low), fRangeHigh(range_high) {}
+  beam_P_range(double range_low, double range_high, double p_scale)
+    : fRangeLow(range_low), fRangeHigh(range_high), fPScale(p_scale) {}
     bool operator()(double beam_inst_P) {
-      return (fRangeLow < beam_inst_P*1.e3 && beam_inst_P*1.e3 < fRangeHigh);
+      return (fRangeLow < beam_inst_P*1.e3*fPScale && beam_inst_P*1.e3*fPScale < fRangeHigh);
     }
 };
 
