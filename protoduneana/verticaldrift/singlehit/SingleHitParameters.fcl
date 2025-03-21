@@ -14,8 +14,8 @@ SingleHitParams:
 
   HitMultiplicity:      3
 
-  RadiusInt:            1   # in cm
-  RadiusExt:            20    # in cm
+  RadiusInt:            2   # in cm
+  RadiusExt:            10    # in cm
   CoincidenceWindow1_right:   5   # in mus
   CoincidenceWindow1_left:    5    # in mus
   CoincidenceWindow2_left:    5    # in mus
@@ -24,6 +24,10 @@ SingleHitParams:
   Is3ViewsCoincidence:  false #if false then only 2 views coincidence is imposed
   HitTree:              false #if you want the hit tree or not
 
+  Covering: 0.98
+  MaxSizeCluster: 4
+  ClusterSizeMulti: 1.1
+  NumberInitClusters: 100
 }
 
 END_PROLOG
