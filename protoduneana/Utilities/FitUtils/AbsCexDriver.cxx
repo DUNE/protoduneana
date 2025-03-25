@@ -1645,12 +1645,6 @@ void protoana::AbsCexDriver::RefillSampleLoop(
       //std::cout << "\tAfter g4rw: " << weight << std::endl;
     }
 
-    //Remove
-    if (fix_factors != 0x0) {
-      int bin = fix_factors->at(new_selection)->FindBin(val[0]);
-      weight *= fix_factors->at(new_selection)->GetBinContent(bin);
-      //std::cout << "\tAfter fix: " << weight << std::endl;
-    }
 
     if (fFillFakeDataInMain) {
       weight *= FakeDataWeight(event);

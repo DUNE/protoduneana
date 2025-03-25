@@ -23,6 +23,7 @@
 #include "ThinSliceSample.h"
 #include "ThinSliceDataSet.h"
 #include "ThinSliceDriver.h"
+#include "ThinSliceStrategy.h"
 #include "ThinSliceSystematic.h"
 #include "ThinSliceEvent.h"
 
@@ -89,15 +90,17 @@ class PDSPThinSliceFitter {
   void DoMultiConts();
   void RunOneContour(size_t i, size_t j, unsigned int & npoints);
   void GetCovarianceVals(TString dir);
+  void NewRefill(const std::vector<ThinSliceEvent> & events);
+  void NewRefillLoop(
+    const std::vector<ThinSliceEvent> & events,
+    size_t worker_id, std::vector<size_t> n_events
+  );
   //void MakeThrowsArrays(std::vector<TVectorD *> & arrays);
 
   std::vector<double> GetBestFitParsVec();
-  void SetupExtraHists();
-  void SetupExtraHistsThrows();
-  void SaveExtraHists(TDirectory * dir);
-  void MakeTotalExtraHist(std::string category);
 
   ThinSliceDriver * fThinSliceDriver;
+  ThinSliceStrategy * fThinSliceStrategy;
   std::map<int, std::vector<std::vector<ThinSliceSample>>> fSamples,
                                                            fFakeSamples,
                                                            fCovSamples;
@@ -119,21 +122,6 @@ class PDSPThinSliceFitter {
   std::vector<double> fMinimizerInitVals;
   TH1D fPreFitParsNormal;
 
-  //std::map<int, TGraphAsymmErrors> fSignalEfficiencies;
-  //std::map<int, std::pair<TH1D, TH1D>> fSignalEffParts;
-
-  //TGraphAsymmErrors fIncidentEfficiency;
-  //TH1D fIncidentTotal, ;
-
-  //std::map<int, TH1D> fSelectedDataHists;
-  //std::map<int, TH1D> fRebinnedSelectedDataHists;
-  //TH1D fIncidentDataHist;
-  //TH1D fRebinnedIncidentDataHist;
-
-  //THStack * fNominalIncidentMCStack;
-  //THStack * fPostFitIncidentMCStack;
-  //std::map<int, THStack *> fNominalSelectedMCStacks;
-  //std::map<int, THStack *> fPostFitSelectedMCStacks;
 
   std::map<int, double> fNominalFluxes, fFakeFluxes;
   std::map<int, std::vector<std::vector<double>>> fFluxesBySample,
@@ -157,7 +145,7 @@ class PDSPThinSliceFitter {
   //std::map<int, std::string> fSystParameterNames;
   std::map<std::string, ThinSliceSystematic> fSystParameters, fG4RWParameters;
   bool fTuneG4RWPars;
-  std::vector<std::vector<ThinSliceSystematic>> fSelVarSystPars;
+  //std::vector<std::vector<ThinSliceSystematic>> fSelVarSystPars;
   std::vector<std::string> fSystParameterNames;
   std::vector<double> fParLimits, fParLimitsUp;
   size_t fTotalSystParameters = 0, fTotalG4RWParameters = 0;
@@ -197,13 +185,7 @@ class PDSPThinSliceFitter {
   std::string fTreeName;
   std::vector<fhicl::ParameterSet> fSelectionSets;
   std::map<int, int> fSelectionBins;
-  std::vector<double> fSelVarSystVals;
   std::vector<fhicl::ParameterSet> fSampleSets;
-  std::vector<fhicl::ParameterSet> fExtraHistSets;
-  std::vector<std::string> fExtraHistCategories;
-  std::map<std::string, TH1 *> fExtraHistsTotal;
-  std::map<std::string, TH1 *> fExtraHistsThrows;
-  std::map<std::string, TMatrixD*> fExtraArraysThrows;
   std::map<int, std::string> fFluxTypes;
   int fMaxCalls, fMaxIterations, fPrintLevel;
   int fCoutLevel;
@@ -214,7 +196,7 @@ class PDSPThinSliceFitter {
   std::vector<std::pair<int, int>> fPlotStyle;
   bool fPlotRebinned;
   bool fRandomStart;
-  std::string fDriverName;
+  std::string fDriverName, fStrategyName;
   std::string fAnalysis;
   fhicl::ParameterSet fAnalysisOptions;
   double fPitch, fPitchCorrection;
@@ -272,34 +254,12 @@ class PDSPThinSliceFitter {
   std::map<int, std::vector<double>> fSignalBins;
   //////////////////////////
   
-  void ResetSelVarSystVals() {
-    for (auto & val : fSelVarSystVals) {
-      val = 1.;
-    }
-  };
 
   void GenerateCorrelatedThrow(
-      const TH1D & pars, const TMatrixD * cov_lower/*TDecompChol & chol*/, std::vector<double> & vals);
+  const TH1D & pars, const TMatrixD * cov_lower/*TDecompChol & chol*/, std::vector<double> & vals);
   void GenerateUncorrelatedThrow(
-      const TH1D & pars, const TMatrixD * cov, std::vector<double> & vals);
-  
-  void SetSelVarSystVals() {
-    ResetSelVarSystVals();
-    if (fUseFakeSamples) std::cout << "Setting Sel var" << std::endl;
-    for (auto & sel_var_vec : fSelVarSystPars) {
-      for (auto & par : sel_var_vec) {
-        //std::cout << par.GetName() << " " << par.GetSelectionID() << " " <<
-        //             par.GetSelectionBin() << std::endl;
-        //std::cout << "Bin: " << fSelectionBins[par.GetSelectionID()] + par.GetSelectionBin()-1 << std::endl;
-        int bin = fSelectionBins[par.GetSelectionID()] +
-                  par.GetSelectionBin() - 1;
-        fSelVarSystVals[bin] = par.GetValue();
-        if (fUseFakeSamples) {
-          std::cout << par.GetValue() << std::endl;
-        }
-      }
-    }
-  };
+  const TH1D & pars, const TMatrixD * cov, std::vector<double> & vals);
+
 
   double BetheBloch(double energy, double mass) {
    double K,rho,Z,A, charge, me, I, gamma,  /*momentum ,*/wmax, pitch;
