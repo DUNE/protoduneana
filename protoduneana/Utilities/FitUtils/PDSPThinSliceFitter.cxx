@@ -1402,7 +1402,7 @@ void protoana::PDSPThinSliceFitter::CompareDataMC(
     std::vector<double> signal_bins = fSignalBins[sample_ID];
     if (fDrawXSecUnderflow) {
       signal_bins.insert(signal_bins.begin(), 0.);
-      signal_bins.push_back(2000.);
+      signal_bins.push_back(2000.);//Make this like inf or something big
     }
 
     std::string signal_name = extra_name;
