@@ -1,6 +1,7 @@
 #ifndef THINSLICEEVENT_hh
 #define THINSLICEEVENT_hh
 #include "TSpline.h"
+#include <map>
 namespace protoana {
 class ThinSliceEvent {
  public:

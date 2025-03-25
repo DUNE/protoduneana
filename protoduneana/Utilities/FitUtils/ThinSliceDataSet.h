@@ -16,10 +16,8 @@ namespace protoana {
 class ThinSliceDataSet {
  public:
   ThinSliceDataSet() {};
-  //ThinSliceDataSet(const std::vector<double> & incident_bins,
-  //                 const std::vector<fhicl::ParameterSet> & selections);
-  ThinSliceDataSet(const std::vector<double> & incident_bins,
-                   const std::vector<fhicl::ParameterSet> & selections,
+
+  ThinSliceDataSet(const std::vector<fhicl::ParameterSet> & selections,
                    const std::vector<double> & beam_bins);
   ~ThinSliceDataSet() {};
 
@@ -47,13 +45,6 @@ class ThinSliceDataSet {
     return fSelectionHists.at(id);
   };
 
-  TH1D & GetIncidentHist() {
-    return fIncidentHist;
-  };
-
-  TH1D & GetRebinnedIncidentHist() {
-    return fIncidentHistRebinned;
-  };
 
   TH1 * GetRebinnedSelectionHist(int id) {
     return fSelectionHistsRebinned.at(id);
@@ -76,12 +67,6 @@ class ThinSliceDataSet {
     if (fExtraHists.find(name) != fExtraHists.end())
       return fExtraHists.at(name);
     return 0x0;
-  };
-
-  void FillIncidentHist(const std::vector<double> & vals) {
-    for (size_t i = 0; i < vals.size(); ++i) {
-      fIncidentHist.Fill(vals.at(i));
-    }
   };
 
   void FillSelectionHist(int id, double val) {
@@ -155,10 +140,8 @@ class ThinSliceDataSet {
   void Rebin3D(TH1 * sel_hist, TH1 * rebinned);
   std::map<int, TH2D *> fBeamBinSelectionHists;
   std::map<int, TH1 *> fSelectionHists;
-  TH1D fIncidentHist;
   std::map<int, TH1 *> fSelectionHistsRebinned;
   std::map<std::string, TH1 *> fExtraHists;
-  TH1D fIncidentHistRebinned;
   bool fMadeRebinned = false;
   std::map<int, std::string> fSelectionNames;
   std::vector<std::pair<std::pair<int, int>, double>> fCumulatives;

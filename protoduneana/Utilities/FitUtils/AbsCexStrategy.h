@@ -12,7 +12,7 @@ public:
     ~AbsCexStrategy() override = default;
 
     // Implementation of the pure virtual method from ThinSliceStrategy
-    void FillHistsFromEvent(const ThinSliceEvent & event) const override {
+    virtual void FillHistsFromEvent(const ThinSliceEvent & event) override {
         // Add logic to fill histograms from an event
         // Example:
         // for (auto & histMap : fSelectionHists) {

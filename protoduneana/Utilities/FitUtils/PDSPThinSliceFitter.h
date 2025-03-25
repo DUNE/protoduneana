@@ -107,7 +107,7 @@ class PDSPThinSliceFitter {
   ThinSliceDataSet fDataSet;
   std::map<int, TH1 *> fFixFactorHists;
   std::map<int, bool> fIsSignalSample;
-  TFile fMCFile;
+  TFile * fMCFile;
   //std::string fMCXSecFileName = "";
   TTree * fMCTree;
   TFile fDataFile;
@@ -241,14 +241,23 @@ class PDSPThinSliceFitter {
   double fDataNorm;
   bool fDebugMCDataScale, fScaleToDataBeamProfile, fFixPostFit;
   bool fDebugChi2;
+  double fTrajZStart;
+  void NewBuildMC();
+  void OpenFile(const std::string & filename, const std::string & treename) {
+    fMCFile = TFile::Open(filename.c_str(), "OPEN");
+    fMCTree = (TTree*)fMCFile->Get(treename.c_str());
+  };
 
+  void CloseFile() {
+    fMCFile->Close();
+  };
   //bool fUncorrelate;
   std::string fThrowType;
   int fSingleThrowBin;
   std::pair<int, int> fRemainCorrRange;
 
   std::vector<double> fIncidentRecoBins, fTrueIncidentBins, fBeamEnergyBins;
-  std::vector<double> fDataBeamFluxes;
+  std::vector<double> fDataBeamFluxes, fMCBeamFluxes;
   std::vector<int> fIncidentSamples, fMeasurementSamples;
   bool fDrawXSecUnderflow;
   std::map<int, std::vector<double>> fSignalBins;

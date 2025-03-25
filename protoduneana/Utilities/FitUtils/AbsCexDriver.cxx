@@ -2243,7 +2243,6 @@ void protoana::AbsCexDriver::BuildDataHists(
   //SetupExtraHists(data_set);
   //data_set.SetupExtraHists(fExtraHistSets);
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
   auto & beam_bin_selected_hists
       = data_set.GetBeamBinSelectionHists();
@@ -2323,9 +2322,6 @@ void protoana::AbsCexDriver::BuildDataHists(
       val = .5;
     }
     else if (reco_beam_incidentEnergies->size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies->size(); ++j) {
-        incident_hist.Fill((*reco_beam_incidentEnergies)[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
           double energy = 0.;
@@ -2473,7 +2469,6 @@ void protoana::AbsCexDriver::FakeDataSampleScales(
   std::map<int, double> fake_data_scales(temp_vec.begin(), temp_vec.end()); 
 
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   double new_flux = 0.;
@@ -2599,9 +2594,6 @@ void protoana::AbsCexDriver::FakeDataSampleScales(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill(reco_beam_incidentEnergies[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
           double energy = reco_beam_interactingEnergy;
@@ -2655,7 +2647,6 @@ void protoana::AbsCexDriver::FakeDataSampleScales(
     }
   }
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -2699,7 +2690,6 @@ void protoana::AbsCexDriver::FakeDataBinnedScales(
   //fMCTree->SetBranchAddress("true_beam_incidentEnergies",
   //                       &true_beam_incidentEnergies);
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
 
@@ -2807,9 +2797,6 @@ void protoana::AbsCexDriver::FakeDataBinnedScales(
       val = .5;
     }
     else if (reco_beam_incidentEnergies->size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies->size(); ++j) {
-        incident_hist.Fill((*reco_beam_incidentEnergies)[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
           double energy = reco_beam_interactingEnergy;
@@ -2861,7 +2848,6 @@ void protoana::AbsCexDriver::FakeDataBinnedScales(
   }
 
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -2924,7 +2910,6 @@ void protoana::AbsCexDriver::FakeDataG4RWGrid(
 
   for (size_t i = 0; i < beam_energy_bins.size()-1; ++i) {beam_fluxes.push_back(0.);}
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   double new_flux = 0.;
@@ -3061,9 +3046,6 @@ void protoana::AbsCexDriver::FakeDataG4RWGrid(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill(reco_beam_incidentEnergies[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
           double energy = reco_beam_interactingEnergy;
@@ -3118,7 +3100,6 @@ void protoana::AbsCexDriver::FakeDataG4RWGrid(
     }
   }
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -3202,7 +3183,6 @@ void protoana::AbsCexDriver::FakeDataPionAngle(
   //fMCTree->SetBranchAddress("true_beam_incidentEnergies",
   //                       &true_beam_incidentEnergies);
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   TFile ratio_file(options.get<std::string>("RatioFile").c_str(), "OPEN");
@@ -3342,9 +3322,6 @@ void protoana::AbsCexDriver::FakeDataPionAngle(
       val = .5;
     }
     else if (reco_beam_incidentEnergies->size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies->size(); ++j) {
-        incident_hist.Fill((*reco_beam_incidentEnergies)[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         //if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
         if (selection_ID < 4) {
@@ -3396,7 +3373,6 @@ void protoana::AbsCexDriver::FakeDataPionAngle(
     }
   }
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -3420,7 +3396,6 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
   bool vary_momentum = options.get<bool>("VaryMomentum", false);
   bool vary_n_products = options.get<bool>("VaryNProducts", false);
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   TFile * ratio_file = TFile::Open(options.get<std::string>("RatioFile").c_str());
@@ -3630,9 +3605,6 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill((reco_beam_incidentEnergies)[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID < 4) {
           double energy = reco_beam_interactingEnergy;
@@ -3694,7 +3666,6 @@ void protoana::AbsCexDriver::FakeDataAngleVar(
     }
   }
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -3902,7 +3873,6 @@ void protoana::AbsCexDriver::FakeDataBeamWeight(
       = fExtraOptions.get<fhicl::ParameterSet>("FakeDataBeamWeight");
 
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   TFile ratio_file(options.get<std::string>("RatioFile").c_str(), "OPEN");
@@ -4008,9 +3978,7 @@ void protoana::AbsCexDriver::FakeDataBeamWeight(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill((reco_beam_incidentEnergies)[j]);
-      }
+
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         //if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
         if (selection_ID < 4) {
@@ -4062,7 +4030,6 @@ void protoana::AbsCexDriver::FakeDataBeamWeight(
     }
   }
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -4249,7 +4216,6 @@ void protoana::AbsCexDriver::FakeDataEffVar(
       = fExtraOptions.get<fhicl::ParameterSet>("FakeDataEffVar");
 
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
  // double new_flux = 0.;
@@ -4314,9 +4280,6 @@ void protoana::AbsCexDriver::FakeDataEffVar(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill(reco_beam_incidentEnergies[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
           double energy = reco_beam_interactingEnergy;
@@ -4653,7 +4616,6 @@ void protoana::AbsCexDriver::FakeDataLowP(
       = options.get<std::vector<double>>("Fractions");
   double variation = options.get<double>("Scale");
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   double new_flux = 0.;
@@ -4794,9 +4756,6 @@ void protoana::AbsCexDriver::FakeDataLowP(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill(reco_beam_incidentEnergies[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         //if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
         if (selection_ID < 4) {
@@ -4853,7 +4812,6 @@ void protoana::AbsCexDriver::FakeDataLowP(
     }
   }
 
-  incident_hist.Scale(flux/new_flux);
   for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
     it->second->Scale(flux/new_flux);
   }
@@ -4879,7 +4837,6 @@ void protoana::AbsCexDriver::FakeDataBeamScale(
   std::vector<double> bin_edges = options.get<std::vector<double>>("Bins");
   for (size_t i = 0; i < beam_energy_bins.size()-1; ++i) {beam_fluxes.push_back(0.);}
 
-  TH1D & incident_hist = data_set.GetIncidentHist();
   std::map<int, TH1 *> & selected_hists = data_set.GetSelectionHists();
 
   double new_flux = 0.;
@@ -4994,9 +4951,6 @@ void protoana::AbsCexDriver::FakeDataBeamScale(
       val = .5;
     }
     else if (reco_beam_incidentEnergies.size()) {
-      for (size_t j = 0; j < reco_beam_incidentEnergies.size(); ++j) {
-        incident_hist.Fill(reco_beam_incidentEnergies[j]);
-      }
       if (selected_hists.find(selection_ID) != selected_hists.end()) {
         //if (selection_ID != 4 && selection_ID != 5 && selection_ID != 6) {
         if (selection_ID < 4) {
@@ -5057,7 +5011,6 @@ void protoana::AbsCexDriver::FakeDataBeamScale(
       }
     }
 
-    incident_hist.Scale(flux/new_flux);
     for (auto it = selected_hists.begin(); it != selected_hists.end(); ++it) {
       it->second->Scale(flux/new_flux);
     }
