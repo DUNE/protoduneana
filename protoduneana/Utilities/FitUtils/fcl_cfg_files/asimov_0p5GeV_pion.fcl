@@ -47,14 +47,14 @@ AnalysisOptions: {
  
   CovarianceRoutines: [
     {
-      Name: "BeamShift" #From Sungbin's 11/18/2022 upstream energy loss summary
+      Name: "NOTHING" #From Sungbin's 11/18/2022 upstream energy loss summary
       #P0: [-5.586e1, 35.]
       #P1: [-1.553e-2, 0.]
       #P2: [9.668e-5, 0.]
 
-      P0: [-8.066e1, 143.]
-      P1: [4.801e-2, 0.]
-      P2: [6.079e-5, 0.]
+      P0: [20, 10.]
+      P1: [0., 0.]
+      P2: [0., 0.]
 
       UseInput: true
       InputName: "/dune/app/users/calcuttj/LAr_Particle_Profiles/output/root/Fitting_results/Fitting_Ploss_data_RecoBeam_RangeFF_muon_BeamWindow_noweight_Beam_Study_1.0GeV_muon.root"
@@ -170,10 +170,10 @@ AddDiffInQuadrature:  false
 DiffCovName: "diffs_2D"
 DiffGraphFile: "fluc_xsec_diff.root"
 
-standard_reco_bins: [[0., 400., 450.,
-                      500., 550., 600., 650.,
-                      700., 750., 800., 850.,
-                      900., 1200.]]
+standard_reco_bins: [[0., 100., 150.,
+                      200., 250., 300., 350.,
+                      400., 450., 500.,
+                      800., 1200.]]
 Selections: [
   {
     Name: "Abs"
@@ -220,7 +220,7 @@ Selections: [
 ]
 
 
-IncidentRecoBins: [-5000., 0., 200., 400., 600., 800., 1000., 1200.]
+IncidentRecoBins: [-5000., 0., 100., 200., 300., 400., 800., 1200.]
 
 FluxTypes: [
              [2, "Muons"],
@@ -228,18 +228,18 @@ FluxTypes: [
            ]
 
 
-BeamEnergyBins: [750., 850., 900., 950., 1000., 1050., 1100., 1150., 1250.]
-DefaultSignalBins: [0., 400., 800., 1000, 1200.]
+#BeamEnergyBins: [240., 260., 280., 300., 320., 340., 360., 380., 400., 420., 440.]
+BeamEnergyBins: [340., 360., 380., 400., 420., 440.]
+DefaultSignalBins: [0., 100., 300., 500, 800.]
 TrueIncidentBins: @local::DefaultSignalBins
 
 
 #For use identifying the true incident samples
 #used to make the final total pion incident histogram
-IncidentSamples: [1, 2, 3, 6, 7]
+IncidentSamples: [1, 2, 3, 7]
 MeasurementSamples: [1, 2, 3]
 
-signal_bins: [500., 600., 700., 800.]
-#signal_bins: [500., 600., 700., 800., 900.]
+signal_bins: [100., 200., 300., 400.]
 Samples: [
   {
     Name: "Abs"

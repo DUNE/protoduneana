@@ -5115,8 +5115,8 @@ std::pair<double, size_t> protoana::AbsCexDriver::CalculateChi2(
         for (size_t j = 0; j < samples_vec_2D.size(); ++j) {
           std::vector<ThinSliceSample> & samples_vec = samples_vec_2D[j];
           for (size_t k = 0; k < samples_vec.size(); ++k) {
-            ThinSliceSample & sample = samples_vec[k];
-            mc_val += sample.GetSelectionHist(selection_ID)->GetBinContent(i);
+	    ThinSliceSample & sample = samples_vec[k];
+	    mc_val += sample.GetSelectionHist(selection_ID)->GetBinContent(i);
             mc_sumw2 += std::pow(
                 sample.GetSelectionHist(selection_ID)->GetBinError(i), 2);
 

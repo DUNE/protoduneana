@@ -1,0 +1,149 @@
+#include "EvSelBranches.fcl"
+
+TreeName: "pduneana/beamana"
+MCFile: "mc_try.root"
+DataFile: "data_try.root"
+UseMT: true #false ## -- enable multi-threading
+
+## -- filter using reco_reconstructable_beam_event
+DoReconstructable: false 
+
+ColumnList: @local::columnlist
+DataColumnList: @local::datacolumnlist
+
+#######################################
+## == Event selection with Spectrometer
+#######################################
+## -- spectrometer momentum range
+RestrictBeamP: false
+BeamPLow: 420.
+BeamPHigh: 600.
+MCBeamPScale: 1.
+DataBeamPScale: 1.
+
+## -- spectrometer track multiplicity: nP == 1, required ntrack == 1 too?
+DoNTracks: false
+
+## -- Cut based on beam_inst_X,Y: beam scraper,	DUNE-doc-29474
+MCBeamYMean: 422.
+MCBeamXMean: -29.6
+MCBeamXYRadius: 6.72
+DataBeamYMean: 422.7
+DataBeamXMean: -32.16
+DataBeamXYRadius: 5.76
+RestrictBeamXY: false ## -- filter MC with beam_inst_X,Y cut
+
+
+#######################################
+## == Event selection with TPC	
+#######################################
+## -- Check reco beam type inside TPC
+CheckCalo: true ## -- check calo size too on top of pandora flag
+MichelCut: 0.6 ## -- beam vertex michel score cut
+
+## -- Check if reco beam track in TPC passes APA3
+EndZHigh: 215
+
+#######################################
+## == True event topology
+#######################################
+EndZLow: -.49375
+Threshold: .135 ## -- secondary charged pion momentum threshold
+CexNPi0: true
+SignalPastFV: true
+
+#######################################
+## == Variables with reco. beam
+#######################################
+## -- use beam_inst vs reco track comparison, obsolete
+UseBI: false
+
+## -- Using FV
+## -- Use reco_beam_calo_* (true) or reco_beam_*
+UseFVBeamCut: true ## -- Use reco_beam_calo_* (true) or reco_beam_*
+## -- cut values
+EndZCutFV: 10.
+MCMeanX: -1.762
+MCSigmaX: 1.737
+MCMeanY: 0.768
+MCSigmaY: 1.833
+MCMeanR: -1. ## -- not using
+MCSigmaR: -1. ## -- not using
+DataMeanX: 3.3
+DataSigmaX: 1.737
+DataMeanY: 2.498
+DataSigmaY: 2.449
+DataMeanR: -1. ## -- not using
+DataSigmaR: -1. ## -- not using
+MCCosLow: -1. ## -- not	using
+DataCosLow: -1. ## -- not using
+
+## -- Variables for "passBeamCut" which uses TPC Info, not used....
+DoAngle: true
+XYZCut: 3.
+CosCut: 0.95
+#MCMeanX: -30.81
+#MCMeanY: 422.41
+MCMeanZ: 0.11
+#MCSigmaX: 5.02
+#MCSigmaY: 4.51
+MCSigmaZ: 0.22
+MCMeanThetaX: 101.58
+MCMeanThetaY: 101.19
+MCMeanThetaZ: 16.59
+#
+#DataMeanX: -27.91
+#DataMeanY: 424.36
+DataMeanZ: 3.78
+#DataSigmaX: 4.71
+#DataSigmaY: 5.16
+DataSigmaZ: 1.10
+##DataMeanThetaX: 100.45
+##DataMeanThetaY: 103.52
+##DataMeanThetaZ: 17.83
+DataMeanThetaX: 100.95
+DataMeanThetaY: 104.17
+DataMeanThetaZ: 18.05
+
+####Using BI
+#MCXLow: -3.
+#MCXHigh: 7.
+#MCYLow: -8.
+#MCYHigh: 7.
+#MCZLow: 27.5
+#MCZHigh: 32.5
+#MCCosLow: .93
+#DataXLow: 0.
+#DataXHigh: 10.
+#DataYLow: -5.
+#DataYHigh: 10.
+#DataZLow: 30.
+#DataZHigh: 35.
+#DataCosLow: .93
+
+#######################################
+## == Variables with reco. daughters
+#######################################
+## -- shower or track
+TrackScoreCut: 0.3
+## -- use charge weighted track score for daughters
+UseWeightedTrackScore: true
+
+## -- Daughter pion tagging varaibles
+Limit: 0.16 ## -- skip a portion of first/last several hits for truncated dE/dx
+## -- daughter pion trun. dE/dx range
+dEdXLow: 0.5
+dEdXMed: 2.8
+## -- a bit wider trun. dE/dx upper limit with chi2 proton cut
+dEdXHigh: 3.4
+Chi2Cut: 70.
+
+#######################################
+## == Reco. event topology
+#######################################
+DoMichel: false ## -- add michel-related topology
+
+#######################################
+## == Data run selection
+#######################################
+ExcludeRuns: []
