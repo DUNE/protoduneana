@@ -3,6 +3,7 @@
 
 
 #include "ThinSliceEvent.h"
+#include "ThinSliceDistHolder.h"
 #include "TH1.h"
 
 namespace protoana {
@@ -14,13 +15,13 @@ public:
     virtual ~ThinSliceStrategy() = default;
 
     // Pure virtual method(s) to be implemented by derived classes
-    virtual void FillHistsFromEvent(const ThinSliceEvent & event) = 0;
+    virtual void FillHistsFromEvent(const ThinSliceEvent & event, ThinSliceDistHolder & dists) = 0;
     
 
 protected:
 
 
-    void ScaleHistsByBeamFlux(const std::vector<double> & factors);
+    
 };
 
 } // namespace protoana

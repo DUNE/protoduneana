@@ -1159,14 +1159,6 @@ void protoana::PDSPThinSliceFitter::BuildMCSamples() {
                                  fBeamEnergyBins, fSystParameters,
                                  fG4RWParameters,
                                  fOutputFile);
-    for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-      for (size_t i = 0; i < it->second.size(); ++i) {
-        for (size_t j = 0; j < it->second[i].size(); ++j) {
-          fFakeSamples[it->first][i][j].SetSystematicSplines(
-              it->second[i][j].GetAllSplines());
-        }
-      }
-    }
   }
 
 }
@@ -2844,7 +2836,7 @@ void protoana::PDSPThinSliceFitter::NewRefillLoop(
     if (fCoutLevel > 1) {
       std::cout << "Event " << i << event.GetSelectionID() << std::endl;
     }
-    fThinSliceStrategy->FillHistsFromEvent(event);
+    fThinSliceStrategy->FillHistsFromEvent(event, fMCDists);
   }
 
 }

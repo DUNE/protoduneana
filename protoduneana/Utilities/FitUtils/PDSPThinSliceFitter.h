@@ -26,6 +26,7 @@
 #include "ThinSliceStrategy.h"
 #include "ThinSliceSystematic.h"
 #include "ThinSliceEvent.h"
+#include "ThinSliceDistHolder.h"
 
 namespace protoana {
 
@@ -104,6 +105,7 @@ class PDSPThinSliceFitter {
   std::map<int, std::vector<std::vector<ThinSliceSample>>> fSamples,
                                                            fFakeSamples,
                                                            fCovSamples;
+  ThinSliceDistHolder fMCDists;
   ThinSliceDataSet fDataSet;
   std::map<int, TH1 *> fFixFactorHists;
   std::map<int, bool> fIsSignalSample;
