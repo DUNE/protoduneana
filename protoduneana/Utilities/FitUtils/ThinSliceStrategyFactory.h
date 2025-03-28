@@ -23,7 +23,7 @@ template <typename T> class ThinSliceStrategyFactory
 
   virtual ThinSliceStrategy * Instantiate(
       const fhicl::ParameterSet & extra_options) {
-    return new T(/*extra_options*/);
+    return new T(extra_options);
   }
 };
 }

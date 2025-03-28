@@ -65,14 +65,7 @@ protoana::PDSPThinSliceFitter::PDSPThinSliceFitter(
     protoana::ThinSliceDriverRegistry::Instance()->PrintAvailableDrivers();
     throw e;
   }
-  try {
-    fThinSliceStrategy = protoana::ThinSliceStrategyRegistry::Instance()->GetStrategy(
-      fStrategyName, fAnalysisOptions);
-  }
-  catch (const std::runtime_error & e) {
-    protoana::ThinSliceStrategyRegistry::Instance()->PrintAvailableStrategies();
-    throw e;
-  }
+
   InitializeMCSamples();
   fDataSet = ThinSliceDataSet(fSelectionSets, fBeamEnergyBins);
   // SetupExtraHists();
@@ -177,6 +170,7 @@ void protoana::PDSPThinSliceFitter::ResetParameters() {
     ++n_par;
   }
 }
+
 
 //Good
 void protoana::PDSPThinSliceFitter::MakeMinimizer() {
@@ -452,6 +446,8 @@ void protoana::PDSPThinSliceFitter::Tune(std::string tune_file) {
 }
 
 void protoana::PDSPThinSliceFitter::InitializeMCSamples() {
+
+  
   for (size_t i = 0; i < fSampleSets.size(); ++i) {
     fhicl::ParameterSet sample_set = fSampleSets[i];
     std::string sample_name = sample_set.get<std::string>("Name");
@@ -692,7 +688,7 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
     fMCTree->SetBranchAddress("new_interaction_topology", &sample_ID);
 
     // if (fNewFVSelection) {
-      fMCTree->SetBranchAddress("selection_ID_FV", &selection_ID);
+      fMCTree->SetBranchAddress("selection_ID", &selection_ID);
     // }
     // else {
     //   fMCTree->SetBranchAddress("selection_ID", &selection_ID);
@@ -1137,29 +1133,30 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
 
 //Good
 void protoana::PDSPThinSliceFitter::BuildMCSamples() {
+  NewBuildMC();
   //Open the MC file and set branches
-  fThinSliceDriver->OpenFile(fMCFileName, fTreeName);
+  // fThinSliceDriver->OpenFile(fMCFileName, fTreeName);
 
-  std::cout << "FakeData: " << fDoFakeData << " Routine: " <<
-               fFakeDataRoutine << std::endl;
-  fThinSliceDriver->FillMCEvents(fEvents, fFakeDataEvents, fSplitVal,
-                                 fSplitMC, fShuffle, fMaxEntries,
-                                 fMaxDataEntries, fDoFakeData);
-  fThinSliceDriver->BuildMCSamples(fEvents, fSamples, fIsSignalSample,
-                                   fNominalFluxes, fFluxesBySample,
-                                   fBeamEnergyBins, fScaleToDataBeamProfile);
-  fThinSliceDriver->BuildMCSamples(fFakeDataEvents, fFakeSamples, fIsSignalSample,
-                                   fFakeFluxes, fFakeFluxesBySample,
-                                   fBeamEnergyBins, fScaleToDataBeamProfile);
-  fThinSliceDriver->CloseFile();
+  // std::cout << "FakeData: " << fDoFakeData << " Routine: " <<
+  //              fFakeDataRoutine << std::endl;
+  // fThinSliceDriver->FillMCEvents(fEvents, fFakeDataEvents, fSplitVal,
+  //                                fSplitMC, fShuffle, fMaxEntries,
+  //                                fMaxDataEntries, fDoFakeData);
+  // fThinSliceDriver->BuildMCSamples(fEvents, fSamples, fIsSignalSample,
+  //                                  fNominalFluxes, fFluxesBySample,
+  //                                  fBeamEnergyBins, fScaleToDataBeamProfile);
+  // fThinSliceDriver->BuildMCSamples(fFakeDataEvents, fFakeSamples, fIsSignalSample,
+  //                                  fFakeFluxes, fFakeFluxesBySample,
+  //                                  fBeamEnergyBins, fScaleToDataBeamProfile);
+  // fThinSliceDriver->CloseFile();
 
-  if (fDoSysts) {
-    std::cout << "Setting up systs" << std::endl;
-    fThinSliceDriver->SetupSysts(fEvents, fSamples, fIsSignalSample,
-                                 fBeamEnergyBins, fSystParameters,
-                                 fG4RWParameters,
-                                 fOutputFile);
-  }
+  // if (fDoSysts) {
+  //   std::cout << "Setting up systs" << std::endl;
+  //   fThinSliceDriver->SetupSysts(fEvents, fSamples, fIsSignalSample,
+  //                                fBeamEnergyBins, fSystParameters,
+  //                                fG4RWParameters,
+  //                                fOutputFile);
+  // }
 
 }
 
@@ -1634,150 +1631,151 @@ double protoana::PDSPThinSliceFitter::GetNMuons() {
 void protoana::PDSPThinSliceFitter::CompareDataMC(
     std::string extra_name, TDirectory * xsec_dir, TDirectory * plot_dir,
     bool post_fit) {
-  fThinSliceDriver->CompareDataMC(
-      fSamples, fDataSet, fOutputFile,
-      fPlotStyle, (fTotalFluxParameters + fTotalSignalParameters +
-                   fTotalSystParameters + fTotalG4RWParameters),
-      plot_dir, fPlotRebinned, post_fit);
+      fThinSliceStrategy->CompareDataMC(fMCDists, fDataSet, fOutputFile);
+  // fThinSliceDriver->CompareDataMC(
+  //     fSamples, fDataSet, fOutputFile,
+  //     fPlotStyle, (fTotalFluxParameters + fTotalSignalParameters +
+  //                  fTotalSystParameters + fTotalG4RWParameters),
+  //     plot_dir, fPlotRebinned, post_fit);
 
-  xsec_dir->cd();
+  // xsec_dir->cd();
 
-  //Get the incident histogram from all of the relevant samples
-  for (size_t i = 0; i < fMeasurementSamples.size(); ++i) {
-    int sample_ID = fMeasurementSamples[i];
-    auto & samples_vec_2D
-        = fSamples[sample_ID]; 
+  // //Get the incident histogram from all of the relevant samples
+  // for (size_t i = 0; i < fMeasurementSamples.size(); ++i) {
+  //   int sample_ID = fMeasurementSamples[i];
+  //   auto & samples_vec_2D
+  //       = fSamples[sample_ID]; 
 
-    std::vector<double> signal_bins = fSignalBins[sample_ID];
-    if (fDrawXSecUnderflow) {
-      signal_bins.insert(signal_bins.begin(), 0.);
-      signal_bins.push_back(2000.);//Make this like inf or something big
-    }
+  //   std::vector<double> signal_bins = fSignalBins[sample_ID];
+  //   if (fDrawXSecUnderflow) {
+  //     signal_bins.insert(signal_bins.begin(), 0.);
+  //     signal_bins.push_back(2000.);//Make this like inf or something big
+  //   }
 
-    std::string signal_name = extra_name;
-    signal_name += samples_vec_2D[0][1].GetName() + "Hist";
-    TH1D signal_hist(signal_name.c_str(), "", signal_bins.size() - 1,
-                     &signal_bins[0]);
+  //   std::string signal_name = extra_name;
+  //   signal_name += samples_vec_2D[0][1].GetName() + "Hist";
+  //   TH1D signal_hist(signal_name.c_str(), "", signal_bins.size() - 1,
+  //                    &signal_bins[0]);
 
-    for (size_t j = 0; j < samples_vec_2D.size(); ++j) {
-      auto & samples_vec = samples_vec_2D[j];
+  //   for (size_t j = 0; j < samples_vec_2D.size(); ++j) {
+  //     auto & samples_vec = samples_vec_2D[j];
 
-      size_t start = (fDrawXSecUnderflow ? 0 : 1);
-      size_t end = samples_vec.size() - (fDrawXSecUnderflow ? 0 : 1);
-      for (size_t k = start; k < end; ++k) {
-      //for (size_t k = (fDrawXSecUnderflow ? 0 : 1);
-      //     k < samples_vec.size()-1; ++k) {
-        ThinSliceSample & sample = samples_vec[k];
+  //     size_t start = (fDrawXSecUnderflow ? 0 : 1);
+  //     size_t end = samples_vec.size() - (fDrawXSecUnderflow ? 0 : 1);
+  //     for (size_t k = start; k < end; ++k) {
+  //     //for (size_t k = (fDrawXSecUnderflow ? 0 : 1);
+  //     //     k < samples_vec.size()-1; ++k) {
+  //       ThinSliceSample & sample = samples_vec[k];
 
-        int the_bin = (fDrawXSecUnderflow ? k+1 : k);
-        signal_hist.AddBinContent(the_bin, sample.GetVariedFlux());
+  //       int the_bin = (fDrawXSecUnderflow ? k+1 : k);
+  //       signal_hist.AddBinContent(the_bin, sample.GetVariedFlux());
 
-      }
-    }
-    signal_hist.Write();
+  //     }
+  //   }
+  //   signal_hist.Write();
 
-    //Get the incident histogram from all of the relevant samples
-    std::string inc_name = extra_name;
-    inc_name += "TotalIncident" + samples_vec_2D[0][0].GetName();
+  //   //Get the incident histogram from all of the relevant samples
+  //   std::string inc_name = extra_name;
+  //   inc_name += "TotalIncident" + samples_vec_2D[0][0].GetName();
 
-    TH1D * total_incident_hist = new TH1D(inc_name.c_str(), "",
-                                          signal_bins.size() - 1,
-                                          &signal_bins[0]);
-    std::map<int, std::vector<TH1D*>> temp_hists;
-    for (size_t i = 0; i < fIncidentSamples.size(); ++i) {
-      auto & vec_2D = fSamples[fIncidentSamples[i]];
-      temp_hists[fIncidentSamples[i]] = std::vector<TH1D*>();
-      for (size_t j = 0; j < vec_2D.size(); ++j) {
-        auto & samples_vec = vec_2D[j];
-        for (size_t k = 0; k < samples_vec.size(); ++k) {
-          if (j == 0) {
-            std::string name = extra_name;
-            name += "Incident" + samples_vec_2D[0][1].GetName() +
-                     samples_vec[k].GetName() + std::to_string(k);
-            std::string title = samples_vec[k].GetSelectionHists().begin()->second->GetTitle();
-            temp_hists[fIncidentSamples[i]].push_back(
-                new TH1D(name.c_str(),
-                         title.c_str(),
-                         signal_bins.size() - 1,
-                         &signal_bins[0]));
-          }
-          samples_vec[k].FillHistFromIncidentEnergies(*total_incident_hist);
-          samples_vec[k].FillHistFromIncidentEnergies(
-              *(temp_hists[fIncidentSamples[i]][k]));
-        }
-      }
-    }
-    total_incident_hist->Write();
-    if (post_fit) {
-      fBestFitIncs[sample_ID] = total_incident_hist;
-    }
-    else {
-      fNominalIncs[sample_ID] = total_incident_hist;
-    }
+  //   TH1D * total_incident_hist = new TH1D(inc_name.c_str(), "",
+  //                                         signal_bins.size() - 1,
+  //                                         &signal_bins[0]);
+  //   std::map<int, std::vector<TH1D*>> temp_hists;
+  //   for (size_t i = 0; i < fIncidentSamples.size(); ++i) {
+  //     auto & vec_2D = fSamples[fIncidentSamples[i]];
+  //     temp_hists[fIncidentSamples[i]] = std::vector<TH1D*>();
+  //     for (size_t j = 0; j < vec_2D.size(); ++j) {
+  //       auto & samples_vec = vec_2D[j];
+  //       for (size_t k = 0; k < samples_vec.size(); ++k) {
+  //         if (j == 0) {
+  //           std::string name = extra_name;
+  //           name += "Incident" + samples_vec_2D[0][1].GetName() +
+  //                    samples_vec[k].GetName() + std::to_string(k);
+  //           std::string title = samples_vec[k].GetSelectionHists().begin()->second->GetTitle();
+  //           temp_hists[fIncidentSamples[i]].push_back(
+  //               new TH1D(name.c_str(),
+  //                        title.c_str(),
+  //                        signal_bins.size() - 1,
+  //                        &signal_bins[0]));
+  //         }
+  //         samples_vec[k].FillHistFromIncidentEnergies(*total_incident_hist);
+  //         samples_vec[k].FillHistFromIncidentEnergies(
+  //             *(temp_hists[fIncidentSamples[i]][k]));
+  //       }
+  //     }
+  //   }
+  //   total_incident_hist->Write();
+  //   if (post_fit) {
+  //     fBestFitIncs[sample_ID] = total_incident_hist;
+  //   }
+  //   else {
+  //     fNominalIncs[sample_ID] = total_incident_hist;
+  //   }
 
-    std::string xsec_name = extra_name + samples_vec_2D[0][1].GetName() +
-                            "XSec";
-    TH1D * xsec_hist = (TH1D*)signal_hist.Clone(xsec_name.c_str());
-    xsec_hist->Sumw2();
-    xsec_hist->Divide(total_incident_hist);
-    CalculateCrossSection(xsec_hist);
+  //   std::string xsec_name = extra_name + samples_vec_2D[0][1].GetName() +
+  //                           "XSec";
+  //   TH1D * xsec_hist = (TH1D*)signal_hist.Clone(xsec_name.c_str());
+  //   xsec_hist->Sumw2();
+  //   xsec_hist->Divide(total_incident_hist);
+  //   CalculateCrossSection(xsec_hist);
 
-    xsec_hist->Write();
-    if (post_fit) {
-      fBestFitXSecs[sample_ID] = xsec_hist;
-    }
-    else {
-      fNominalXSecs[sample_ID] = xsec_hist;
-    }
+  //   xsec_hist->Write();
+  //   if (post_fit) {
+  //     fBestFitXSecs[sample_ID] = xsec_hist;
+  //   }
+  //   else {
+  //     fNominalXSecs[sample_ID] = xsec_hist;
+  //   }
 
-    std::string stack_name = extra_name;
-    stack_name += "IncidentStack" + samples_vec_2D[0][1].GetName();
-    THStack inc_stack(stack_name.c_str(), ";Reconstructed KE (MeV)");
-    int iColor = 0;
-    for (auto it = temp_hists.begin(); it != temp_hists.end(); ++it) {
-      for (size_t i = 0; i < it->second.size(); ++i) {
-        std::pair<int, int> color_fill =
-            fThinSliceDriver->GetColorAndStyle(iColor, fPlotStyle);
-        it->second[i]->SetFillColor(color_fill.first);
-        it->second[i]->SetFillStyle(color_fill.second);
-        it->second[i]->SetLineColor(1);
-        inc_stack.Add(it->second[i]);
-        ++iColor;
-      }
-    }
-    inc_stack.Write();
-  }
+  //   std::string stack_name = extra_name;
+  //   stack_name += "IncidentStack" + samples_vec_2D[0][1].GetName();
+  //   THStack inc_stack(stack_name.c_str(), ";Reconstructed KE (MeV)");
+  //   int iColor = 0;
+  //   for (auto it = temp_hists.begin(); it != temp_hists.end(); ++it) {
+  //     for (size_t i = 0; i < it->second.size(); ++i) {
+  //       std::pair<int, int> color_fill =
+  //           fThinSliceDriver->GetColorAndStyle(iColor, fPlotStyle);
+  //       it->second[i]->SetFillColor(color_fill.first);
+  //       it->second[i]->SetFillStyle(color_fill.second);
+  //       it->second[i]->SetLineColor(1);
+  //       inc_stack.Add(it->second[i]);
+  //       ++iColor;
+  //     }
+  //   }
+  //   inc_stack.Write();
+  // }
 
-  fOutputFile.cd(); 
-  TVector muons(1);
-  muons[0] = GetNMuons();
+  // fOutputFile.cd(); 
+  // TVector muons(1);
+  // muons[0] = GetNMuons();
 
-  auto muon_names = extra_name + "Muons";
-  muons.Write(muon_names.c_str());
+  // auto muon_names = extra_name + "Muons";
+  // muons.Write(muon_names.c_str());
 
 
-  //Get the Best fit selection hists
-  std::map<int, std::vector<TH1*>> temp_map;
-  fThinSliceDriver->GetCurrentHists(fSamples, fDataSet, temp_map,
-                                    fPlotRebinned);
-  for (auto it = temp_map.begin(); it != temp_map.end(); ++it) {
-    fBestFitSelectionHists[it->first] = (TH1D*)it->second[0];
-  }
+  // //Get the Best fit selection hists
+  // std::map<int, std::vector<TH1*>> temp_map;
+  // fThinSliceDriver->GetCurrentHists(fSamples, fDataSet, temp_map,
+  //                                   fPlotRebinned);
+  // for (auto it = temp_map.begin(); it != temp_map.end(); ++it) {
+  //   fBestFitSelectionHists[it->first] = (TH1D*)it->second[0];
+  // }
 
-  //Get the best fit truth vals
-  for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-    fBestFitTruthVals[it->first]
-        = std::vector<double>(it->second[0].size(), 0.);
+  // //Get the best fit truth vals
+  // for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
+  //   fBestFitTruthVals[it->first]
+  //       = std::vector<double>(it->second[0].size(), 0.);
    
-    for (size_t i = 0; i < it->second[0].size(); ++i) {
-      double best_fit_val_i = 0.;
-      for (size_t j = 0; j < it->second.size(); ++j) {
-        best_fit_val_i += it->second[j][i].GetVariedFlux();
-      }
+  //   for (size_t i = 0; i < it->second[0].size(); ++i) {
+  //     double best_fit_val_i = 0.;
+  //     for (size_t j = 0; j < it->second.size(); ++j) {
+  //       best_fit_val_i += it->second[j][i].GetVariedFlux();
+  //     }
 
-      fBestFitTruthVals[it->first][i] = best_fit_val_i;
-    }
-  }
+  //     fBestFitTruthVals[it->first][i] = best_fit_val_i;
+  //   }
+  // }
 }
 
 void protoana::PDSPThinSliceFitter::AdjustInitConds(size_t fit_attempt) {
@@ -2822,6 +2820,7 @@ void protoana::PDSPThinSliceFitter::Do1DShifts(const TH1D & pars, bool prefit) {
 
 void protoana::PDSPThinSliceFitter::NewRefillLoop(
   const std::vector<ThinSliceEvent> & events,
+  std::vector<double> & mc_beam_fluxes,
   size_t worker_id, std::vector<size_t> n_events
 ) {
   
@@ -2830,14 +2829,37 @@ void protoana::PDSPThinSliceFitter::NewRefillLoop(
     start_event += n_events[i];
   }
 
+
   size_t end_event = start_event + n_events[worker_id];
   for (size_t i = start_event; i < end_event; ++i) {
     const ThinSliceEvent & event = events.at(i);
+    int sample_ID = event.GetSampleID();
+    double weight = 1.;
     if (fCoutLevel > 1) {
       std::cout << "Event " << i << event.GetSelectionID() << std::endl;
     }
-    fThinSliceStrategy->FillHistsFromEvent(event, fMCDists);
+
+    bool is_signal = (std::find(
+      fMCDists.GetSignalIDs().begin(), fMCDists.GetSignalIDs().end(),
+      sample_ID
+    ) != fMCDists.GetSignalIDs().end());
+
+    if (is_signal) {
+      int signal_bin = fThinSliceStrategy->GetSignalBin(event, fMCDists);
+      weight *= fSignalParameters.at(sample_ID).at(signal_bin);
+    }
+
+
+    int beam_bin = fThinSliceStrategy->GetBeamBin(fBeamEnergyBins, event, true);
+
+    fThinSliceStrategy->FillHistsFromEvent(
+      event, fMCDists, beam_bin, std::ref(fRefillMutex),
+      weight);
+
+    std::lock_guard<std::mutex> lock(fFluxMutex);
+    mc_beam_fluxes[beam_bin] += weight;
   }
+
 
 }
 
@@ -2847,7 +2869,11 @@ void protoana::PDSPThinSliceFitter::NewRefill(
   const std::vector<ThinSliceEvent> & events
 ) {
 
-  size_t fNWorkers = 1;
+  fMCDists.Reset();
+  // fFakeDataDists.Reset();
+
+  size_t fNWorkers = 4;
+  std::vector<double> mc_beam_fluxes(fBeamEnergyBins.size()-1, 0.);
 
   //Calculate events per workers
   size_t nevents = events.size() / fNWorkers;
@@ -2869,13 +2895,23 @@ void protoana::PDSPThinSliceFitter::NewRefill(
   std::vector<std::thread> workers;
   for (auto workerid : ROOT::TSeqI(fNWorkers)) {
     std::thread worker(&PDSPThinSliceFitter::NewRefillLoop, this,
-        std::ref(events), workerid, events_split);
+        std::ref(events), std::ref(mc_beam_fluxes), workerid, events_split);
     workers.emplace_back(std::move(worker));
   }
 
   for (auto &&worker : workers) { worker.join();}
   // if (fFakeResolution > 0. && !fUseStoredEnergies) fUseStoredEnergies = true; //turn this on so that every time after the first, the same energy is used
+  // Go through and rescale according to the data flux
+  for (size_t i = 0; i < mc_beam_fluxes.size(); ++i) {
+    double ratio = ((fDataBeamFluxes[i] > 0.) ? fDataBeamFluxes[i] / mc_beam_fluxes[i] : 1.);
+    if (fDataBeamFluxes[i] > 0.) {
+      ratio = fDataBeamFluxes[i] / mc_beam_fluxes[i];
+      std::cout << "Ratio " << i << ratio << std::endl;
+    }
+    fMCDists.ScaleInBeamBin(i, ratio);
+  }
 
+  fThinSliceStrategy->CalcXSecs(fMCDists, 1.E27/ (fPitch * 1.4 * 6.022E23 / 39.948 ));
 }
 
 void protoana::PDSPThinSliceFitter::DefineFitFunction() {
@@ -2935,64 +2971,64 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
         }
 
         //Refill the hists 
-        if (!fUseFakeSamples) {
-          auto begin_time = std::chrono::high_resolution_clock::now();
-          fThinSliceDriver->RefillMCSamples(
-              fEvents, fSamples, fIsSignalSample,
-              fBeamEnergyBins, fSignalParameters,
-              fFluxParameters, fSystParameters,
-              fG4RWParameters, 
-              fFitUnderOverflow, fTieUnderOver, fScaleToDataBeamProfile,
-              fFillIncidentInFunction,
-              (fFixSamplesInFunction ? &fFixFactorHists : 0x0));
-          auto end_time = std::chrono::high_resolution_clock::now();
-          auto delta =
-              std::chrono::duration_cast<std::chrono::microseconds>(
-                  end_time - begin_time).count();
-          if (fCoutLevel > 0)
-            std::cout << "Refilling took " << delta << " us" << std::endl;
-        }
-        else {
-          fThinSliceDriver->RefillMCSamples(
-              fFakeDataEvents, fFakeSamples, fIsSignalSample,
-              fBeamEnergyBins, fSignalParameters,
-              fFluxParameters, fSystParameters,
-              fG4RWParameters, 
-              fFitUnderOverflow, fTieUnderOver, fScaleToDataBeamProfile,
-              fFillIncidentInFunction);
-        }
-
+        // if (!fUseFakeSamples) {
+        //   auto begin_time = std::chrono::high_resolution_clock::now();
+        //   fThinSliceDriver->RefillMCSamples(
+        //       fEvents, fSamples, fIsSignalSample,
+        //       fBeamEnergyBins, fSignalParameters,
+        //       fFluxParameters, fSystParameters,
+        //       fG4RWParameters, 
+        //       fFitUnderOverflow, fTieUnderOver, fScaleToDataBeamProfile,
+        //       fFillIncidentInFunction,
+        //       (fFixSamplesInFunction ? &fFixFactorHists : 0x0));
+        //   auto end_time = std::chrono::high_resolution_clock::now();
+        //   auto delta =
+        //       std::chrono::duration_cast<std::chrono::microseconds>(
+        //           end_time - begin_time).count();
+        //   if (fCoutLevel > 0)
+        //     std::cout << "Refilling took " << delta << " us" << std::endl;
+        // }
+        // else {
+        //   fThinSliceDriver->RefillMCSamples(
+        //       fFakeDataEvents, fFakeSamples, fIsSignalSample,
+        //       fBeamEnergyBins, fSignalParameters,
+        //       fFluxParameters, fSystParameters,
+        //       fG4RWParameters, 
+        //       fFitUnderOverflow, fTieUnderOver, fScaleToDataBeamProfile,
+        //       fFillIncidentInFunction);
+        // }
+        NewRefill(fEvents);
 
         //Simpler renormalization...
-        if (fDataBeamFluxes.size()) {
-          std::vector<double> fluxes(fDataBeamFluxes.size());
-          for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
-               it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                fluxes[i] += it->second[i][j].GetVariedFlux();
-              }
-            }
-          }
+        // if (fDataBeamFluxes.size()) {
+        //   std::vector<double> fluxes(fDataBeamFluxes.size());
+        //   for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
+        //        it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
+        //     for (size_t i = 0; i < it->second.size(); ++i) {
+        //       for (size_t j = 0; j < it->second[i].size(); ++j) {
+        //         fluxes[i] += it->second[i][j].GetVariedFlux();
+        //       }
+        //     }
+        //   }
 
 
-          std::vector<double> new_fluxes(fluxes.size());
-          for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
-               it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
-            for (size_t i = 0; i < it->second.size(); ++i) {
-              for (size_t j = 0; j < it->second[i].size(); ++j) {
-                it->second[i][j].SetFactorAndScale(fDataBeamFluxes[i]/fluxes[i]);
-                new_fluxes[i] += it->second[i][j].GetVariedFlux();
-              }
-            }
-          }
-        }
+        //   std::vector<double> new_fluxes(fluxes.size());
+        //   for (auto it = (!fUseFakeSamples ? fSamples.begin() : fFakeSamples.begin());
+        //        it != (!fUseFakeSamples ? fSamples.end() : fFakeSamples.end()); ++it) {
+        //     for (size_t i = 0; i < it->second.size(); ++i) {
+        //       for (size_t j = 0; j < it->second[i].size(); ++j) {
+        //         it->second[i][j].SetFactorAndScale(fDataBeamFluxes[i]/fluxes[i]);
+        //         new_fluxes[i] += it->second[i][j].GetVariedFlux();
+        //       }
+        //     }
+        //   }
+        // }
 
-        std::pair<double, size_t> chi2_points= (
-          fCalcChi2InFCN ?
-          fThinSliceDriver->CalculateChi2(fSamples, fDataSet) :
-          std::make_pair<double, size_t>(0., 0)
-        );
+        std::pair<double, size_t> chi2_points= //(
+          // fCalcChi2InFCN ?
+          // fThinSliceDriver->CalculateChi2(fSamples, fDataSet) :
+          std::make_pair<double, size_t>(0., 0);
+        // );
         ++fNFitSteps;
 
         auto begin_time = std::chrono::high_resolution_clock::now();
@@ -3104,7 +3140,6 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
   fSelectionSets = pset.get<std::vector<fhicl::ParameterSet>>("Selections");
   std::cout << "Selection Sets" << std::endl;
 
-  fIncidentRecoBins = pset.get<std::vector<double>>("IncidentRecoBins");
   fTrueIncidentBins = pset.get<std::vector<double>>("TrueIncidentBins");
   fBeamEnergyBins = pset.get<std::vector<double>>("BeamEnergyBins");
   fIncidentSamples = pset.get<std::vector<int>>("IncidentSamples");
@@ -3149,6 +3184,7 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
   fRandomStart = pset.get<bool>("RandomStart", false);
 
   fDriverName = pset.get<std::string>("DriverName");
+  fStrategyName = pset.get<std::string>("StrategyName");
   fAnalysisOptions = pset.get<fhicl::ParameterSet>("AnalysisOptions");
   fAltFluxVar = fAnalysisOptions.get<bool>("AltFluxVar", false);
   std::cout << "ALT FLUX VAR " << fAltFluxVar << std::endl;
@@ -3239,16 +3275,14 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
   fFitType = pset.get<std::string>("FitType");
 
-  fXSecCalcStyle = pset.get<std::string>("XSecCalcStyle", "Approx");
+  // fXSecCalcStyle = pset.get<std::string>("XSecCalcStyle", "Approx");
 
   if (fFitType == "ThrowsOnly") {
     fFitResultsFile = pset.get<std::string>("PriorFitResults");
   }
 
-  fNPulls = pset.get<size_t>("NPulls");
 
   //fDoScaleDataToNorm = pset.get<bool>("ScaleDataToNorm", false);
-  fDataNorm = pset.get<double>("DataNorm", 1.);
 
   fRNG = TRandom3(pset.get<int>("RNGSeed", 0));
 
@@ -3270,7 +3304,20 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
   fAddSignalConstraint = pset.get<bool>("AddSignalConstraint", false);
   fSignalConstraintSize = pset.get<double>("SignalConstraintSize", 10.);
-
+  
+  fMCDists.SetIDs(pset);
+  fFakeDataDists.SetIDs(pset);
+  try {
+    fThinSliceStrategy = protoana::ThinSliceStrategyRegistry::Instance()->GetStrategy(
+      fStrategyName, fAnalysisOptions);
+  }
+  catch (const std::runtime_error & e) {
+    protoana::ThinSliceStrategyRegistry::Instance()->PrintAvailableStrategies();
+    throw e;
+  }
+  fThinSliceStrategy->BuildDists(fMCDists, pset);
+  fThinSliceStrategy->BuildDists(fFakeDataDists, pset, "Fake");
+  
   //Initialize systematics
   if (fDoSysts) {
     fAddSystTerm = pset.get<bool>("AddSystTerm");
@@ -4145,7 +4192,7 @@ void protoana::PDSPThinSliceFitter::BuildFakeDataXSecs(bool use_scales) {
         }
       }
     }
-    
+
     std::string tot_name = "FakeData" +
                              samples_vec_2D[0][1].GetName() + "Tot";
     fake_data_totals[s] = (TH1D*)temp_xsec->Clone(tot_name.c_str());
@@ -4375,20 +4422,20 @@ void protoana::PDSPThinSliceFitter::CalcFullCrossSection(TH1D * xsec_hist) {
   }
 }
 
-void protoana::PDSPThinSliceFitter::CalcApproxCrossSection(TH1D * xsec_hist) {
-  for (int i = 1; i <= xsec_hist->GetNbinsX(); ++i) {
-    double val = xsec_hist->GetBinContent(i);
-    xsec_hist->SetBinContent(i, 1. - sqrt(1. - 2.*val));
-  }
-}
+// void protoana::PDSPThinSliceFitter::CalcApproxCrossSection(TH1D * xsec_hist) {
+//   for (int i = 1; i <= xsec_hist->GetNbinsX(); ++i) {
+//     double val = xsec_hist->GetBinContent(i);
+//     xsec_hist->SetBinContent(i, 1. - sqrt(1. - 2.*val));
+//   }
+// }
 
 void protoana::PDSPThinSliceFitter::CalculateCrossSection(TH1D * xsec_hist) {
-  if (fXSecCalcStyle == "Full") {
+  // if (fXSecCalcStyle == "Full") {
     CalcFullCrossSection(xsec_hist);
-  }
-  else {
-    CalcApproxCrossSection(xsec_hist);
-  }
+  // }
+  // else {
+    // CalcApproxCrossSection(xsec_hist);
+  // }
   xsec_hist->Scale(1.E27/ (fPitch * 1.4 * 6.022E23 / 39.948 ));
 }
 

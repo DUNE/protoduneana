@@ -1,0 +1,348 @@
+#include "FitterPlotStyle.fcl"
+#include "ProtoDUNECalibration.fcl"
+#include "FitSystematics.fcl"
+#include "SelectionVarSysts.fcl"
+#include "ExtraHists.fcl"
+
+MCFileName: "/dune/data2/users/calcuttj/pduneana_ntuples/1_31_22/eventSelection_mc_all.root"
+DataFileName: "/dune/data2/users/calcuttj/pduneana_ntuples/1_4_22/AltSCE/eventSelection_data_BeamQuality.root"
+
+TreeName: "pduneana/beamana"
+
+DriverName: "protoana::AbsCexDriver"
+StrategyName: "protoana::AbsCexStrategy"
+AnalysisOptions: {
+
+  FakeDataRoutine: "Asimov"
+
+  EndZCut: 222.10561
+  SliceCut: 1e5 #464
+  WirePitch: .47974
+  Z0: 0.56035
+
+  Multinomial: false 
+
+  SliceMethod: "Traj" #E, Alt, Default
+
+  TrajZStart: -.49375
+
+  #Fixing reco
+  DoEnergyFix: true 
+  EnergyFix: 10.
+
+  ERecoSelections: [1, 2, 3]
+  EndZSelections: [4]
+  OneBinSelections: [5, 6, 7]
+
+  EventSelection: {
+  
+  }
+
+  RestrictBeamInstP: true
+  VaryDataCalibration: false 
+  DataCalibrationFactor: 1.02
+  BarlowBeeston: true
+  ToSkip: [5, 6]
+
+  #ExtraHists: @local::AbsCexExtraHists
+ 
+  CovarianceRoutines: [
+    {
+      Name: "BeamShift" #From Sungbin's 11/18/2022 upstream energy loss summary
+      #P0: [-5.586e1, 35.]
+      #P1: [-1.553e-2, 0.]
+      #P2: [9.668e-5, 0.]
+
+      P0: [-8.066e1, 143.]
+      P1: [4.801e-2, 0.]
+      P2: [6.079e-5, 0.]
+
+      UseInput: true
+      InputName: "/dune/app/users/calcuttj/LAr_Particle_Profiles/output/root/Fitting_results/Fitting_Ploss_data_RecoBeam_RangeFF_muon_BeamWindow_noweight_Beam_Study_1.0GeV_muon.root"
+
+      NominalP0: 539.131
+      NominalP1: -4.18188e-2
+      NominalP2: 5.14203e-4
+      OutputName: "No56FixedBeamShiftCovarianceNoAPA2.root"
+      NCovarianceGens: 1000
+    }
+  ]
+  NWorkers: 16
+}
+
+Systematics: [
+  @local::g4rw_proton_coeff
+  ,@local::SystematicsList.end_z_no_track_weight
+  ,@local::SystematicsList.beam_match_weight
+  ,@local::g4rw_full_piplus_low_coeff
+  ,@local::g4rw_full_piplus_high_coeff
+  ,@local::SystematicsList.beam_scraper_weight_pi
+  ,@local::SystematicsList.beam_scraper_weight_lowp_mu
+  ,@local::SystematicsList.beam_scraper_weight_highp_mu
+]
+
+Systematics[1].Central: 1.71
+
+old_fv_notrack_fractions: [
+  [1, [-1.0, 0.24719101123595508, 0.2278481012658228, 0.17065152420800955, 0.20838073568448995, 0.2772946859903382] ],
+  [2, [-1.0, 0.20930232558139536, 0.27891156462585037, 0.2372, 0.2753416275749541, 0.32582159624413143] ],
+  [3, [-1.0, 0.19469026548672566, 0.18279569892473121, 0.1432376442734537, 0.1636555360281195, 0.19492267289174206] ],
+  [4, [] ],
+  #[5, [0.5750000000000001] ],
+  [5, [] ],
+  [6, [] ],
+  [7, [0.07057057057057058] ]]
+new_fv_notrack_fractions: [
+[1, [-1.0, 0.24719101123595508, 0.2278481012658228, 0.17065152420800955, 0.21968616262482168] ],
+[2, [-1.0, 0.20930232558139536, 0.27891156462585037, 0.2372, 0.2843498659517426] ],
+[3, [-1.0, 0.19469026548672566, 0.18279569892473121, 0.1432376442734537, 0.16972581010650353] ],
+[4, [] ],
+#[5, [0.5750000000000001] ],
+[5, [] ],
+[6, [] ],
+[7, [0.07057057057057058] ]
+]
+new_fv_notrack_limit: 1.7391304347826089
+old_fv_notrack_limit: @local::new_fv_notrack_limit
+
+Systematics[1].Options.Fractions: @local::new_fv_notrack_fractions
+Systematics[1].UpperLimit: @local::new_fv_notrack_limit
+Systematics[1].ThrowLimitUp: @local::new_fv_notrack_limit
+Systematics[1].GenThrowLimitUp: @local::new_fv_notrack_limit
+
+
+old_fv_origin_fractions: [[1, [0.09022217209879328, 0.0861430159318266, 0.09319799630899024, 0.09825163573956881, 0.11554872845195426, 0.14195979899497488]],
+                         [2, [0.08490566037735849, 0.09824046920821114, 0.09568666336142786, 0.10137810866466022, 0.11952273194815881, 0.13147410358565736]],
+                         [3, [0.08798159861989649, 0.09655296877819888, 0.09747257987601335, 0.10615434711820254, 0.11293103448275862, 0.12430555555555556]],
+                         [4, [0.07950208188757807]],
+                         [5, [0.08531367966924322]],
+                         [6, [0.08047016274864376]],
+                         [7, [0.08936755270394134]]]
+old_fv_origin_limit: 7.044247787610619
+
+
+new_fv_origin_fractions: [
+  [1, [0.09022217209879328, 0.0861430159318266, 0.09319799630899024, 0.09825163573956881, 0.11870773854244929]],
+  [2, [0.08490566037735849, 0.09824046920821114, 0.09568666336142786, 0.10137810866466022, 0.12112575703598147]],
+  [3, [0.08798159861989649, 0.09655296877819888, 0.09747257987601335, 0.10615434711820254, 0.11464435146443515]],
+  [4, [0.07950208188757807]],
+  [5, [0.08531367966924322]],
+  [6, [0.08047016274864376]],
+  [7, [0.08936755270394134]]
+]
+new_fv_origin_limit: 8.255882352941176
+
+Systematics[2].UpperLimit: @local::new_fv_origin_limit
+Systematics[2].ThrowLimitUp: @local::new_fv_origin_limit
+Systematics[2].GenThrowLimitUp: @local::new_fv_origin_limit
+
+Systematics[2].Options.Fractions: @local::new_fv_origin_fractions
+
+Systematics[1].Central: 1.
+Systematics[2].Central: 1.
+
+
+AddSystTerm: true
+
+CovarianceBins: [
+ ["end_z_no_track_weight", 0] #10%
+ ,["g4rw_proton_coeff", 1] #33%
+ ,["beam_match_weight", 2] #20%
+ ,["g4rw_full_piplus_low_coeff", 3] #33%
+ ,["g4rw_full_piplus_high_coeff", 4] #33%
+ #,["beam_scraper_weight", 5] #50%
+ ,["beam_scraper_weight_pi", 5] #50%
+ ,["beam_scraper_weight_lowp_mu", 6] #50%
+ ,["beam_scraper_weight_highp_mu", 7] #50%
+
+]
+
+#CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv.root"
+CovarianceFile: "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/resilient/users/calcuttj/new_centrals_no_ediv_three_scrapers.root"
+CovarianceMatrix: "m"
+
+SetSelVarCentrals: false
+SelectionVarSysts: []
+
+FixVariables: false
+SystsToFix: []
+
+AddDiffInQuadrature:  false
+DiffCovName: "diffs_2D"
+DiffGraphFile: "fluc_xsec_diff.root"
+
+standard_reco_bins: [[0., 400., 450.,
+                      500., 550., 600., 650.,
+                      700., 750., 800., 850.,
+                      900., 1200.]]
+Selections: [
+  {
+    Name: "Abs"
+    ID: 1
+    RecoBins: @local::standard_reco_bins
+    AxisTitles: ["Reconstructed KE (MeV)"]
+  },
+  {
+    Name: "Cex"
+    ID: 2
+    RecoBins: @local::standard_reco_bins
+    AxisTitles: ["Reconstructed KE (MeV)"]
+  } ,
+  {
+    Name: "RejectedInt"
+    ID: 3
+    RecoBins: @local::standard_reco_bins
+    AxisTitles: ["Reconstructed KE (MeV)"]
+  },
+  {
+    Name: "APA2"
+    ID: 4
+    RecoBins: [[215, 580]]
+    AxisTitles: ["Reconstructed End Z (cm)"]
+  },
+  {
+    Name: "FailedBeamCuts"
+    ID: 5
+    RecoBins: [[0, 1]]
+    AxisTitles: [""]
+  },
+  {
+    Name: "NoBeamTrack"
+    ID: 6
+    RecoBins: [[0, 1]]
+    AxisTitles: [""]
+  }
+  #,{
+  #  Name: "MichelCut"
+  #  ID: 7
+  #  RecoBins: [[0, 1]]
+  #  AxisTitles: [""]
+  #}
+]
+
+
+FluxTypes: [
+             [2, "Muons"],
+             [1, "Pions"]
+           ]
+
+
+BeamEnergyBins: [750., 850., 900., 950., 1000., 1050., 1100., 1150., 1250.]
+DefaultSignalBins: [0., 400., 800., 1000, 1200.]
+TrueIncidentBins: @local::DefaultSignalBins
+
+
+#For use identifying the true incident samples
+#used to make the final total pion incident histogram
+IncidentSamples: [1, 2, 3, 6, 7]
+MeasurementSamples: [1, 2, 3]
+
+signal_bins: [500., 600., 700., 800.]
+#signal_bins: [500., 600., 700., 800., 900.]
+Samples: [
+  {
+    Name: "Abs"
+    ID: 1
+    IsSignal: true
+    SignalBins: @local::signal_bins
+    FluxType: 1
+  },
+  {
+    Name: "Cex"
+    ID: 2
+    IsSignal: true
+    SignalBins: @local::signal_bins
+    FluxType: 1
+  },
+  {
+    Name: "OtherInel"
+    ID: 3
+    IsSignal: true 
+    SignalBins: @local::signal_bins
+    FluxType: 1
+  },
+  {
+    Name: "UpstreamInt"
+    ID: 4
+    IsSignal: true
+    SingleSignalBin: true
+    SignalBins: []
+    FluxType: 1
+  },
+  {
+    Name: "Muons"
+    ID: 5
+    IsSignal: false
+    SignalBins: []
+    FluxType: 2
+  },
+  {
+    Name: "PionPastFV"
+    ID: 6
+    IsSignal: false
+    SignalBins: []
+    FluxType: 1
+  },
+  {
+    Name: "Other"
+    ID: 7
+    IsSignal: false
+    SignalBins: []
+    FluxType: 1
+  }
+]
+
+## Minimizer setup
+MaxIterations: 1e6
+MaxCalls: 1e9
+NScanSteps: 500
+Tolerance: 1.e-2 #0.001
+UpperLimit: 100.0
+LowerLimit: -1
+FitFlux: false
+ScaleToDataBeamProfile: true
+RerunFit: true
+FitAttempts: 6
+
+AddRegTerm: false 
+RegFactor: 5.
+
+SetSigLimits: true
+SetSystLimits: true
+SetSelVarLimits: true
+#####################
+
+FitUnderOverflow: true
+TieUnderOver: false 
+
+GetMeanXSec: true
+
+## Plotting
+#PlotStyle: @local::ReducedColorsStyle
+PlotStyle: @local::DefaultColorsStyle
+PlotRebinned: true
+DrawXSecUnderflow: false 
+#####################
+
+## Validation
+RandomStart: false 
+SplitMC:  false 
+#MaxEntries:  20000
+MaxEntries:  20000 #
+MaxDataEntries: @local::MaxEntries #54000
+DoFakeData: false
+FluctuateStats: false 
+DoThrows: false
+NThrows: 10000
+DoScans: false 
+OnlySystScans: false 
+RunHesse: true
+Do1DShifts: false
+DoSysts: false
+MaxRethrows: 1000
+#####################
+
+#FitType: "Normal"
+FitType: "None"
+#FitType: "ConstructCovariance"
+#FitType: "ThrowsOnly"

@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 #include <chrono>
-
+#include <mutex>
 #include "TTree.h"
 #include "TArrayD.h"
 #include "TFile.h"
@@ -64,6 +64,11 @@ class PDSPThinSliceFitter {
   void ThrowSystCentrals();
   void Do1DShifts(const TH1D & pars, bool prefit=false);
   void SetBestFit();
+  int GetBeamBin(
+    // const std::vector<double> & beam_energy_bins,
+    const double & momentum,
+    bool restrict_P=false);
+  
   void GetCurrentTruthHists(
     std::map<int, std::vector<TH1*>> & throw_hists,
     std::map<int, std::vector<TH1*>> & throw_inc_hists,
@@ -79,7 +84,7 @@ class PDSPThinSliceFitter {
   double CalcChi2SystTerm(), CalcRegTerm(), CalcSignalConstraint();
   void CalculateCrossSection(TH1D * xsec_hist);
   void CalcFullCrossSection(TH1D * xsec_hist);
-  void CalcApproxCrossSection(TH1D * xsec_hist);
+  // void CalcApproxCrossSection(TH1D * xsec_hist);
   void GetFixFactors();
   void MakeThrowsTree(TTree & tree, std::vector<double> & branches);
   bool DoHesse();
@@ -94,6 +99,7 @@ class PDSPThinSliceFitter {
   void NewRefill(const std::vector<ThinSliceEvent> & events);
   void NewRefillLoop(
     const std::vector<ThinSliceEvent> & events,
+    std::vector<double> & mc_beam_fluxes,
     size_t worker_id, std::vector<size_t> n_events
   );
   //void MakeThrowsArrays(std::vector<TVectorD *> & arrays);
@@ -105,7 +111,7 @@ class PDSPThinSliceFitter {
   std::map<int, std::vector<std::vector<ThinSliceSample>>> fSamples,
                                                            fFakeSamples,
                                                            fCovSamples;
-  ThinSliceDistHolder fMCDists;
+  ThinSliceDistHolder fMCDists, fFakeDataDists;
   ThinSliceDataSet fDataSet;
   std::map<int, TH1 *> fFixFactorHists;
   std::map<int, bool> fIsSignalSample;
@@ -132,7 +138,7 @@ class PDSPThinSliceFitter {
   double fDataFlux;
   double fMCDataScale = 1.;
 
-  std::string fXSecCalcStyle;
+  // std::string fXSecCalcStyle;
 
   std::map<int, std::vector<double>> fSignalParameters;
   std::map<int, std::vector<std::string>> fSignalParameterNames;
@@ -177,6 +183,8 @@ class PDSPThinSliceFitter {
   std::map<int, std::vector<double>> fBestFitTruthVals;
 
   std::vector<ThinSliceEvent> fEvents, fFakeDataEvents;
+  
+  std::mutex fRefillMutex, fFluxMutex;
 
   //Configurable members
   std::string fMCFileName;
