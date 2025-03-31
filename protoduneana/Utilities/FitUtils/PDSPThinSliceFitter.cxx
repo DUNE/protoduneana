@@ -1632,6 +1632,7 @@ void protoana::PDSPThinSliceFitter::CompareDataMC(
     std::string extra_name, TDirectory * xsec_dir, TDirectory * plot_dir,
     bool post_fit) {
       fThinSliceStrategy->CompareDataMC(fMCDists, fDataSet, fOutputFile);
+      fThinSliceStrategy->CompareSelections(fMCDists, fDataSet, fOutputFile, fPlotStyle, false, post_fit, plot_dir);
   // fThinSliceDriver->CompareDataMC(
   //     fSamples, fDataSet, fOutputFile,
   //     fPlotStyle, (fTotalFluxParameters + fTotalSignalParameters +

@@ -3,6 +3,9 @@
 #include "cetlib_except/exception.h"
 
 #include "ThinSliceConsts.h"
+
+#include "THStack.h"
+#include "TLegend.h"
 DECLARE_THINSLICESTRATEGY_FACTORY_NS(protoana::AbsCexStrategy, protoana, AbsCexStrategy)
 
 
@@ -248,6 +251,245 @@ std::vector<double> protoana::AbsCexStrategy::MakeTrueIncidentEnergies(
     return results;
 }
 
+void protoana::AbsCexStrategy::CompareSelections(
+    const ThinSliceDistHolder & holder,
+    ThinSliceDataSet & data_set, TFile & output_file,
+    std::vector<std::pair<int, int>> plot_style,
+    bool plot_rebinned,
+    bool post_fit,
+    TDirectory * plot_dir) const {
+
+  plot_dir->cd();
+  //output_file.cd();
+  std::map<int, TH1*> data_hists
+      = (plot_rebinned ?
+         data_set.GetRebinnedSelectionHists() :
+         data_set.GetSelectionHists());
+  for (const auto & [selection_ID, data_hist] : data_hists) {  
+    // int selection_ID = it->first;
+    // TH1D * data_hist = (TH1D*)it->second;
+    data_hist->SetLineColor(kBlack);
+    data_hist->SetMarkerColor(kBlack);
+    data_hist->SetMarkerStyle(20);
+
+    std::string canvas_name_no_data = "c";
+    canvas_name_no_data += (post_fit ? "PostFit" : "Nominal") +
+                   data_set.GetSelectionName(selection_ID) +
+                   "NoData";
+    TCanvas cSelectionNoData(canvas_name_no_data.c_str(), "");
+    cSelectionNoData.SetTicks();
+
+    std::string canvas_name = "c";
+    canvas_name += (post_fit ? "PostFit" : "Nominal") +
+                   data_set.GetSelectionName(selection_ID);
+    TCanvas cSelection(canvas_name.c_str(), "");
+    cSelection.SetTicks();
+
+    const auto & mc_selection_hists = holder.GetSelectionHists();
+    std::map<int, std::vector<TH1D *>> temp_hists;
+    //Loop over beam bins
+    for (size_t i = 0; i < mc_selection_hists.size(); ++i) {
+      const auto & mc_selection_map = mc_selection_hists[i];
+      
+      //Loop over true, selection ID pairs
+      for (const auto & [ids, hist_vec] : mc_selection_map) {
+        int sample_ID = ids.first;
+        int mc_selection_ID = ids.second;
+        if (mc_selection_ID != selection_ID) continue;
+        if (i == 0) {
+          temp_hists[sample_ID] = std::vector<TH1D *>();
+          for (const auto & hist : hist_vec) {
+            temp_hists[sample_ID].push_back(
+              (TH1D*)hist->Clone()
+            );
+            // temp_hists[sample_ID].push_back((TH1D*)(
+            // plot_rebinned ?
+            // hist.GetRebinnedSelectionHist(selection_ID) :
+            // hist.GetSelectionHist(selection_ID))->Clone());
+          }
+        }
+        else {
+          for (size_t j = 0; j < hist_vec.size(); ++j) {
+            temp_hists[sample_ID][j]->Add(
+              hist_vec[j].get()
+            );
+            // temp_hists[sample_ID].push_back((TH1D*)(
+            // plot_rebinned ?
+            // hist.GetRebinnedSelectionHist(selection_ID) :
+            // hist.GetSelectionHist(selection_ID))->Clone());
+          }
+        }
+      }
+    }
+    //Build the mc stack
+    std::string stack_name = (post_fit ? "PostFit" : "Nominal") +
+                             data_set.GetSelectionName(selection_ID) +
+                             "Stack";
+    THStack mc_stack(stack_name.c_str(), "");
+    TLegend leg;
+    std::vector<TH1D*> temp_vec;
+    size_t iColor = 0;
+    //need to add second loop with temp hists
+    for (auto it2 = temp_hists.begin(); it2 != temp_hists.end(); ++it2) {
+      for (size_t i = 0; i < it2->second.size(); ++i) {
+        TH1D * sel_hist = it2->second.at(i);
+        std::pair<int, int> color_fill = GetColorAndStyle(iColor, plot_style);
+        sel_hist->SetFillColor(color_fill.first);
+        sel_hist->SetFillStyle(color_fill.second);
+        sel_hist->SetLineColor(kBlack);
+        mc_stack.Add(sel_hist);
+        temp_vec.push_back(sel_hist);
+        ++iColor;
+      }
+    }
+    mc_stack.Write();
+
+    for (auto it = temp_vec.rbegin(); it != temp_vec.rend(); ++it) {
+      leg.AddEntry(*it);
+    }
+
+    cSelectionNoData.cd();
+    mc_stack.Draw("hist");
+    std::string title_no_data = ";";
+    title_no_data += data_hist->GetXaxis()->GetTitle();
+    mc_stack.SetTitle(title_no_data.c_str());
+    mc_stack.GetHistogram()->SetTitleSize(.04, "X");
+    // mc_stack.Draw("hist");
+    // if (it == data_hists.begin())
+    //   leg.Write("leg_no_data");
+    cSelectionNoData.Write();
+    leg.Draw("same");
+
+    leg.AddEntry(data_hist, "Data");
+    
+    double chi2 = CalcChi2(holder, data_set);
+    if (chi2 < 0. && chi2 > -1.e7) {
+      chi2 = 0.;
+    }
+    TString chi2_str;
+    chi2_str.Form("#chi^{2} = %.2f", chi2);
+    leg.AddEntry((TObject*)0x0, chi2_str, "");
+
+    cSelection.cd();
+    std::string title = data_set.GetSelectionName(selection_ID);
+    title += ";";
+    title += data_hist->GetXaxis()->GetTitle();
+    mc_stack.SetTitle(title.c_str());
+
+    mc_stack.Draw("hist");
+    double max_mc = mc_stack.GetHistogram()->GetMaximum();
+    int max_data_bin = data_hist->GetMaximumBin();
+    double max_data = data_hist->GetBinContent(max_data_bin) +
+                      data_hist->GetBinError(max_data_bin);
+    mc_stack.SetMaximum((max_data > max_mc ? max_data : max_mc));
+    mc_stack.Draw("hist");
+    data_hist->Draw("e1 same");
+    leg.Draw("same");
+
+    cSelection.Write();
+
+    //Get the full incident hist from stack
+    TList * l = (TList*)mc_stack.GetHists();
+    TH1D * hMC = (TH1D*)l->At(0)->Clone();
+    for (int i = 1; i < l->GetSize(); ++i) {
+      hMC->Add((TH1D*)l->At(i));
+    }
+
+    std::string ratio_name = data_set.GetSelectionName(selection_ID) + "Ratio" +
+                             (post_fit ? "PostFit" : "Nominal");
+    TH1D * hRatio
+        = (TH1D*)data_hist->Clone(ratio_name.c_str());
+    hRatio->Divide(hMC);
+    hRatio->Write(); 
+    std::string total_name = (post_fit ? "PostFit" : "Nominal") +
+                             data_set.GetSelectionName(selection_ID) +
+                             "Total";
+    hMC->Write(total_name.c_str());
+
+    canvas_name += "Ratio";
+    TCanvas cRatio(canvas_name.c_str(), "");
+    cRatio.SetTicks();
+    TPad p1((canvas_name + "pad1").c_str(), "", 0, 0.3, 1., 1.);
+    p1.SetBottomMargin(0.1);
+    p1.Draw();
+    p1.cd();
+    mc_stack.Draw("hist");
+    mc_stack.GetHistogram()->SetTitle("Abs;;");
+    for (int i = 1; i < mc_stack.GetHistogram()->GetNbinsX(); ++i) {
+      hRatio->GetXaxis()->SetBinLabel(
+          i, mc_stack.GetHistogram()->GetXaxis()->GetBinLabel(i));
+      mc_stack.GetHistogram()->GetXaxis()->SetBinLabel(i, "");
+    }
+    mc_stack.Draw("hist");
+    data_hist->Draw("e1 same");
+
+    cRatio.cd();
+    TPad p2((canvas_name + "pad2").c_str(), "", 0, 0, 1., 0.3);
+    p2.SetTopMargin(0.1);
+    p2.SetBottomMargin(.2);
+    p2.Draw();
+    p2.cd();
+    hRatio->Sumw2();
+    std::string r_title = "";
+    hRatio->GetYaxis()->SetTitle("Data/MC");
+    hRatio->SetTitleSize(.04, "XY");
+    hRatio->Draw("ep");
+
+    cRatio.Write();
+
+
+    //Differences
+    //Get the full incident hist from stack
+    // TH1D * hMC2 = (TH1D*)l->At(0)->Clone();
+    // for (int i = 1; i < l->GetSize(); ++i) {
+    //   hMC2->Add((TH1D*)l->At(i));
+    // }
+
+    // std::string diff_name = data_set.GetSelectionName(selection_ID) + "Diff" +
+    //                          (post_fit ? "PostFit" : "Nominal");
+    // TH1D * hDiff
+    //     = (TH1D*)data_hist->Clone(diff_name.c_str());
+    // hMC2->Scale(-1.);
+    // hDiff->Add(hMC2);
+    // hMC2->Scale(-1.);
+    // hDiff->Divide(hMC2);
+    // hDiff->Write(); 
+
+    // canvas_name += "Diff";
+    // TCanvas cDiff(canvas_name.c_str(), "");
+    // cDiff.SetTicks();
+    // cDiff.cd();
+    // hDiff->GetYaxis()->SetTitle("r");
+    // hDiff->SetTitleSize(.04, "XY");
+    // hDiff->Draw("ep");
+
+    // cDiff.Write();
+
+    ///Write in NoStacks here
+
+    // THStack full_mc_stack((stack_name + "Full").c_str(), "");
+    // //TLegend leg;
+    // size_t iColorFull = 0;
+    // //need to add second loop with temp hists
+    // for (auto it2 = temp_hists.begin(); it2 != temp_hists.end(); ++it2) {
+    //   TH1D * sel_hist = it2->second.at(0);
+    //   std::pair<int, int> color_fill = GetColorAndStyle(iColorFull, plot_style);
+    //   sel_hist->SetFillColor(color_fill.first);
+    //   sel_hist->SetFillStyle(color_fill.second);
+    //   sel_hist->SetLineColor(kBlack);
+
+
+    //   for (size_t i = 1; i < it2->second.size(); ++i) {
+    //     sel_hist->Add(it2->second.at(i));
+    //   }
+    //   temp_vec.push_back(sel_hist);
+    //   full_mc_stack.Add(sel_hist);
+    //   ++iColorFull;
+    // }
+    // full_mc_stack.Write();
+  }
+}
+
 //PUt in a util class
 double protoana::AbsCexStrategy::GetTrueEndEnergy(const ThinSliceEvent & event) const {
     double true_beam_endP = event.GetTrueEndP();
@@ -296,7 +538,10 @@ int protoana::AbsCexStrategy::GetSignalBin(const ThinSliceEvent & event, const T
 }
 
 
-void protoana::AbsCexStrategy::CompareDataMC(const ThinSliceDistHolder & holder, const ThinSliceDataSet & dataset, TFile & fout) const {
+void protoana::AbsCexStrategy::CompareDataMC(
+  const ThinSliceDistHolder & holder, 
+  const ThinSliceDataSet & dataset, 
+  TFile & fout) const {
     fout.cd();
     for (const auto & map : holder.GetInteractionHists()) {
         for (const auto & [true_id, hist] : map) {

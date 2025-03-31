@@ -24,6 +24,14 @@ public:
     virtual void CompareDataMC(const ThinSliceDistHolder & holder, const ThinSliceDataSet & dataset, TFile & fout) const override;
     virtual void CalcXSecs(ThinSliceDistHolder & holder, double scale = 1.) const override;
     virtual double CalcChi2(const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset) const override;
+
+    virtual void CompareSelections(
+        const ThinSliceDistHolder & holder,
+        ThinSliceDataSet & data_set, TFile & output_file,
+        std::vector<std::pair<int, int>> plot_style,
+        bool plot_rebinned,
+        bool post_fit,
+        TDirectory * plot_dir) const override;
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const override;
 
 private:
@@ -33,6 +41,11 @@ private:
         const std::vector<double> & true_beam_traj_KE) const;
     ThinSliceDistBuilder1D fBuilder;
 
+    std::pair<int, int> GetColorAndStyle (
+        size_t i, const std::vector<std::pair<int, int>> & plot_style) const {
+          return {plot_style.at(i % plot_style.size()).first,
+                  (i < plot_style.size() ? 1001: 3244)};
+    };
 
     double fPitch;
     int fSliceCut;

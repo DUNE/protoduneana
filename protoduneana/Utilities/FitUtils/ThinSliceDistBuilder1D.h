@@ -31,14 +31,14 @@ public:
       std::vector<int> to_skip = {}) const override;
 private:
   std::shared_ptr<TH1D> MakeSelHist(
-    TString true_bins_string, const fhicl::ParameterSet & sel,
+    TString true_bins_string, TString title, const fhicl::ParameterSet & sel,
     std::string sample_name, size_t beam_bin, std::string label,
     bool total=false);
   void SelHistLoop(
     ThinSliceDistHolder & holder,
     const std::vector<fhicl::ParameterSet> & selections,
     std::string sample_name,
-    TString true_bins_string, 
+    TString true_bins_string, TString title, 
     int true_id, size_t beam_bin, std::string label
   );
   void TotalSelHistLoop(

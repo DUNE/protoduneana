@@ -30,6 +30,13 @@ public:
     virtual void CompareDataMC(const ThinSliceDistHolder & holder, const ThinSliceDataSet & dataset, TFile & fout) const = 0;
     virtual void CalcXSecs(ThinSliceDistHolder & holder, double scale = 1.) const = 0;
     virtual double CalcChi2(const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset) const = 0;
+    virtual void CompareSelections(
+        const ThinSliceDistHolder & holder,
+        ThinSliceDataSet & data_set, TFile & output_file,
+        std::vector<std::pair<int, int>> plot_style,
+        bool plot_rebinned,
+        bool post_fit,
+        TDirectory * plot_dir) const = 0;
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const = 0;
 
 protected:

@@ -5,14 +5,26 @@
 
 
 std::shared_ptr<TH1D> protoana::ThinSliceDistBuilder1D::MakeSelHist(
-      TString true_bins_string, const fhicl::ParameterSet & sel,
+      TString true_bins_string,
+      TString title,
+      const fhicl::ParameterSet & sel,
       std::string sample_name, size_t beam_bin, std::string label,
       bool total) {
     std::string sel_name = sel.get<std::string>("Name");
 
     //Assume these have at least one
     //TODO -- make these single axes
-    std::string title = sel.get<std::vector<std::string>>("AxisTitles")[0];
+    // std::string axis_title = sel.get<std::vector<std::string>>("AxisTitles")[0];
+    // TString title;
+    // title.Form("%s_")
+    // (is_signal ?
+    //     ("(" + protoana::PreciseToString(range.first) + " "
+    //      + protoana::PreciseToString(range.second) + ")") :
+    //      "") +
+    // ";Reconstructed KE (MeV)";
+
+
+
     std::vector<double> reco_bins = sel.get<std::vector<std::vector<double>>>(
       "RecoBins")[0];
 
@@ -34,7 +46,7 @@ std::shared_ptr<TH1D> protoana::ThinSliceDistBuilder1D::MakeSelHist(
     // holder.fSelectionHists[i-1][{true_id, id}].push_back(
     std::cout << "Making " << hist_name << std::endl;
     return std::make_shared<TH1D>(
-      hist_name, title.c_str(),
+      hist_name, title,
       reco_bins.size()-1, &reco_bins[0]
     );
 }
@@ -43,14 +55,14 @@ void protoana::ThinSliceDistBuilder1D::SelHistLoop(
   ThinSliceDistHolder & holder,
   const std::vector<fhicl::ParameterSet> & selections,
   std::string sample_name,
-  TString true_bins_string, int true_id, size_t beam_bin, std::string label
+  TString true_bins_string, TString title, int true_id, size_t beam_bin, std::string label
 ) {
   for (const auto & sel : selections) {
     int sel_id = sel.get<int>("ID");
     std::string sel_name = sel.get<std::string>("Name");
 
     holder.fSelectionHists[beam_bin-1][{true_id, sel_id}].push_back(
-      MakeSelHist(true_bins_string, sel, sample_name, beam_bin, label)
+      MakeSelHist(true_bins_string, title, sel, sample_name, beam_bin, label)
     );
   }
 }
@@ -63,7 +75,7 @@ void protoana::ThinSliceDistBuilder1D::TotalSelHistLoop(
     std::string sel_name = sel.get<std::string>("Name");
 
     holder.fTotalSelectionHists[sel_id] =
-      MakeSelHist(TString(), sel, "", 0, label, true);
+      MakeSelHist(TString(), TString(), sel, "", 0, label, true);
   }
 }
 
@@ -185,12 +197,16 @@ void protoana::ThinSliceDistBuilder1D::BuildSels(
 
         //If it's signal and has multiple bins add underflow and overflow
         // then loop over the true bins
+        TString title;
         if (is_signal && !is_single_signal_bin) {
           //Underflow
           TString true_bins_string("Underflow");
+          title.Form("%s Underflow", sample_name.c_str());
           SelHistLoop(
             holder,
-            selections, sample_name, true_bins_string, true_id, i,
+            selections, sample_name, true_bins_string,
+            title,
+            true_id, i,
             label
           );
 
@@ -201,31 +217,43 @@ void protoana::ThinSliceDistBuilder1D::BuildSels(
               "%.2f_%.2f",
               signal_bins[j-1], signal_bins[j]
             );
+            title.Form("%s (%.2f %.2f)", sample_name.c_str(), signal_bins[j-1], signal_bins[j]);
             SelHistLoop(
               holder,
-              selections, sample_name, true_bins_string, true_id, i,
+              selections, sample_name, true_bins_string,
+              title,
+              true_id, i,
               label
             );
           }
           //Overflow
           true_bins_string.Form("Overflow");
+          title.Form("%s Underflow", sample_name.c_str());
           SelHistLoop(
             holder,
-            selections, sample_name, true_bins_string, true_id, i, label
+            selections, sample_name, true_bins_string,
+            title,
+            true_id, i, label
           );
         }
         else if (is_signal && is_single_signal_bin) {
           TString true_bins_string("Single");
+          title.Form("%s", sample_name.c_str());
           SelHistLoop(
             holder,
-            selections, sample_name, true_bins_string, true_id, i, label
+            selections, sample_name, true_bins_string,
+            title,
+            true_id, i, label
           );
         }
         else {
           TString true_bins_string("");
+          title.Form("%s", sample_name.c_str());
           SelHistLoop(
             holder,
-            selections, sample_name, true_bins_string, true_id, i, label
+            selections, sample_name, true_bins_string,
+            title,
+            true_id, i, label
           );
         }
       }
