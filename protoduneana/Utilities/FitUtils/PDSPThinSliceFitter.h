@@ -84,7 +84,6 @@ class PDSPThinSliceFitter {
   double CalcChi2SystTerm(), CalcRegTerm(), CalcSignalConstraint();
   void CalculateCrossSection(TH1D * xsec_hist);
   void CalcFullCrossSection(TH1D * xsec_hist);
-  // void CalcApproxCrossSection(TH1D * xsec_hist);
   void GetFixFactors();
   void MakeThrowsTree(TTree & tree, std::vector<double> & branches);
   bool DoHesse();

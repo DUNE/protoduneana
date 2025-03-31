@@ -2906,12 +2906,13 @@ void protoana::PDSPThinSliceFitter::NewRefill(
     double ratio = ((fDataBeamFluxes[i] > 0.) ? fDataBeamFluxes[i] / mc_beam_fluxes[i] : 1.);
     if (fDataBeamFluxes[i] > 0.) {
       ratio = fDataBeamFluxes[i] / mc_beam_fluxes[i];
-      std::cout << "Ratio " << i << ratio << std::endl;
+      std::cout << "Ratio " << i << " " << ratio << std::endl;
     }
     fMCDists.ScaleInBeamBin(i, ratio);
   }
 
   fThinSliceStrategy->CalcXSecs(fMCDists, 1.E27/ (fPitch * 1.4 * 6.022E23 / 39.948 ));
+  fMCDists.CalcTotalDists();
 }
 
 void protoana::PDSPThinSliceFitter::DefineFitFunction() {
@@ -3024,11 +3025,11 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
         //   }
         // }
 
-        std::pair<double, size_t> chi2_points= //(
-          // fCalcChi2InFCN ?
-          // fThinSliceDriver->CalculateChi2(fSamples, fDataSet) :
-          std::make_pair<double, size_t>(0., 0);
-        // );
+        double chi2 = (
+          fCalcChi2InFCN ?
+          fThinSliceStrategy->CalcChi2(fMCDists, fDataSet) :
+          0.
+        );
         ++fNFitSteps;
 
         auto begin_time = std::chrono::high_resolution_clock::now();
@@ -3044,12 +3045,12 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
         double sig_term = (fAddSignalConstraint ? CalcSignalConstraint() : 0.);
 
         if (fDebugChi2)
-          std::cout << chi2_points.first << " " << syst_chi2 << std::endl;
-        //if (chi2_points.first < 0.) {
-        if (chi2_points.first < -1.*FLT_EPSILON ||
-            std::isnan(chi2_points.first)) {
+          std::cout << chi2 << " " << syst_chi2 << std::endl;
+        //if (chi2 < 0.) {
+        if (chi2 < -1.*FLT_EPSILON ||
+            std::isnan(chi2)) {
           std::string message = "Chi2 went negative " +
-                                std::to_string(chi2_points.first) + "\n";
+                                std::to_string(chi2) + "\n";
 
 
           size_t a = 0;
@@ -3092,7 +3093,7 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
 
 
         if (fSaveFitTree) {
-          fOutputChi2Stat = chi2_points.first;
+          fOutputChi2Stat = chi2;
           fOutputChi2Syst = syst_chi2;
           fOutputParVals.clear();
           for (size_t ipar = 0; ipar < fTotalSignalParameters + fTotalFluxParameters + fTotalSystParameters + fTotalG4RWParameters; ++ipar) {
@@ -3103,8 +3104,8 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
 
 
         if (fCoutLevel > 0)
-          std::cout << (chi2_points.first + syst_chi2 + reg_term + sig_term) << std::endl;
-        return (chi2_points.first + syst_chi2 + reg_term + sig_term);
+          std::cout << (chi2 + syst_chi2 + reg_term + sig_term) << std::endl;
+        return (chi2 + syst_chi2 + reg_term + sig_term);
       },
       fTotalSignalParameters + fTotalFluxParameters + fTotalSystParameters + fTotalG4RWParameters);
       std::cout << "Done F2" << std::endl;
@@ -4119,12 +4120,8 @@ void protoana::PDSPThinSliceFitter::GetCurrentTruthHists(
       auto & incident_vec_2D = fSamples[i_s];
       for (size_t i = 0; i < incident_vec_2D.size(); ++i) {
         for (size_t j = 0; j < incident_vec_2D[i].size(); ++j) {
-          /*if (fSliceMethod == "E") {
-            incident_vec_2D[i][j].FillESliceHist(*temp_inc_hist);
-          }
-          else {*/
+
             incident_vec_2D[i][j].FillHistFromIncidentEnergies(*temp_inc_hist);
-          //}
         }
       }
     }
@@ -4422,20 +4419,9 @@ void protoana::PDSPThinSliceFitter::CalcFullCrossSection(TH1D * xsec_hist) {
   }
 }
 
-// void protoana::PDSPThinSliceFitter::CalcApproxCrossSection(TH1D * xsec_hist) {
-//   for (int i = 1; i <= xsec_hist->GetNbinsX(); ++i) {
-//     double val = xsec_hist->GetBinContent(i);
-//     xsec_hist->SetBinContent(i, 1. - sqrt(1. - 2.*val));
-//   }
-// }
-
 void protoana::PDSPThinSliceFitter::CalculateCrossSection(TH1D * xsec_hist) {
-  // if (fXSecCalcStyle == "Full") {
-    CalcFullCrossSection(xsec_hist);
-  // }
-  // else {
-    // CalcApproxCrossSection(xsec_hist);
-  // }
+  CalcFullCrossSection(xsec_hist);
+
   xsec_hist->Scale(1.E27/ (fPitch * 1.4 * 6.022E23 / 39.948 ));
 }
 
@@ -4586,4 +4572,3 @@ bool protoana::PDSPThinSliceFitter::DoHesse() {
   fMinimizer->SetPrintLevel(fPrintLevel);
   return hesse_good;
 }
-

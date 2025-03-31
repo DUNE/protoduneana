@@ -24,6 +24,23 @@ void protoana::ThinSliceDistHolder::Reset() {
         fTotalIncidentHists[key]->Reset();
     }
 
+    for (auto & [key, hist] : fTotalSelectionHists) {
+        hist->Reset();
+    }
+
+}
+
+void protoana::ThinSliceDistHolder::CalcTotalDists() {
+    //Iterate over the beam bins
+    for (auto & map : fSelectionHists) {
+        //Iterate over keys (true cat, sel ID)
+        for (auto & [ids, hists] : map) {
+            //Iterate over true bins 
+            for (auto & hist : hists) {
+                fTotalSelectionHists[ids.second]->Add(hist.get());
+            }
+        }
+    }
 }
 
 void protoana::ThinSliceDistHolder::SetIDs(const fhicl::ParameterSet & pset) {

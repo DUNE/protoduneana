@@ -10,6 +10,7 @@ namespace protoana {
   using TrueCat_t = int;
   using SelID_t = int;
   using TrueCatHist_map = std::map<TrueCat_t, std::shared_ptr<TH1>>;
+  using SelIDHist_map = std::map<SelID_t, std::shared_ptr<TH1>>;
   using TrueCatSelID_t = std::pair<TrueCat_t, SelID_t>;
   using TrueCatSelID_map = std::map<TrueCatSelID_t, std::vector<std::shared_ptr<TH1>>>;
   using Range_t = std::pair<double, double>;
@@ -44,7 +45,12 @@ public:
 
   }
 
+  void CalcTotalDists();
+
+
   const std::vector<TrueCatSelID_map> & GetSelectionHists() const { return fSelectionHists; }
+  const SelIDHist_map & GetTotalSelectionHists() const { return fTotalSelectionHists; }
+
   const std::vector<TrueCatHist_map> &  GetInteractionHists() const { return fInteractionHists; }
   const std::vector<TrueCatHist_map> &  GetIncidentHists() const { return fIncidentHists; }
   const TrueCatHist_map &  GetXSecHists() const { return fXSecHists; }
@@ -124,6 +130,7 @@ private:
     //Each of the following is a vector corresponding the beam energy bins
       //Map of True Cat, Sel ID --> Vector of Bins (for signal) --> Hists
       std::vector<TrueCatSelID_map> fSelectionHists;
+
       //Map of True Cat --> Hist representing interactions, incidents, xsecs
       std::vector<TrueCatHist_map> fInteractionHists;
       std::vector<TrueCatHist_map> fIncidentHists;
@@ -131,7 +138,11 @@ private:
     //XSec hists are collapsed over the beam bins, so just a single map
     TrueCatHist_map fXSecHists;
     TrueCatHist_map fTotalIncidentHists;
-    
+
+    //Total selection hists + stacks are collapsed over beam bins and true cats
+    SelIDHist_map fTotalSelectionHists;
+    // SelIDStack_map fSelectionStacks;
+
     std::vector<TrueCat_t> fTrueCatIDs;
     std::vector<SelID_t> fSelIDs;
     std::vector<TrueCat_t> fSignalIDs;

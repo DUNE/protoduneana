@@ -7,6 +7,7 @@
 
 #include "fhiclcpp/ParameterSet.h"
 #include "ThinSliceDistHolder.h"
+#include "ThinSliceDataSet.h"
 namespace protoana {
 
 class ThinSliceDistBuilder {
@@ -23,7 +24,12 @@ public:
 
   virtual void CalcXSecs(
     ThinSliceDistHolder & holder,
-    double scale = 1.) const = 0; 
+    double scale = 1.) const = 0;
+  virtual double CalcChi2(
+    const ThinSliceDistHolder & holder,
+    ThinSliceDataSet & dataset,
+    bool do_barlow_beeston = false,
+    std::vector<int> to_skip = {}) const = 0;
 private:
 
 };

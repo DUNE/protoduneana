@@ -24,16 +24,26 @@ public:
   virtual void CalcXSecs(
       ThinSliceDistHolder & holder,
       double scale = 1.) const override;
+  virtual double CalcChi2(
+      const ThinSliceDistHolder & holder,
+      ThinSliceDataSet & dataset,
+      bool do_barlow_beeston = false,
+      std::vector<int> to_skip = {}) const override;
 private:
   std::shared_ptr<TH1D> MakeSelHist(
     TString true_bins_string, const fhicl::ParameterSet & sel,
-    std::string sample_name, size_t beam_bin, std::string label);
+    std::string sample_name, size_t beam_bin, std::string label,
+    bool total=false);
   void SelHistLoop(
     ThinSliceDistHolder & holder,
     const std::vector<fhicl::ParameterSet> & selections,
     std::string sample_name,
     TString true_bins_string, 
     int true_id, size_t beam_bin, std::string label
+  );
+  void TotalSelHistLoop(
+    ThinSliceDistHolder & holder,
+    const std::vector<fhicl::ParameterSet> & selections, std::string label
   );
 
 void BuildSels(

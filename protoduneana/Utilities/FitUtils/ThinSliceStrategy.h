@@ -29,6 +29,9 @@ public:
         bool restrict_P) const = 0;
     virtual void CompareDataMC(const ThinSliceDistHolder & holder, const ThinSliceDataSet & dataset, TFile & fout) const = 0;
     virtual void CalcXSecs(ThinSliceDistHolder & holder, double scale = 1.) const = 0;
+    virtual double CalcChi2(const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset) const = 0;
+    // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const = 0;
+
 protected:
 
     // ThinSliceDistBuilder fDistBuilder;

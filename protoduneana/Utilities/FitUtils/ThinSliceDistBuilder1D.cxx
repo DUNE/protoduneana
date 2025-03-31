@@ -6,8 +6,8 @@
 
 std::shared_ptr<TH1D> protoana::ThinSliceDistBuilder1D::MakeSelHist(
       TString true_bins_string, const fhicl::ParameterSet & sel,
-      std::string sample_name, size_t beam_bin, std::string label) {
-    // int id = sel.get<int>("ID");
+      std::string sample_name, size_t beam_bin, std::string label,
+      bool total) {
     std::string sel_name = sel.get<std::string>("Name");
 
     //Assume these have at least one
@@ -17,11 +17,19 @@ std::shared_ptr<TH1D> protoana::ThinSliceDistBuilder1D::MakeSelHist(
       "RecoBins")[0];
 
     TString hist_name;
-    hist_name.Form(
-      "sample_%s_%s_%s_selected_%s_hist_beam_%lu",
-      sample_name.c_str(), label.c_str(), true_bins_string.Data(),
-      sel_name.c_str(), beam_bin-1
-    );
+    if (!total) {
+      hist_name.Form(
+        "sample_%s_%s_%s_selected_%s_hist_beam_%lu",
+        sample_name.c_str(), label.c_str(), true_bins_string.Data(),
+        sel_name.c_str(), beam_bin-1
+      );
+    }
+    else {
+      hist_name.Form(
+        "total_%s_selected_%s_hist",
+        label.c_str(), sel_name.c_str()
+      );
+    }
 
     // holder.fSelectionHists[i-1][{true_id, id}].push_back(
     std::cout << "Making " << hist_name << std::endl;
@@ -41,15 +49,21 @@ void protoana::ThinSliceDistBuilder1D::SelHistLoop(
     int sel_id = sel.get<int>("ID");
     std::string sel_name = sel.get<std::string>("Name");
 
-    //Assume these have at least one
-    //TODO -- make these single axes
-    // std::string title = sel.get<std::vector<std::string>>("AxisTitles")[0];
-    // std::vector<double> reco_bins = sel.get<std::vector<std::vector<double>>>(
-    //   "RecoBins")[0];
-
     holder.fSelectionHists[beam_bin-1][{true_id, sel_id}].push_back(
       MakeSelHist(true_bins_string, sel, sample_name, beam_bin, label)
     );
+  }
+}
+
+void protoana::ThinSliceDistBuilder1D::TotalSelHistLoop(
+  ThinSliceDistHolder & holder,
+  const std::vector<fhicl::ParameterSet> & selections, std::string label) {
+  for (const auto & sel : selections) {
+    int sel_id = sel.get<int>("ID");
+    std::string sel_name = sel.get<std::string>("Name");
+
+    holder.fTotalSelectionHists[sel_id] =
+      MakeSelHist(TString(), sel, "", 0, label, true);
   }
 }
 
@@ -77,23 +91,6 @@ void protoana::ThinSliceDistBuilder1D::BuildXSecs(
         const auto & signal_bins = sample.get<std::vector<double>>("SignalBins", {});
         int true_id = sample.get<int>("ID");
         holder.fTrueCatIDs.push_back(true_id);
-        // if (std::find(incident_sample_IDs.begin(), incident_sample_IDs.end(), true_id) != incident_sample_IDs.end()) {
-
-            // std::string sample_name = sample.get<std::string>("Name");
-            // TString hist_name;
-
-            // hist_name.Form(
-            //   "sample_%s_%s_incident_hist_beam_%lu", sample_name.c_str(), label.c_str(), (i-1)
-            // );
-            // std::cout << "Making " << hist_name << std::endl;
-
-            // holder.fIncidentHists[i-1][true_id] =
-            //   std::make_shared<TH1D>(
-            //     hist_name, "",
-            //     signal_bins.size()-1, &signal_bins[0]
-            // );
-        // }
-        
 
         if (std::find(measurement_sample_IDs.begin(), measurement_sample_IDs.end(), true_id) != measurement_sample_IDs.end()) {
           std::string sample_name = sample.get<std::string>("Name");
@@ -231,11 +228,10 @@ void protoana::ThinSliceDistBuilder1D::BuildSels(
             selections, sample_name, true_bins_string, true_id, i, label
           );
         }
-
-
       }
     }
 
+    TotalSelHistLoop(holder, selections, label);
 }
 
 void protoana::ThinSliceDistBuilder1D::Build(
@@ -276,4 +272,41 @@ void protoana::ThinSliceDistBuilder1D::CalcXSecs(
       }
       xsec_hist->Scale(scale);
     }
+}
+
+double protoana::ThinSliceDistBuilder1D::CalcChi2(
+  const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset,
+  bool do_barlow_beeston,
+  std::vector<int> to_skip) const {
+    double chi2 = 0.;
+
+    //Iterate over selections
+    for (const auto & [sel_ID, mc_hist] : holder.fTotalSelectionHists) {
+      if (std::find(to_skip.begin(), to_skip.end(), sel_ID) == to_skip.end())
+        continue;
+
+      auto * data_hist = dataset.GetSelectionHist(sel_ID);
+      for (int i = 1; i <= mc_hist->GetNbinsX(); ++i) {
+        double data_val = data_hist->GetBinContent(i);
+        /// Skip any bins with data == 0
+        //
+        //See PDG Stat Review:
+        //https://pdg.lbl.gov/2018/reviews/rpp2018-rev-statistics.pdf
+        //Page 6
+        //
+        if (data_val < 1.e-7) continue;
+
+        double mc_val = mc_hist->GetBinContent(i);
+        double mc_sumw2 = std::pow(mc_hist->GetBinError(i), 2);
+        double sigma_squared = (mc_val > 1.e-7 ? mc_sumw2/(mc_val*mc_val) : 1.);
+
+        double beta = .5*((1. - mc_val*sigma_squared) +
+                   sqrt(std::pow((1. - mc_val*sigma_squared), 2) +
+                        4.*data_val*sigma_squared));
+        chi2 += 2.*((do_barlow_beeston ? beta : 1.)*mc_val - data_val +
+        data_val*std::log(data_val/(mc_val*(do_barlow_beeston ? beta : 1.)))) +
+        (do_barlow_beeston ? ((beta - 1.)*(beta - 1.)/sigma_squared) : 0.);
+      }
+    }
+    return chi2;
 }

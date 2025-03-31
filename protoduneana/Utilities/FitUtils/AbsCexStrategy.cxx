@@ -24,7 +24,7 @@ void protoana::AbsCexStrategy::BuildDists(
     ThinSliceDistHolder & holder, 
     const fhicl::ParameterSet & pset,
     std::string label) {
-  builder.Build(holder, pset, label);
+  fBuilder.Build(holder, pset, label);
 }
 
 double protoana::AbsCexStrategy::GetEventWeight(
@@ -319,8 +319,18 @@ void protoana::AbsCexStrategy::CompareDataMC(const ThinSliceDistHolder & holder,
             }
         }
     }
+
+    for (const auto & [key, hist] : holder.GetTotalSelectionHists()) {
+        hist->Write();
+    }
 }
 
 void protoana::AbsCexStrategy::CalcXSecs(ThinSliceDistHolder & holder, double scale) const {
-    builder.CalcXSecs(holder, scale);
+    fBuilder.CalcXSecs(holder, scale);
+}
+
+double protoana::AbsCexStrategy::CalcChi2(const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset) const {
+    bool fDoBarlowBeeston = true;
+    std::vector<int> to_skip = {5, 6};
+    return fBuilder.CalcChi2(holder, dataset, fDoBarlowBeeston, to_skip);
 }

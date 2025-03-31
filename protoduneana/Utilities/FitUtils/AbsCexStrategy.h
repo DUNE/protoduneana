@@ -23,12 +23,15 @@ public:
         bool restrict_P) const override;
     virtual void CompareDataMC(const ThinSliceDistHolder & holder, const ThinSliceDataSet & dataset, TFile & fout) const override;
     virtual void CalcXSecs(ThinSliceDistHolder & holder, double scale = 1.) const override;
+    virtual double CalcChi2(const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset) const override;
+    // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const override;
+
 private:
     std::vector<int> fERecoSelections, fEndZSelections, fOneBinSelections;
     double GetTrueEndEnergy(const ThinSliceEvent & event) const;
     std::vector<double> MakeTrueIncidentEnergies(const std::vector<double> & true_beam_traj_Z,
         const std::vector<double> & true_beam_traj_KE) const;
-    ThinSliceDistBuilder1D builder;
+    ThinSliceDistBuilder1D fBuilder;
 
 
     double fPitch;
