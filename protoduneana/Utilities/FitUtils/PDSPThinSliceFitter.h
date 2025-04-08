@@ -27,6 +27,7 @@
 #include "ThinSliceSystematic.h"
 #include "ThinSliceEvent.h"
 #include "ThinSliceDistHolder.h"
+#include "PDSPSystematics.h"
 
 namespace protoana {
 
@@ -264,7 +265,8 @@ class PDSPThinSliceFitter {
   std::string fThrowType;
   int fSingleThrowBin;
   std::pair<int, int> fRemainCorrRange;
-
+  PDSPSystematics * fSystematics = 0x0;
+  
   std::vector<double> fIncidentRecoBins, fTrueIncidentBins, fBeamEnergyBins;
   std::vector<double> fDataBeamFluxes, fMCBeamFluxes;
   std::vector<int> fIncidentSamples, fMeasurementSamples;
@@ -272,6 +274,10 @@ class PDSPThinSliceFitter {
   std::map<int, std::vector<double>> fSignalBins;
   //////////////////////////
   
+  int GetIDByName(const std::string & name) const {
+    return fIDMap.at(name);
+  }
+  std::map<std::string, int> fIDMap{};
 
   void GenerateCorrelatedThrow(
   const TH1D & pars, const TMatrixD * cov_lower/*TDecompChol & chol*/, std::vector<double> & vals);

@@ -37,12 +37,13 @@ public:
         bool plot_rebinned,
         bool post_fit,
         TDirectory * plot_dir) const = 0;
+
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const = 0;
 
 protected:
 
     // ThinSliceDistBuilder fDistBuilder;
-    
+
 };
 
 } // namespace protoana

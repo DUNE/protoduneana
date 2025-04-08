@@ -48,17 +48,18 @@ const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperPar
 const protoana::ThinSliceSystematic * protoana::PDSPSystematics::fBeamScraperParPi = 0x0;
 
 
+
+//ToDo -- Configure the specific IDs depending on the ID Map
 protoana::PDSPSystematics::PDSPSystematics(
-    const std::vector<ThinSliceEvent> & events,
-    std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
-    const std::map<int, bool> & signal_sample_checks,
-    std::vector<double> & beam_energy_bins,
+    // const std::vector<ThinSliceEvent> & events,
+    // std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
+    // const std::map<int, bool> & signal_sample_checks,
+    // std::vector<double> & beam_energy_bins,
     const std::map<std::string, ThinSliceSystematic> & pars,
     const std::map<std::string, ThinSliceSystematic> & g4rw_pars,
-    TFile & output_file, int upstream_ID, int no_track_ID, int decay_ID,
-    int past_FV_ID, int beam_cut_ID, int past_FV_sel_ID)
-    : /*fUpstreamID(upstream_ID), fNoTrackID(no_track_ID),*/ fDecayID(decay_ID),
-      fPastFVID(past_FV_ID), fBeamCutID(beam_cut_ID)/*,
+    TFile & output_file, int upstream_ID, int no_track_ID, int past_FV_sel_ID)
+    /*: fUpstreamID(upstream_ID), fNoTrackID(no_track_ID), fDecayID(decay_ID),
+      fPastFVID(past_FV_ID), fBeamCutID(beam_cut_ID),
       fPastFVSelectionID(past_FV_sel_ID)*/ {
 
   fPastFVSelectionID = past_FV_sel_ID;
@@ -75,7 +76,7 @@ protoana::PDSPSystematics::PDSPSystematics(
   SetupSyst_BeamMatch(pars);//Done
   SetupSyst_BeamMatchHigh(pars);//Done
   SetupSyst_BeamMatchLow(pars);//Done
-  SetupSyst_BoxBeam(pars);//Trim
+  // SetupSyst_BoxBeam(pars);//Trim
   SetupSyst_ELoss(pars);//Trim
   SetupSyst_ELossMuon(pars);//Trim
   SetupSyst_QuadBeamShift(pars);//Trim
@@ -92,9 +93,10 @@ protoana::PDSPSystematics::PDSPSystematics(
 
 double protoana::PDSPSystematics::GetEventWeight(
     const ThinSliceEvent & event,
-    int signal_index,
+    int signal_index //,
     //int selection_bin,
-    const std::map<std::string, ThinSliceSystematic> & pars) {
+    // const std::map<std::string, ThinSliceSystematic> & pars
+  ) {
   double weight = 1.;
   //auto begin_time = std::chrono::high_resolution_clock::now();
 
@@ -956,20 +958,20 @@ double protoana::PDSPSystematics::GetSystWeight_UpstreamInt(
           1.);
 }
 
-double protoana::PDSPSystematics::GetSystWeight_BGPions(
-    const ThinSliceEvent & event,
-    const ThinSliceSystematic & par) {
-    //const std::map<std::string, ThinSliceSystematic> & pars,
-    //int past_FV_ID, int decay_ID) {
-  //if (pars.find("BG_pions_weight") == pars.end())
-  //  return 1.;
+// double protoana::PDSPSystematics::GetSystWeight_BGPions(
+//     const ThinSliceEvent & event,
+//     const ThinSliceSystematic & par) {
+//     //const std::map<std::string, ThinSliceSystematic> & pars,
+//     //int past_FV_ID, int decay_ID) {
+//   //if (pars.find("BG_pions_weight") == pars.end())
+//   //  return 1.;
 
-  bool match = (event.GetSampleID() == fPastFVID ||
-                event.GetSampleID() == fDecayID);
-  return (match ?
-          par/*s.at("BG_pions_weight")*/.GetValue() :
-          1.);
-}
+//   bool match = (event.GetSampleID() == fPastFVID ||
+//                 event.GetSampleID() == fDecayID);
+//   return (match ?
+//           par/*s.at("BG_pions_weight")*/.GetValue() :
+//           1.);
+// }
 
 void protoana::PDSPSystematics::SetupSyst_BeamScraper(
     const std::map<std::string, ThinSliceSystematic> & pars) {
@@ -1056,43 +1058,43 @@ double protoana::PDSPSystematics::GetSystWeight_BeamScraperHighPMu(
   return CheckAndReturn(weight, "BeamScraperHighPMu", (*fBeamScraperParHighPMu), event);
 }
 //Trim
-void protoana::PDSPSystematics::SetupSyst_BoxBeam(
-    const std::map<std::string, ThinSliceSystematic> & pars) {
-  if (pars.find("box_beam_weight") == pars.end()) {
-    return;
-  }
-  fBoxBeamRegions
-      = pars.at("box_beam_weight").GetOption<
-          std::vector<std::pair<double, double>>>("Regions");
-  fBoxBeamFraction = pars.at("box_beam_weight").GetOption<double>("Fraction");
-}
+// void protoana::PDSPSystematics::SetupSyst_BoxBeam(
+//     const std::map<std::string, ThinSliceSystematic> & pars) {
+//   if (pars.find("box_beam_weight") == pars.end()) {
+//     return;
+//   }
+//   fBoxBeamRegions
+//       = pars.at("box_beam_weight").GetOption<
+//           std::vector<std::pair<double, double>>>("Regions");
+//   fBoxBeamFraction = pars.at("box_beam_weight").GetOption<double>("Fraction");
+// }
 
 //Trim
-double protoana::PDSPSystematics::GetSystWeight_BoxBeam(
-    const ThinSliceEvent & event,
-    const ThinSliceSystematic & par) {
-    //const std::map<std::string, ThinSliceSystematic> & pars,
-    //int beam_cut_ID) {
-  //if (pars.find("box_beam_weight") == pars.end()) return 1.;
+// double protoana::PDSPSystematics::GetSystWeight_BoxBeam(
+//     const ThinSliceEvent & event,
+//     const ThinSliceSystematic & par) {
+//     //const std::map<std::string, ThinSliceSystematic> & pars,
+//     //int beam_cut_ID) {
+//   //if (pars.find("box_beam_weight") == pars.end()) return 1.;
 
-  if (event.GetSelectionID() != fBeamCutID) return 1.;
+//   if (event.GetSelectionID() != fBeamCutID) return 1.;
 
-  double startY = event.GetRecoStartY();
+//   double startY = event.GetRecoStartY();
 
-  bool near_box_beam = false;
-  for (const auto & region : fBoxBeamRegions) {
-    if (region.first < startY && startY < region.second) {
-      near_box_beam = true;
-      break;
-    }
-  }
+//   bool near_box_beam = false;
+//   for (const auto & region : fBoxBeamRegions) {
+//     if (region.first < startY && startY < region.second) {
+//       near_box_beam = true;
+//       break;
+//     }
+//   }
 
-  double variation = par/*s.at("box_beam_weight")*/.GetValue();
- // std::cout << "near/var: " << near_box_beam << "/" << variation << std::endl;
-  //return (near_box_beam ? variation :
-  //        (1. - variation*fBoxBeamFraction)/(1. - fBoxBeamFraction));
-  return (near_box_beam ? variation : 1.);
-}
+//   double variation = par/*s.at("box_beam_weight")*/.GetValue();
+//  // std::cout << "near/var: " << near_box_beam << "/" << variation << std::endl;
+//   //return (near_box_beam ? variation :
+//   //        (1. - variation*fBoxBeamFraction)/(1. - fBoxBeamFraction));
+//   return (near_box_beam ? variation : 1.);
+// }
 
 void protoana::PDSPSystematics::SetupSyst_TrueBeamShift(
     const std::map<std::string, ThinSliceSystematic> & pars) {

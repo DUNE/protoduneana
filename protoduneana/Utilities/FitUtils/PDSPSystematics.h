@@ -12,21 +12,20 @@ namespace protoana {
 class PDSPSystematics {
  public:
   PDSPSystematics(
-      const std::vector<ThinSliceEvent> & events,
-      std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
-      const std::map<int, bool> & signal_sample_checks,
-      std::vector<double> & beam_energy_bins,
+    //   const std::vector<ThinSliceEvent> & events,
+    //   std::map<int, std::vector<std::vector<ThinSliceSample>>> & samples,
+    //   const std::map<int, bool> & signal_sample_checks,
+    //   std::vector<double> & beam_energy_bins,
       const std::map<std::string, ThinSliceSystematic> & pars,
       const std::map<std::string, ThinSliceSystematic> & g4rw_pars,
-      TFile & output_file, int upstream_ID, int no_track_ID, int decay_ID,
-      int past_FV_ID, int beam_cut_ID, int past_FV_sel_ID);
+      TFile & output_file, int upstream_ID, int no_track_ID, int past_FV_sel_ID);
   virtual ~PDSPSystematics(){};
 
   double GetEventWeight(
       const ThinSliceEvent & event,
-      int signal_index,
+      int signal_index/*,
       //int selection_bin,
-      const std::map<std::string, ThinSliceSystematic> & pars);
+      const std::map<std::string, ThinSliceSystematic> & pars*/);
 
   void SetupSyst_G4RWCoeff(
       const std::map<std::string, ThinSliceSystematic> & pars);
@@ -165,13 +164,13 @@ class PDSPSystematics {
       //const std::map<std::string, ThinSliceSystematic> & pars,
       int past_FV_ID, int decay_ID*/);
 
-  void SetupSyst_BoxBeam(
-      const std::map<std::string, ThinSliceSystematic> & pars);
-  double GetSystWeight_BoxBeam(
-      const ThinSliceEvent & event,
-      const ThinSliceSystematic & par/*,
-      //const std::map<std::string, ThinSliceSystematic> & pars,
-      int beam_cut_ID*/);
+//   void SetupSyst_BoxBeam(
+//       const std::map<std::string, ThinSliceSystematic> & pars);
+//   double GetSystWeight_BoxBeam(
+//       const ThinSliceEvent & event,
+//       const ThinSliceSystematic & par/*,
+//       //const std::map<std::string, ThinSliceSystematic> & pars,
+//       int beam_cut_ID*/);
 
   void SetupSyst_TrueBeamShift(
       const std::map<std::string, ThinSliceSystematic> & pars);
@@ -315,7 +314,7 @@ class PDSPSystematics {
   std::map<int, double> fELossMuonFractions;
 
   //std::vector<std::string> fActiveSysts;
-  int /*fUpstreamID, fNoTrackID, */fDecayID, fPastFVID, fBeamCutID;
+//   int /*fUpstreamID, fNoTrackID, */fDecayID, fPastFVID, fBeamCutID;
   //static int fPastFVSelectionID;
 
   //Quad Beam Shift

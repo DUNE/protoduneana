@@ -1134,6 +1134,14 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
 //Good
 void protoana::PDSPThinSliceFitter::BuildMCSamples() {
   NewBuildMC();
+  if (fDoSysts) {
+    fSystematics = new PDSPSystematics(
+      fSystParameters, fG4RWParameters, fOutputFile,
+      fIDMap.at("Upstream"), //4, //Upstream
+      fIDMap.at("NoTrack"), //6, //NoTrack
+      fIDMap.at("PastFV") //Past FV Selection ID
+    );
+  }
   //Open the MC file and set branches
   // fThinSliceDriver->OpenFile(fMCFileName, fTreeName);
 
@@ -2845,11 +2853,29 @@ void protoana::PDSPThinSliceFitter::NewRefillLoop(
       sample_ID
     ) != fMCDists.GetSignalIDs().end());
 
+    int signal_index = (
+      is_signal ?
+      fThinSliceStrategy->GetSignalBin(event, fMCDists) :
+      -1
+    );
+
     if (is_signal) {
       int signal_bin = fThinSliceStrategy->GetSignalBin(event, fMCDists);
       weight *= fSignalParameters.at(sample_ID).at(signal_bin);
     }
 
+    if (fSystParameters.size()) {
+      weight *= fSystematics->GetEventWeight(event, signal_index);
+      //std::cout << "\tAfter systs: " << weight << std::endl;
+    }
+
+    //if (fG4RWPars) {
+    if (fG4RWParameters.size()) {
+      //weight *= fG4RWPars->GetEventWeight(event, signal_index, g4rw_pars);
+      weight *= fSystematics->GetSignalWeight_G4RWCoeffNoPar(event, signal_index);
+      weight *= fSystematics->GetSignalWeight_TiedG4RWCoeffNoPar(event, signal_index);
+      //std::cout << "\tAfter g4rw: " << weight << std::endl;
+    }
 
     int beam_bin = fThinSliceStrategy->GetBeamBin(fBeamEnergyBins, event, true);
 
@@ -3249,6 +3275,13 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
     fFixSystsPostFit = std::map<std::string, double>(temp_vec.begin(), temp_vec.end());
   }
 
+  auto temp_vec_idmap = pset.get<std::vector<std::pair<std::string, int>>>("IDMap", {
+    {"Upstream", 4},
+    {"NoTrack", 6},
+    {"PastFV", 4}
+  });
+  fIDMap = std::map<std::string, int>(temp_vec_idmap.begin(), temp_vec_idmap.end());
+
   fSetValsPreFit = pset.get<bool>("SetValsPreFit", false);
   if (fSetValsPreFit)
     fPreFitVals = pset.get<std::vector<double>>("PreFitVals");
@@ -3295,14 +3328,14 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
   // fExtraHistSets = fAnalysisOptions.get<std::vector<fhicl::ParameterSet>>("ExtraHists", {});
 
-  fAddDiffInQuadrature = pset.get<bool>("AddDiffInQuadrature", false);
-  if (fAddDiffInQuadrature) {
-    //std::vector<std::pair<int, std::string>> temp_vec
-    //    = pset.get<std::vector<std::pair<int, std::string>>>("Diffs");
-    //fDiffGraphs = std::map<int, std::string>(temp_vec.begin(), temp_vec.end());
-    fDiffCovName = pset.get<std::string>("DiffCovName");
-    fDiffGraphFile = pset.get<std::string>("DiffGraphFile");
-  }
+  // fAddDiffInQuadrature = pset.get<bool>("AddDiffInQuadrature", false);
+  // if (fAddDiffInQuadrature) {
+  //   //std::vector<std::pair<int, std::string>> temp_vec
+  //   //    = pset.get<std::vector<std::pair<int, std::string>>>("Diffs");
+  //   //fDiffGraphs = std::map<int, std::string>(temp_vec.begin(), temp_vec.end());
+  //   fDiffCovName = pset.get<std::string>("DiffCovName");
+  //   fDiffGraphFile = pset.get<std::string>("DiffGraphFile");
+  // }
 
   fAddSignalConstraint = pset.get<bool>("AddSignalConstraint", false);
   fSignalConstraintSize = pset.get<double>("SignalConstraintSize", 10.);
@@ -3699,44 +3732,44 @@ void protoana::PDSPThinSliceFitter::PlotThrows(
   }
 
 
-  //Add in quadrature here   
-  if (fAddDiffInQuadrature) {
-    std::cout << "Adding diff in quad" << std::endl;
+  // //Add in quadrature here   
+  // if (fAddDiffInQuadrature) {
+  //   std::cout << "Adding diff in quad" << std::endl;
 
-    std::map<int, TGraph*> diff_graph_map;
-    TFile diff_file(fDiffGraphFile.c_str(), "open");
+  //   std::map<int, TGraph*> diff_graph_map;
+  //   TFile diff_file(fDiffGraphFile.c_str(), "open");
 
-    fDiffCov = (TH2D*)diff_file.Get(fDiffCovName.c_str());
+  //   fDiffCov = (TH2D*)diff_file.Get(fDiffCovName.c_str());
 
-    /*
-    for (auto it = fDiffGraphs.begin(); it != fDiffGraphs.end(); ++it) {
-      diff_graph_map[it->first] = (TGraph*)diff_file.Get(it->second.c_str());
-      std::cout << it->first << " " << diff_graph_map[it->first] << std::endl;
-    }*/
+  //   /*
+  //   for (auto it = fDiffGraphs.begin(); it != fDiffGraphs.end(); ++it) {
+  //     diff_graph_map[it->first] = (TGraph*)diff_file.Get(it->second.c_str());
+  //     std::cout << it->first << " " << diff_graph_map[it->first] << std::endl;
+  //   }*/
     
-    xsec_cov.Add(fDiffCov);
+  //   xsec_cov.Add(fDiffCov);
 
-    int diag_bin = 1;
-    for (auto it = diff_graph_map.begin(); it != diff_graph_map.end(); ++it) {
-      std::cout << it->first << " " << it->second->GetN() << " " <<
-                   best_fit_xsec_errs[it->first].size() << std::endl;
-      for (int i = 0; i < it->second->GetN(); ++i) {
-        //double diff_err = std::pow(it->second->GetY()[i], 2);
-        //double best_fit_err = std::pow(best_fit_xsec_errs[it->first][i], 2);
-        //std::cout << "Adding " << diff_err << " " << best_fit_err << " " <<
-        //             sqrt(best_fit_err + diff_err) << " " <<
-        //             sqrt(best_fit_err) << std::endl;
-        //xsec_cov.SetBinContent(diag_bin, diag_bin,
-        //                       (xsec_cov.GetBinContent(diag_bin, diag_bin)
-        //                        + diff_err));
-        //best_fit_xsec_errs[it->first][i]
-        //    = sqrt(best_fit_err + diff_err);
-        best_fit_xsec_errs[it->first][i] = xsec_cov.GetBinContent(diag_bin,  diag_bin);
+  //   int diag_bin = 1;
+  //   for (auto it = diff_graph_map.begin(); it != diff_graph_map.end(); ++it) {
+  //     std::cout << it->first << " " << it->second->GetN() << " " <<
+  //                  best_fit_xsec_errs[it->first].size() << std::endl;
+  //     for (int i = 0; i < it->second->GetN(); ++i) {
+  //       //double diff_err = std::pow(it->second->GetY()[i], 2);
+  //       //double best_fit_err = std::pow(best_fit_xsec_errs[it->first][i], 2);
+  //       //std::cout << "Adding " << diff_err << " " << best_fit_err << " " <<
+  //       //             sqrt(best_fit_err + diff_err) << " " <<
+  //       //             sqrt(best_fit_err) << std::endl;
+  //       //xsec_cov.SetBinContent(diag_bin, diag_bin,
+  //       //                       (xsec_cov.GetBinContent(diag_bin, diag_bin)
+  //       //                        + diff_err));
+  //       //best_fit_xsec_errs[it->first][i]
+  //       //    = sqrt(best_fit_err + diff_err);
+  //       best_fit_xsec_errs[it->first][i] = xsec_cov.GetBinContent(diag_bin,  diag_bin);
 
-        diag_bin++;
-      }
-    }
-  }
+  //       diag_bin++;
+  //     }
+  //   }
+  // }
 
   for (int i = 0; i < nBins; ++i) {
     for (int j = 0; j < nBins; ++j) {

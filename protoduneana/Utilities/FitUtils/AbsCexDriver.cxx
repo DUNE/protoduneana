@@ -1633,7 +1633,7 @@ void protoana::AbsCexDriver::RefillSampleLoop(
     //std::cout << "Weights: " << weight << std::endl;
     //if (fSystematics) {
     if (syst_pars.size()) {
-      weight *= fSystematics->GetEventWeight(event, signal_index, syst_pars);
+      weight *= fSystematics->GetEventWeight(event, signal_index/*, syst_pars*/);
       //std::cout << "\tAfter systs: " << weight << std::endl;
     }
 
@@ -1768,11 +1768,10 @@ void protoana::AbsCexDriver::SetupSysts(
     const std::map<std::string, ThinSliceSystematic> & pars,
     const std::map<std::string, ThinSliceSystematic> & g4rw_pars,
     TFile & output_file) {
-  fSystematics = new PDSPSystematics(events, samples, signal_sample_checks,
-                                     beam_energy_bins, pars, g4rw_pars, output_file,
+  fSystematics = new PDSPSystematics(/*events, samples, signal_sample_checks,
+                                     beam_energy_bins,*/ pars, g4rw_pars, output_file,
                                      (!fInclusive ? 4 : 2), //Upstream
-                                     (!fInclusive ? 6 : 4), (!fInclusive ? 7 : 5), //NoTrack, Decay 
-                                     (!fInclusive ? 6 : 4), (!fInclusive? 5 : 3), //Past FV, BeamCut
+                                     (!fInclusive ? 6 : 4), //NoTrack
                                      (!fInclusive ? 4 : 2));//Past FV Selection ID
  
   /*fG4RWPars = new PDSPSystematics(events, samples, signal_sample_checks,
