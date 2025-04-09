@@ -1,0 +1,64 @@
+topdir: "/pnfs/dune/scratch/users/calcuttj/Fits/"
+
+#mc_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_update/'
+#data_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_update/'
+
+#mc_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_nomichel/'
+data_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/2_7_24_nomichel/'
+mc_dir: '/pnfs/dune/scratch/users/calcuttj/pduneana_ntuples/11_10_24_1GeV_g4rw_michel/'
+
+fits: [
+  ['data_fit_no_syst_term.fcl', 'standard_data_fit', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+
+  ['data_sce_plus_fit.fcl',  'sce_fit_front_up', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_sce_minus_fit.fcl', 'sce_fit_front_down', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+
+  ['data_fit_mcstatvar.fcl', 'data_mcstatvar', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 500],
+  ['data_fit_statvar.fcl', 'data_statvar', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 500],
+  ['beam_shift_data.fcl', 'beam_shift_data', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 500],
+  #['minus_sigma_data_fix_syst_0.fcl', 'minus_sigma_data_fix_syst_0', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_1.fcl', 'minus_sigma_data_fix_syst_1', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_2.fcl', 'minus_sigma_data_fix_syst_2', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_3.fcl', 'minus_sigma_data_fix_syst_3', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_4.fcl', 'minus_sigma_data_fix_syst_4', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_5.fcl', 'minus_sigma_data_fix_syst_5', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_6.fcl', 'minus_sigma_data_fix_syst_6', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['minus_sigma_data_fix_syst_7.fcl', 'minus_sigma_data_fix_syst_7', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_0.fcl', 'plus_sigma_data_fix_syst_0', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_1.fcl', 'plus_sigma_data_fix_syst_1', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_2.fcl', 'plus_sigma_data_fix_syst_2', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_3.fcl', 'plus_sigma_data_fix_syst_3', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_4.fcl', 'plus_sigma_data_fix_syst_4', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_5.fcl', 'plus_sigma_data_fix_syst_5', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_6.fcl', 'plus_sigma_data_fix_syst_6', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  #['plus_sigma_data_fix_syst_7.fcl', 'plus_sigma_data_fix_syst_7', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+
+  ['cal_up_data_fit.fcl', 'cal_up_data', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['cal_down_data_fit.fcl', 'cal_down_data', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+
+  ['data_minus_p_multiplicity_syst.fcl', 'data_minus_p_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_p_multiplicity_syst.fcl', 'data_plus_p_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_piplus_multiplicity_syst.fcl', 'data_minus_piplus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_piplus_multiplicity_syst.fcl', 'data_plus_piplus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_pi0_multiplicity_syst.fcl', 'data_minus_pi0_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_pi0_multiplicity_syst.fcl', 'data_plus_pi0_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_piminus_multiplicity_syst.fcl', 'data_minus_piminus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_piminus_multiplicity_syst.fcl', 'data_plus_piminus_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_n_multiplicity_syst.fcl', 'data_minus_n_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_n_multiplicity_syst.fcl', 'data_plus_n_multiplicity', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  
+  ['data_minus_p_costheta_syst.fcl', 'data_minus_p_costheta', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_p_costheta_syst.fcl', 'data_plus_p_costheta', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_piplus_costheta_syst.fcl', 'data_minus_piplus_costheta', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_piplus_costheta_syst.fcl', 'data_plus_piplus_costheta', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_pi0_costheta_syst.fcl', 'data_minus_pi0_costheta', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_pi0_costheta_syst.fcl', 'data_plus_pi0_costheta', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+
+  ['data_minus_p_momentum_syst.fcl', 'data_minus_p_momentum', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_p_momentum_syst.fcl', 'data_plus_p_momentum', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_piplus_momentum_syst.fcl', 'data_minus_piplus_momentum', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_piplus_momentum_syst.fcl', 'data_plus_piplus_momentum', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_minus_pi0_momentum_syst.fcl', 'data_minus_pi0_momentum', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+  ['data_plus_pi0_momentum_syst.fcl', 'data_plus_pi0_momentum', 'eventSelection_mc_all.root', 'eventSelection_data_BeamQuality.root', 1],
+]
+
