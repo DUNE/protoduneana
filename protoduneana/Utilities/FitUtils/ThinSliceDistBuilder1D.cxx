@@ -85,7 +85,7 @@ void protoana::ThinSliceDistBuilder1D::BuildXSecs(
   std::string label) {
     
     const auto & beam_energy_bins = 
-    pset.get<std::vector<double>>("BeamEnergyBins");
+    pset.get<std::vector<double>>("BeamMomentumBins");
     int nbins = beam_energy_bins.size()-1;
   
     holder.fInteractionHists = std::vector<TrueCatHist_map>(nbins);
@@ -167,7 +167,7 @@ void protoana::ThinSliceDistBuilder1D::BuildSels(
   std::string label) {
 
     const auto & beam_energy_bins = 
-    pset.get<std::vector<double>>("BeamEnergyBins");
+    pset.get<std::vector<double>>("BeamMomentumBins");
 
     //Check that the beam energy bins are valid
     if (beam_energy_bins.size() < 2) {

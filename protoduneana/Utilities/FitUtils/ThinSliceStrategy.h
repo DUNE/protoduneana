@@ -37,13 +37,18 @@ public:
         bool plot_rebinned,
         bool post_fit,
         TDirectory * plot_dir) const = 0;
+    virtual void FillDataHistsFromEvent(
+        ThinSliceDataSet & data_set, const ThinSliceEvent & event) const = 0;
 
+    void SetMCStatVar(bool statvar) {
+        fMCStatVar = statvar;
+    }
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const = 0;
 
 protected:
 
     // ThinSliceDistBuilder fDistBuilder;
-
+    bool fMCStatVar = false;
 };
 
 } // namespace protoana

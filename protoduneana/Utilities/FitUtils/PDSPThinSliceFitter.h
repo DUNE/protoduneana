@@ -67,8 +67,7 @@ class PDSPThinSliceFitter {
   void SetBestFit();
   int GetBeamBin(
     // const std::vector<double> & beam_energy_bins,
-    const double & momentum,
-    bool restrict_P=false);
+    double momentum) const;
   
   void GetCurrentTruthHists(
     std::map<int, std::vector<TH1*>> & throw_hists,
@@ -102,7 +101,9 @@ class PDSPThinSliceFitter {
     std::vector<double> & mc_beam_fluxes,
     size_t worker_id, std::vector<size_t> n_events
   );
+  void FillDataHistsFromMCDists();
   //void MakeThrowsArrays(std::vector<TVectorD *> & arrays);
+  void ResetFlux(std::vector<double> & flux);
 
   std::vector<double> GetBestFitParsVec();
 
@@ -193,6 +194,8 @@ class PDSPThinSliceFitter {
   bool fRetune = false;
   int fNJobs = -1;
   std::string fTreeName;
+  std::string fTrueCategoryBranchName;
+  std::string fSelectionBranchName;
   std::vector<fhicl::ParameterSet> fSelectionSets;
   std::map<int, int> fSelectionBins;
   std::vector<fhicl::ParameterSet> fSampleSets;
@@ -241,6 +244,7 @@ class PDSPThinSliceFitter {
   bool fGetMeanXSec = false;
   bool fTieUnderOver = false;
   bool fUseFakeSamples = false;
+  bool fUseFakeEvents = false;
   bool fFitFlux, fAltFluxVar;
   double fFirstFlux = -1.;
   size_t fNThrows, fMaxRethrows;
@@ -253,6 +257,7 @@ class PDSPThinSliceFitter {
   bool fDebugChi2;
   double fTrajZStart;
   void NewBuildMC();
+  void NewBuildDataHists(TTree * tree);
   void OpenFile(const std::string & filename, const std::string & treename) {
     fMCFile = TFile::Open(filename.c_str(), "OPEN");
     fMCTree = (TTree*)fMCFile->Get(treename.c_str());
@@ -267,7 +272,7 @@ class PDSPThinSliceFitter {
   std::pair<int, int> fRemainCorrRange;
   PDSPSystematics * fSystematics = 0x0;
   
-  std::vector<double> fIncidentRecoBins, fTrueIncidentBins, fBeamEnergyBins;
+  std::vector<double> fIncidentRecoBins, fTrueIncidentBins, fBeamMomentumBins;
   std::vector<double> fDataBeamFluxes, fMCBeamFluxes;
   std::vector<int> fIncidentSamples, fMeasurementSamples;
   bool fDrawXSecUnderflow;

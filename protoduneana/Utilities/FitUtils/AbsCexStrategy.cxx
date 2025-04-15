@@ -37,6 +37,83 @@ double protoana::AbsCexStrategy::GetEventWeight(
   return 1.0; // Placeholder value, replace with actual calculation
 }
 
+void protoana::AbsCexStrategy::FillDataHistsFromEvent(
+    ThinSliceDataSet & data_set, const ThinSliceEvent & event) const {
+
+
+  int selection_ID = event.GetSelectionID();
+  auto & selected_hists = data_set.GetSelectionHists();
+  auto * selected_hist = selected_hists[selection_ID];
+
+  double reco_beam_endZ = event.GetRecoEndZ();
+  const std::vector<double> & reco_energies
+      = event.GetRecoIncidentEnergies();
+  double reco_beam_interactingEnergy = event.GetRecoInteractingEnergy();
+
+  double val = 0.;
+
+  bool fDoEnergyFix = true;
+  double fEnergyFix = 10.;
+
+  if (std::find(fEndZSelections.begin(), fEndZSelections.end(), selection_ID)
+      != fEndZSelections.end()) {
+    if (selected_hist->FindBin(reco_beam_endZ) == 0) {
+      val = selected_hist->GetBinCenter(1);
+    }
+    else if (selected_hist->FindBin(reco_beam_endZ) > selected_hist->GetNbinsX()) {
+      val = selected_hist->GetBinCenter(
+          selected_hist->GetNbinsX());
+    }
+    else {
+      val = reco_beam_endZ;
+    }
+  }
+  else if (
+    std::find(fOneBinSelections.begin(), fOneBinSelections.end(),
+              selection_ID)
+    != fOneBinSelections.end()) {
+    val = .5;
+  }
+  else if (reco_energies.size()) {
+    if (selected_hists.find(selection_ID) != selected_hists.end()) {
+      double energy = reco_beam_interactingEnergy/* + deltaE_scale*/;
+
+      if (fDoEnergyFix) {
+        for (size_t k = 1; k < reco_energies.size(); ++k) {
+          double deltaE = (reco_energies[k-1] - reco_energies[k]);
+          // if (fVaryDataCalibration) {
+          //   energy += deltaE;
+          //   if (deltaE*fDataCalibrationFactor < fEnergyFix) {
+          //     energy -= deltaE*fDataCalibrationFactor;
+          //   }
+          // }
+          // else {
+            if (deltaE > fEnergyFix) {
+              energy += deltaE; 
+            }
+          // }
+        }
+      }
+      if (selected_hist->FindBin(energy) == 0) {
+        val = selected_hist->GetBinCenter(1);
+      }
+      else if (selected_hist->FindBin(energy) >
+                selected_hist->GetNbinsX()) {
+        val = selected_hist->GetBinCenter(
+            selected_hist->GetNbinsX());
+      }
+      else {
+        val = energy;
+      }
+    }
+  }
+  else {
+    val = selected_hist->GetBinCenter(1);
+  }
+  selected_hist->Fill(val);
+}
+
+//TODO -- remove
 int protoana::AbsCexStrategy::GetBeamBin(
     const std::vector<double> & beam_energy_bins,
     const ThinSliceEvent & event,
@@ -58,7 +135,8 @@ int protoana::AbsCexStrategy::GetBeamBin(
             throw std::runtime_error(message);
         }
         return bin;
-  }
+}
+
 
 void protoana::AbsCexStrategy::FillHistsFromEvent(
     const ThinSliceEvent & event, ThinSliceDistHolder & dists,
@@ -102,7 +180,7 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
 
         double reco_beam_endZ = event.GetRecoEndZ();
 
-        const std::vector<double> & reco_beam_incidentEnergies
+        const std::vector<double> & reco_energies
         = event.GetRecoIncidentEnergies();
         double reco_beam_interactingEnergy = event.GetRecoInteractingEnergy();
 
@@ -124,7 +202,7 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
             != fOneBinSelections.end()) {
           val = .5;
         }
-        else if (reco_beam_incidentEnergies.size()) {
+        else if (reco_energies.size()) {
     
           bool fDoEnergyFix = true;
           double fEnergyFix = 10.;
@@ -134,9 +212,9 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
         //   if (fFakeResolution < 0) {
             energy = {reco_beam_interactingEnergy + beam_energy_delta};
             if (fDoEnergyFix) {
-              for (size_t k = 1; k < reco_beam_incidentEnergies.size(); ++k) {
-                double deltaE = ((reco_beam_incidentEnergies)[k-1] -
-                                 (reco_beam_incidentEnergies)[k]);
+              for (size_t k = 1; k < reco_energies.size(); ++k) {
+                double deltaE = ((reco_energies)[k-1] -
+                                 (reco_energies)[k]);
                 // if (fVaryCalibrationFakeData && fFillFakeDataInMain) {
                 //   energy += deltaE;
                 //   if (deltaE*fDataCalibrationFactor < fEnergyFix) {

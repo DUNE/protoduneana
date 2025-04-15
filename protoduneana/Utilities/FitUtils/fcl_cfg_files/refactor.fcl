@@ -8,6 +8,9 @@ MCFileName: "/dune/data2/users/calcuttj/pduneana_ntuples/1_31_22/eventSelection_
 DataFileName: "/dune/data2/users/calcuttj/pduneana_ntuples/1_4_22/AltSCE/eventSelection_data_BeamQuality.root"
 
 TreeName: "pduneana/beamana"
+TrueCategoryBranchName: "new_interaction_topology"
+SelectionBranchName: "selection_ID"
+
 
 DriverName: "protoana::AbsCexDriver"
 StrategyName: "protoana::AbsCexStrategy"
@@ -227,7 +230,11 @@ FluxTypes: [
            ]
 
 
-BeamEnergyBins: [750., 850., 900., 950., 1000., 1050., 1100., 1150., 1250.]
+BeamMomentumBins: [750., 850., 900., 950., 1000., 1050., 1100., 1150., 1250.]
+
+
+
+##Ignore these -- remove eventually
 DefaultSignalBins: [0., 400., 800., 1000, 1200.]
 TrueIncidentBins: @local::DefaultSignalBins
 
@@ -236,6 +243,8 @@ TrueIncidentBins: @local::DefaultSignalBins
 #used to make the final total pion incident histogram
 IncidentSamples: [1, 2, 3, 6, 7]
 MeasurementSamples: [1, 2, 3]
+
+
 
 signal_bins: [500., 600., 700., 800.]
 #signal_bins: [500., 600., 700., 800., 900.]
@@ -330,7 +339,7 @@ SplitMC:  false
 #MaxEntries:  20000
 MaxEntries:  20000 #
 MaxDataEntries: @local::MaxEntries #54000
-DoFakeData: false
+DoFakeData: true
 FluctuateStats: false 
 DoThrows: false
 NThrows: 10000

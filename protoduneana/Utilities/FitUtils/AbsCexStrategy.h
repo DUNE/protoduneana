@@ -32,6 +32,8 @@ public:
         bool plot_rebinned,
         bool post_fit,
         TDirectory * plot_dir) const override;
+    virtual void FillDataHistsFromEvent(
+        ThinSliceDataSet & data_set, const ThinSliceEvent & event) const override;
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const override;
 
 private:
