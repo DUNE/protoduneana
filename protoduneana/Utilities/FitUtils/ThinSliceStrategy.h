@@ -46,6 +46,9 @@ public:
     void SetFillIncident(bool set) {
         fFillIncident = set;
     }
+    void SetFakeDataActive(bool set) {
+        fFakeDataActive = set;
+    }
 
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const = 0;
 
@@ -54,6 +57,8 @@ protected:
     // ThinSliceDistBuilder fDistBuilder;
     bool fMCStatVar = false;
     bool fFillIncident = false;
+    bool fFakeDataActive = false;
+
 };
 
 } // namespace protoana

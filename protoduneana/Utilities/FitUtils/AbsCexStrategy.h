@@ -52,6 +52,8 @@ private:
     double fPitch;
     int fSliceCut;
     double fTrajZStart;
+    bool fVaryMCCalibration, fVaryMCCalSelection;
+    double fMCCalibrationFactor;
 
 };
 

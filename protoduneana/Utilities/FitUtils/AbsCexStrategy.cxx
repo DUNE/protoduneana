@@ -17,7 +17,10 @@ protoana::AbsCexStrategy::AbsCexStrategy(const fhicl::ParameterSet & pset)
       fOneBinSelections(pset.get<std::vector<int>>("OneBinSelections", {})),
       fPitch(pset.get<double>("WirePitch")),
       fSliceCut(pset.get<int>("SliceCut")),
-      fTrajZStart(pset.get<double>("TrajZStart"))
+      fTrajZStart(pset.get<double>("TrajZStart")),
+      fVaryMCCalibration(pset.get<bool>("VaryMCCalibration", false)),
+      fVaryMCCalSelection(pset.get<bool>("VaryMCCalSelection", false)),
+      fMCCalibrationFactor(pset.get<double>("MCCalibrationFactor", 1.))
     {
 
 }
@@ -148,27 +151,27 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
         int new_selection = event.GetSelectionID();
     
         // //Change the selection here
-        // if (!fFakeDataActive) {
-        //   if (fVaryMCCalibration && fVaryMCCalSelection) { 
-        //     new_selection = (
-        //       (fMCCalibrationFactor > 1.) ?
-        //       event.GetCalUpSelectionID() :
-        //       event.GetCalDownSelectionID()
-        //     );
-        //   }
-        //   else if (fMCBackUpSelection) {
-        //     new_selection = event.GetBackUpSelectionID(); 
-        //   }
-        //   else if (fMCBackDownSelection) {
-        //     new_selection = event.GetBackDownSelectionID(); 
-        //   }
-        //   else if (fMCFrontUpSelection) {
-        //     new_selection = event.GetFrontUpSelectionID(); 
-        //   }
-        //   else if (fMCFrontDownSelection) {
-        //     new_selection = event.GetFrontDownSelectionID(); 
-        //   }
-        // }
+        if (!fFakeDataActive) {
+          if (fVaryMCCalibration && fVaryMCCalSelection) {
+            new_selection = (
+              (fMCCalibrationFactor > 1.) ?
+              event.GetCalUpSelectionID() :
+              event.GetCalDownSelectionID()
+            );
+          }
+          // else if (fMCBackUpSelection) {
+          //   new_selection = event.GetBackUpSelectionID(); 
+          // }
+          // else if (fMCBackDownSelection) {
+          //   new_selection = event.GetBackDownSelectionID(); 
+          // }
+          // else if (fMCFrontUpSelection) {
+          //   new_selection = event.GetFrontUpSelectionID(); 
+          // }
+          // else if (fMCFrontDownSelection) {
+          //   new_selection = event.GetFrontDownSelectionID(); 
+          // }
+        }
     
         // std::cout << event.GetSampleID() << " " << new_selection << " " <<
         //              beam_bin << " " << GetSignalBin(event, dists) << std::endl;
@@ -222,16 +225,17 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
                 //   }
                 // }
                 // else if (fVaryMCCalibration && !fFakeDataActive) {
-                //   energy += deltaE;
-                //   if (deltaE*fMCCalibrationFactor < fEnergyFix) {
-                //     energy -= deltaE*fMCCalibrationFactor;
-                //   }
-                // }
-                // else {
-                  if (deltaE > fEnergyFix) {
-                    energy += deltaE; 
+                if (fVaryMCCalibration && !fFakeDataActive) {
+                  energy += deltaE;
+                  if (deltaE*fMCCalibrationFactor < fEnergyFix) {
+                    energy -= deltaE*fMCCalibrationFactor;
                   }
-                // }
+                }
+                else {
+                  if (deltaE > fEnergyFix) {
+                    energy += deltaE;
+                  }
+                }
               }
             }
         //   }
@@ -281,14 +285,12 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
         if (fill_incident) {
             //Loop over the measurement incident histograms and fill with 
             //any contributions to it from this event 
-            // for (const auto & map : dists.GetIncidentHists()) {
-                auto & map = dists.GetIncidentHists()[beam_bin];
-                for (auto & [key, hist] : map) {
-                    for (const auto & inc_energy : inc_energies) {
-                        hist->Fill(inc_energy, weight);
-                    }
+            auto & map = dists.GetIncidentHists()[beam_bin];
+            for (auto & [key, hist] : map) {
+                for (const auto & inc_energy : inc_energies) {
+                    hist->Fill(inc_energy, weight);
                 }
-            // }
+            }
         }
 
 }
