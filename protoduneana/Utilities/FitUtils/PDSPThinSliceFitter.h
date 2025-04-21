@@ -39,7 +39,7 @@ class PDSPThinSliceFitter {
                       bool retune = false, int njobs = -1);
   void BuildMCSamples();
   void Tune(std::string tune_file);
-  void SaveMCSamples();
+  void SaveMCDists();
   void GetNominalFluxes();
   void BuildDataHists();
   void SaveDataSet();

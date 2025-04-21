@@ -324,8 +324,10 @@ double protoana::ThinSliceDistBuilder1D::CalcChi2(
 
     //Iterate over selections
     for (const auto & [sel_ID, mc_hist] : holder.fTotalSelectionHists) {
-      if (std::find(to_skip.begin(), to_skip.end(), sel_ID) == to_skip.end())
+      if (std::find(to_skip.begin(), to_skip.end(), sel_ID) != to_skip.end()) {
+        // std::cout << "Skipping selection " << sel_ID << std::endl;
         continue;
+      }
 
       auto * data_hist = dataset.GetSelectionHist(sel_ID);
       for (int i = 1; i <= mc_hist->GetNbinsX(); ++i) {

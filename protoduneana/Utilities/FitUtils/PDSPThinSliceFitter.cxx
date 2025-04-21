@@ -1798,24 +1798,22 @@ void protoana::PDSPThinSliceFitter::SaveDataSet() {
 }
 
 
-void protoana::PDSPThinSliceFitter::SaveMCSamples() {
+void protoana::PDSPThinSliceFitter::SaveMCDists() {
   fOutputFile.cd();
-  fOutputFile.mkdir("MC_Samples");
-  fOutputFile.cd("MC_Samples");
+  fOutputFile.mkdir("MC_Dists");
+  fOutputFile.cd("MC_Dists");
 
-  for (auto it = fSamples.begin(); it != fSamples.end(); ++it) {
-    for (size_t i = 0; i < it->second.size(); ++i) {
-      auto vec = it->second.at(i);
-      for (size_t j = 0; j < vec.size(); ++j) {
-        //const std::map<int, TH1 *> & hists = vec[j].GetSelectionHists();
-        const auto & hists = vec[j].GetSelectionHists();
-        for (auto it2 = hists.begin(); it2 != hists.end(); ++it2) {
-          it2->second->Write();
+  for (const auto & map : fMCDists.GetSelectionHists()) {
+    for (const auto & [ids, hists] : map) {
+        for (const auto & hist : hists) {
+            hist->Write();
         }
-      }
     }
   }
 
+  for (const auto & [key, hist] : fMCDists.GetTotalSelectionHists()) {
+      hist->Write();
+  }
 
   fOutputFile.cd();
 }
@@ -1839,7 +1837,7 @@ double protoana::PDSPThinSliceFitter::GetNMuons() {
 void protoana::PDSPThinSliceFitter::CompareDataMC(
     std::string extra_name, TDirectory * xsec_dir, TDirectory * plot_dir,
     bool post_fit) {
-      fThinSliceStrategy->CompareDataMC(fMCDists, fDataSet, fOutputFile);
+      // fThinSliceStrategy->CompareDataMC(fMCDists, fDataSet, fOutputFile);
       fThinSliceStrategy->CompareSelections(fMCDists, fDataSet, fOutputFile, fPlotStyle, false, post_fit, plot_dir);
   // fThinSliceDriver->CompareDataMC(
   //     fSamples, fDataSet, fOutputFile,
@@ -2480,7 +2478,7 @@ void protoana::PDSPThinSliceFitter::RunFitAndSave() {
     // fFillIncidentInFunction = false;
   }
 
-  // SaveMCSamples();
+  SaveMCDists();
 
 
   TDirectory * top_dir = fOutputFile.GetDirectory("");
@@ -3206,11 +3204,7 @@ void protoana::PDSPThinSliceFitter::DefineFitFunction() {
         //Using fake data events or "nominal" events
         NewRefill((fUseFakeEvents ? fFakeDataEvents : fEvents));
 
-        double chi2 = (
-          fCalcChi2InFCN ?
-          fThinSliceStrategy->CalcChi2(fMCDists, fDataSet) :
-          0.
-        );
+        double chi2 = fThinSliceStrategy->CalcChi2(fMCDists, fDataSet);
         ++fNFitSteps;
 
         auto begin_time = std::chrono::high_resolution_clock::now();

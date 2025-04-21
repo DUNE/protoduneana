@@ -1,12 +1,13 @@
 #include "refactor.fcl"
 
-MaxEntries: 80000 
+MaxEntries: 50000 
 MaxDataEntries: @local::MaxEntries
 
 DoThrows: false
 SplitMC: false 
 Shuffle: false 
-FitType:  "None"
+FitType:  "Normal"
+RunHesse: false 
 
 FluctuateStats: false 
 FluctuateInSamples: false
