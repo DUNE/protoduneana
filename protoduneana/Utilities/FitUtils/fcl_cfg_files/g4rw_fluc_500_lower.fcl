@@ -1,15 +1,15 @@
-#include "asimov.fcl"
+#include "refactor.fcl"
 
-MaxEntries: 100000 
+MaxEntries: 80000 
 MaxDataEntries: @local::MaxEntries
 
 DoThrows: false
 SplitMC: false 
 Shuffle: false 
-FitType:  "Normal"
+FitType:  "None"
 
-FluctuateStats: true 
-FluctuateInSamples: true
+FluctuateStats: false 
+FluctuateInSamples: false
 
 AnalysisOptions.ToSkip: [5, 6]
 

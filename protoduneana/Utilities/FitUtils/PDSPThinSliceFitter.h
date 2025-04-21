@@ -102,6 +102,13 @@ class PDSPThinSliceFitter {
     size_t worker_id, std::vector<size_t> n_events
   );
   void FillDataHistsFromMCDists();
+  void SetupFakeDataG4RW();
+  static double GetFakeWeight_G4RWCoeff(
+    const ThinSliceEvent & event);
+  std::function<double(const ThinSliceEvent & event)> FakeDataWeight = [](const ThinSliceEvent & event) {
+    return 1.;
+  };
+  bool fFakeDataActive = false;
   //void MakeThrowsArrays(std::vector<TVectorD *> & arrays);
   void ResetFlux(std::vector<double> & flux);
 
@@ -212,7 +219,7 @@ class PDSPThinSliceFitter {
   std::string fDriverName, fStrategyName;
   std::string fAnalysis;
   fhicl::ParameterSet fAnalysisOptions;
-  double fPitch, fPitchCorrection;
+  double fPitch, fPitchCorrection, fXSecScale;
   std::string fSliceMethod;
   bool fMultinomial;
   bool fDoFakeData, fDoThrows, fDoScans, fOnlySystScans, fOnlyG4RWScans, fDo1DShifts, fDoSysts,
@@ -289,6 +296,15 @@ class PDSPThinSliceFitter {
   void GenerateUncorrelatedThrow(
   const TH1D & pars, const TMatrixD * cov, std::vector<double> & vals);
 
+  void SaveXSecs(TDirectory * dir, const ThinSliceDistHolder & holder) const {
+    dir->cd();
+
+    for (const auto & [true_id, hist] : holder.GetXSecHists()) {
+        hist->Write();
+        holder.GetTotalIncidentHists().at(true_id)->Write();
+        holder.GetTotalInteractionHists().at(true_id)->Write();
+    }
+}
 
   double BetheBloch(double energy, double mass) {
    double K,rho,Z,A, charge, me, I, gamma,  /*momentum ,*/wmax, pitch;

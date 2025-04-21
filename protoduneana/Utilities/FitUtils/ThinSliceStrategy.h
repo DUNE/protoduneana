@@ -40,15 +40,20 @@ public:
     virtual void FillDataHistsFromEvent(
         ThinSliceDataSet & data_set, const ThinSliceEvent & event) const = 0;
 
-    void SetMCStatVar(bool statvar) {
-        fMCStatVar = statvar;
+    void SetMCStatVar(bool set) {
+        fMCStatVar = set;
     }
+    void SetFillIncident(bool set) {
+        fFillIncident = set;
+    }
+
     // virtual void CalcTotalDists(ThinSliceDistHolder & holder) const = 0;
 
 protected:
 
     // ThinSliceDistBuilder fDistBuilder;
     bool fMCStatVar = false;
+    bool fFillIncident = false;
 };
 
 } // namespace protoana

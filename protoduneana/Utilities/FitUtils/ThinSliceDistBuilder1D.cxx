@@ -120,6 +120,19 @@ void protoana::ThinSliceDistBuilder1D::BuildXSecs(
               signal_bins.size()-1, &signal_bins[0]
           );
 
+
+          //Making the interaction histogram for this measured sample
+          hist_name.Form(
+            "sample_%s_%s_interaction_hist_beam_%lu", sample_name.c_str(), label.c_str(), (i-1)
+          );
+          std::cout << "Making " << hist_name << std::endl;
+
+          holder.fInteractionHists[i-1][true_id] =
+            std::make_shared<TH1D>(
+              hist_name, "",
+              signal_bins.size()-1, &signal_bins[0]
+          );
+
           //Only need to do 1 for each xsec
           if (i == 1) {
             //Making the xsec histogram for this measured sample
@@ -142,20 +155,18 @@ void protoana::ThinSliceDistBuilder1D::BuildXSecs(
               hist_name, "",
               signal_bins.size()-1, &signal_bins[0]
             );
-          }
 
-
-          //Making the interaction histogram for this measured sample
-          hist_name.Form(
-            "sample_%s_%s_interaction_hist_beam_%lu", sample_name.c_str(), label.c_str(), (i-1)
-          );
-          std::cout << "Making " << hist_name << std::endl;
-
-          holder.fInteractionHists[i-1][true_id] =
+            hist_name.Form(
+              "sample_%s_%s_total_interaction_hist", sample_name.c_str(), label.c_str()
+            );
+            holder.fTotalInteractionHists[true_id] =
             std::make_shared<TH1D>(
               hist_name, "",
               signal_bins.size()-1, &signal_bins[0]
-          );
+            );
+          }
+
+
         }
     }
   }
@@ -283,9 +294,12 @@ void protoana::ThinSliceDistBuilder1D::CalcXSecs(
       auto total_incident = holder.fTotalIncidentHists.at(id);
       total_incident->Reset();
 
+      auto total_interaction = holder.fTotalInteractionHists.at(id);
+      total_interaction->Reset();
+
       //Add each interaction to the xsec and sum the incidents
       for (auto & hists : holder.fInteractionHists) {
-        xsec_hist->Add(hists.at(id).get());
+        total_interaction->Add(hists.at(id).get());
       }
       for (auto & hists : holder.fIncidentHists) {
         total_incident->Add(hists.at(id).get());
@@ -294,7 +308,7 @@ void protoana::ThinSliceDistBuilder1D::CalcXSecs(
       //Now go through each bin and calculate the cross section per bin
       //Defined as -1.*log(1. - interaction/incident));
       for (int i = 1; i <= xsec_hist->GetNbinsX(); ++i) {
-        double interactions = xsec_hist->GetBinContent(i);
+        double interactions = total_interaction->GetBinContent(i);
         double incidents = total_incident->GetBinContent(i);
         xsec_hist->SetBinContent(i, -1.*log(1. - interactions/incidents));
       }

@@ -270,7 +270,7 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
         }
 
         std::vector<double> inc_energies;
-        bool fill_incident = dists.IsIncident(event.GetSampleID());
+        bool fill_incident = (fFillIncident && dists.IsIncident(event.GetSampleID()));
         if (fill_incident) inc_energies = MakeTrueIncidentEnergies(event.GetTrueTrajZ(), event.GetTrueTrajKE());
 
         std::lock_guard<std::mutex> lock(mutex);
@@ -281,13 +281,14 @@ void protoana::AbsCexStrategy::FillHistsFromEvent(
         if (fill_incident) {
             //Loop over the measurement incident histograms and fill with 
             //any contributions to it from this event 
-            for (const auto & map : dists.GetIncidentHists()) {
+            // for (const auto & map : dists.GetIncidentHists()) {
+                auto & map = dists.GetIncidentHists()[beam_bin];
                 for (auto & [key, hist] : map) {
                     for (const auto & inc_energy : inc_energies) {
                         hist->Fill(inc_energy, weight);
-                    }        
+                    }
                 }
-            }
+            // }
         }
 
 }

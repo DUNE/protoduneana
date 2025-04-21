@@ -55,6 +55,7 @@ public:
   const std::vector<TrueCatHist_map> &  GetIncidentHists() const { return fIncidentHists; }
   const TrueCatHist_map &  GetXSecHists() const { return fXSecHists; }
   const TrueCatHist_map &  GetTotalIncidentHists() const { return fTotalIncidentHists; }
+  const TrueCatHist_map &  GetTotalInteractionHists() const { return fTotalInteractionHists; }
 
 
   std::shared_ptr<TH1> GetInteractionHist(TrueCat_t true_id, size_t beam_bin) {
@@ -138,6 +139,7 @@ private:
     //XSec hists are collapsed over the beam bins, so just a single map
     TrueCatHist_map fXSecHists;
     TrueCatHist_map fTotalIncidentHists;
+    TrueCatHist_map fTotalInteractionHists;
 
     //Total selection hists + stacks are collapsed over beam bins and true cats
     SelIDHist_map fTotalSelectionHists;
