@@ -263,6 +263,18 @@ class PDSPThinSliceFitter {
   bool fDebugMCDataScale, fScaleToDataBeamProfile, fFixPostFit;
   bool fDebugChi2;
   double fTrajZStart;
+
+  void OpenBeamShiftInput();
+  void SetupBeamShift();
+  double GetBeamShiftDelta(double init_energy);
+
+  double fCurrentBeamShiftP0, fCurrentBeamShiftP1, fCurrentBeamShiftP2, fBeamShiftNominalP0, fBeamShiftNominalP1, fBeamShiftNominalP2;
+  bool fUseBeamShift, fOpenedBeamShiftInput = false;
+  std::string fBeamShiftInputFileName;
+  TMatrixD * fBeamShiftInputCov;
+  TDecompChol fBeamShiftInputChol;
+  TMatrixD * fBeamShiftInputCovL;
+  TVectorD * fBeamShiftInputCentrals;
   void NewBuildMC();
   void NewBuildDataHists(TTree * tree);
   void OpenFile(const std::string & filename, const std::string & treename) {

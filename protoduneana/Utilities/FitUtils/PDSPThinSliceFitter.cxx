@@ -655,10 +655,129 @@ void protoana::PDSPThinSliceFitter::InitializeMCSamples() {
   MakeMinimizer();
 }
 
+void protoana::PDSPThinSliceFitter::OpenBeamShiftInput() {
+
+  if (fOpenedBeamShiftInput) return;
+  auto * beam_shift_file = TFile::Open(fBeamShiftInputFileName.c_str());
+
+  fBeamShiftInputCentrals = (TVectorD*)beam_shift_file->Get("centrals");
+
+  fBeamShiftInputCov = (TMatrixD*)beam_shift_file->Get("covariance");
+
+  fBeamShiftInputChol = TDecompChol(*fBeamShiftInputCov);
+  fBeamShiftInputChol.Decompose();
+  fBeamShiftInputCovL = (TMatrixD*)fBeamShiftInputChol.GetU().Clone();
+  fBeamShiftInputCovL->Transpose(fBeamShiftInputChol.GetU());
+
+  beam_shift_file->Close();
+  fOpenedBeamShiftInput = true;
+}
+
+double protoana::PDSPThinSliceFitter::GetBeamShiftDelta(double init_energy) {
+  //if (energies.size() == 0) return 0.;
+  if (init_energy < 0) return 0.;
+
+  //Currently, Sungbin's work is in P_reco_BI - P_range_FF vs P_reco_BI
+  //so we need to transform to P_reco_BI vs P_range_FF -- P_true_FF is approximately equal
+  //
+  //x - y = p2*x^2 + p1*x + p0
+  //--> y = -p2*x^2 + (1 - p1)*x - p0
+  //
+  //Invert --> x = -p2*y^2 + (1 - p1)*y - p0
+  //Find root of: 0 = -p2*y^2 + (1 - p1)*y - (p0 + x)
+  //
+  //Solve quad. eqn
+  // --> y = ((1 - p1) +/- sqrt((1 - p1)^2 - 4*p2*(p0 + x)))/(2*p2)
+  //
+  // if p2 < 0., take positive soln., else take negative
+  //
+  // Check if the inverse is defined in the domain of P_true_FF
+  // Don't generate a shift if not (set to 0.)
+  // if p2 < 0, p0 > 0 --> defined for x > 0. --> all good
+  //    p2 < 0, p0 < 0 --> defined for x >= (1 - p1)^2/(4*p2) - p0
+  //    p2 > 0         --> defined for x <= (1 - p1)^2/(4*p2) - p0
+  //
+  // Also we have to subtract the nominal P_reco_BI vs P_true_FF
+
+  double energy = init_energy/*ies[0]*/ + 139.57;
+  double true_P = sqrt(energy*energy - 139.57*139.57);
+
+  if (fCurrentBeamShiftP2 < 0. && fCurrentBeamShiftP0 < 0.) {
+    double domain_edge = ((1 - fCurrentBeamShiftP1)*(1 - fCurrentBeamShiftP1) /
+                          (4*fCurrentBeamShiftP2)) - fCurrentBeamShiftP0;
+    if (domain_edge > true_P) {
+      std::cout << "P2 < 0" << std::endl;
+      std::cout << "Skipping " << true_P << " " << domain_edge << std::endl;
+      return 0.;
+    }
+  }
+  else if (fCurrentBeamShiftP2 > 0.) {
+    double domain_edge = ((1 - fCurrentBeamShiftP1)*(1 - fCurrentBeamShiftP1) /
+                          (4*fCurrentBeamShiftP2)) - fCurrentBeamShiftP0;
+    if (domain_edge < true_P) {
+      std::cout << "P2 > 0" << std::endl;
+      std::cout << "Skipping " << true_P << " " << domain_edge << std::endl;
+      return 0.;
+    }
+  }
+
+  double nominal_reco = fBeamShiftNominalP0 +
+                        fBeamShiftNominalP1*true_P +
+                        fBeamShiftNominalP2*true_P*true_P;
+
+  double factor = (fCurrentBeamShiftP2 < 0. ? 1. : -1.); //If p2 < 0. use positive soln.
+  double varied_reco
+      = ((1. - fCurrentBeamShiftP1) +
+          factor*sqrt((1. - fCurrentBeamShiftP1)*
+                      (1. - fCurrentBeamShiftP1) -
+                      4.*fCurrentBeamShiftP2*(fCurrentBeamShiftP0 + true_P)))*
+        (1./(2*fCurrentBeamShiftP2));
+  //std::cout << true_P << " " << nominal_reco << " " << varied_reco << " " <<
+  //             varied_reco - nominal_reco << std::endl;
+  //double shift = fCurrentBeamShiftP0 +
+  //               fCurrentBeamShiftP1*energies[0] +
+  //               fCurrentBeamShiftP2*energies[0]*energies[0];
+  return 1.e-3*(varied_reco - nominal_reco);
+  //return shift*1.e-3;
+}
+
+void protoana::PDSPThinSliceFitter::SetupBeamShift() {
+
+
+    fCurrentBeamShiftP0 =  (*fBeamShiftInputCentrals)[0];
+    fCurrentBeamShiftP1 =  (*fBeamShiftInputCentrals)[1];
+    fCurrentBeamShiftP2 =  (*fBeamShiftInputCentrals)[2];
+    TVectorD rand(3);
+    for (size_t i = 0; i < 3; ++i) rand[i] = fRNG.Gaus();
+
+    std::cout << "Using input covariance" << std::endl;
+    for (size_t i = 0; i < 3; ++i) {
+      for (size_t j = 0; j < 3; ++j) {
+        //std::cout << fBeamShiftInputChol.GetU()[i][j] << " ";
+        std::cout << (*fBeamShiftInputCovL)[i][j] << " ";
+      }
+      std::cout << std::endl;
+    }
+    //TVectorD rand_times_chol = fBeamShiftInputChol.GetU()*rand;
+    TVectorD rand_times_chol = (*fBeamShiftInputCovL)*rand;
+    for (size_t i = 0; i < 3; ++i) {
+      std::cout << "\t" << rand_times_chol[i] << std::endl;
+    }
+    fCurrentBeamShiftP0 += rand_times_chol[0];
+    fCurrentBeamShiftP1 += rand_times_chol[1];
+    fCurrentBeamShiftP2 += rand_times_chol[2];
+
+    std::cout << /*gen_i <<*/ "Beam shift pars: " << fCurrentBeamShiftP0 <<
+                  " " << fCurrentBeamShiftP1 << " " << fCurrentBeamShiftP2 <<
+                  std::endl;
+}
+
 void protoana::PDSPThinSliceFitter::NewBuildMC() {
 
   OpenFile(fMCFileName, fTreeName);
 
+
+  
   std::cout << "Filling MC Events" << std::endl;
 
   int sample_ID, selection_ID, event, run, subrun;
@@ -887,76 +1006,81 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
   
     //ThinSliceEvent thin_slice_event(event, subrun, run);
     fEvents.push_back(ThinSliceEvent(event, subrun, run));
-    fEvents.back().SetMCStatVarWeight(fRNG.Poisson(1));
-    fEvents.back().SetSampleID(sample_ID);
-    fEvents.back().SetSelectionID(selection_ID);
-    fEvents.back().SetCalUpSelectionID(cal_up_selection_ID);
-    fEvents.back().SetCalDownSelectionID(cal_down_selection_ID);
+    auto & the_event = fEvents.back();
+    the_event.SetMCStatVarWeight(fRNG.Poisson(1));
+    the_event.SetSampleID(sample_ID);
+    the_event.SetSelectionID(selection_ID);
+    the_event.SetCalUpSelectionID(cal_up_selection_ID);
+    the_event.SetCalDownSelectionID(cal_down_selection_ID);
   
-    fEvents.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
-    fEvents.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
-    fEvents.back().SetBackUpSelectionID(selection_ID_back_shift_up);
-    fEvents.back().SetBackDownSelectionID(selection_ID_back_shift_down);
+    the_event.SetFrontUpSelectionID(selection_ID_front_shift_up);
+    the_event.SetFrontDownSelectionID(selection_ID_front_shift_down);
+    the_event.SetBackUpSelectionID(selection_ID_back_shift_up);
+    the_event.SetBackDownSelectionID(selection_ID_back_shift_down);
   
-    fEvents.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
+    the_event.SetTrueInteractingEnergy(true_beam_interactingEnergy);
     // if (fDoEnergyByLen) {
-    //   fEvents.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
+    //   the_event.SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
     // }
     // else {
-      fEvents.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+      the_event.SetRecoInteractingEnergy(reco_beam_interactingEnergy);
     // }
-    fEvents.back().SetTrueEndP(true_beam_endP);
-    fEvents.back().SetTrueEndZ(true_beam_endZ);
-    fEvents.back().SetTrueStartP(true_beam_startP);
-    fEvents.back().SetTrueMass(true_beam_mass);
-    fEvents.back().SetRecoEndZ(reco_beam_endZ);
-    fEvents.back().SetRecoStartY(reco_beam_startY);
-    fEvents.back().SetRecoStartX_SCE(reco_beam_startX_SCE);
-    fEvents.back().SetRecoStartY_SCE(reco_beam_startY_SCE);
-    fEvents.back().SetRecoStartZ_SCE(reco_beam_startZ_SCE);
-    fEvents.back().SetRecoEndZ_SCE(reco_beam_endZ_SCE);
+    the_event.SetTrueEndP(true_beam_endP);
+    the_event.SetTrueEndZ(true_beam_endZ);
+    the_event.SetTrueStartP(true_beam_startP);
+    the_event.SetTrueMass(true_beam_mass);
+    the_event.SetRecoEndZ(reco_beam_endZ);
+    the_event.SetRecoStartY(reco_beam_startY);
+    the_event.SetRecoStartX_SCE(reco_beam_startX_SCE);
+    the_event.SetRecoStartY_SCE(reco_beam_startY_SCE);
+    the_event.SetRecoStartZ_SCE(reco_beam_startZ_SCE);
+    the_event.SetRecoEndZ_SCE(reco_beam_endZ_SCE);
   
-    fEvents.back().SetVertexMichelScore(vertex_michel_score);
-    fEvents.back().SetVertexNHits(vertex_nhits);
+    the_event.SetVertexMichelScore(vertex_michel_score);
+    the_event.SetVertexNHits(vertex_nhits);
   
-    fEvents.back().SetTrueID(true_beam_ID);
-    fEvents.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
+    the_event.SetTrueID(true_beam_ID);
+    the_event.SetRecoToTrueID(reco_beam_true_byHits_ID);
   
-    fEvents.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
-    fEvents.back().SetTrueInitEnergy(
+    the_event.SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
+    the_event.SetTrueInitEnergy(
       (true_beam_incidentEnergies->size() > 0 ?
        true_beam_incidentEnergies->at(0) : -999.)); // TODO -- CHANGE THIS WITH NEW VAL 
-    fEvents.back().SetTrueTrajZ(*true_beam_traj_Z);
-    fEvents.back().SetTrueTrajKE(*true_beam_traj_KE);
-    fEvents.back().SetTrueNNeutrons(true_n_neutrons);
-    fEvents.back().SetTrueNProtons(true_n_protons);
-    fEvents.back().SetTrueNPiPlus(true_n_piplus);
-    fEvents.back().SetTrueNPiMinus(true_n_piminus);
-    fEvents.back().SetTrueNPi0(true_n_pi0);
+    the_event.SetTrueTrajZ(*true_beam_traj_Z);
+    the_event.SetTrueTrajKE(*true_beam_traj_KE);
+    the_event.SetTrueNNeutrons(true_n_neutrons);
+    the_event.SetTrueNProtons(true_n_protons);
+    the_event.SetTrueNPiPlus(true_n_piplus);
+    the_event.SetTrueNPiMinus(true_n_piminus);
+    the_event.SetTrueNPi0(true_n_pi0);
   
-    fEvents.back().SetBeamInstP(beam_inst_P);
-    fEvents.back().SetPDG(true_beam_PDG);
-    fEvents.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
-    fEvents.back().SetHasPi0Shower(has_pi0_shower);
-    fEvents.back().SetLeadingPCostheta(leading_p_costheta);
-    fEvents.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
-    fEvents.back().SetLeadingPi0Costheta(leading_pi0_costheta);
-    fEvents.back().SetLeadingPMomentum(leading_p_momentum);
-    fEvents.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
-    fEvents.back().SetLeadingPi0Momentum(leading_pi0_momentum);
-    fEvents.back().SetIsBeamScraper(is_beam_scraper);
+    if (fUseBeamShift)
+      the_event.SetBeamShiftDelta(GetBeamShiftDelta(the_event.GetTrueInitEnergy()));
+
+
+    the_event.SetBeamInstP(beam_inst_P);
+    the_event.SetPDG(true_beam_PDG);
+    the_event.SetRecoDaughterTrackScores(*reco_daughter_track_scores);
+    the_event.SetHasPi0Shower(has_pi0_shower);
+    the_event.SetLeadingPCostheta(leading_p_costheta);
+    the_event.SetLeadingPiPlusCostheta(leading_piplus_costheta);
+    the_event.SetLeadingPi0Costheta(leading_pi0_costheta);
+    the_event.SetLeadingPMomentum(leading_p_momentum);
+    the_event.SetLeadingPiPlusMomentum(leading_piplus_momentum);
+    the_event.SetLeadingPi0Momentum(leading_pi0_momentum);
+    the_event.SetIsBeamScraper(is_beam_scraper);
   
-    fEvents.back().SetRecoShowerEnergy(*reco_daughter_shower_energy);
+    the_event.SetRecoShowerEnergy(*reco_daughter_shower_energy);
   
     for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
-      fEvents.back().AddRecoDaughterEField((*daughter_EFields)[j]);
+      the_event.AddRecoDaughterEField((*daughter_EFields)[j]);
       auto nhits = (*reco_daughter_chi2_nhits)[j];
-      fEvents.back().AddOneChi2PerHit(
+      the_event.AddOneChi2PerHit(
           (nhits > 0) ?
           (*reco_daughter_chi2)[j]/nhits :
           -999.
       );
-      fEvents.back().AddOneTrunc_dEdX(
+      the_event.AddOneTrunc_dEdX(
         (*reco_daughter_truncated_dEdX)[j]
       );
     }
@@ -964,25 +1088,25 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
     for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
       std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
                                    std::to_string(j);
-      fEvents.back().MakeG4RWCoeff(name_downstream,
+      the_event.MakeG4RWCoeff(name_downstream,
                                   (*g4rw_downstream_grid_piplus_coeffs)[j]);
   
       std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
-      fEvents.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
+      the_event.MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
     }
   
     for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
       std::string fine_full = "g4rw_full_fine_piplus_coeffs_" + std::to_string(j);
-      fEvents.back().MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
+      the_event.MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
     }
   
     for (size_t j = 0; j < g4rw_full_grid_abscex_coeffs->size(); ++j) {
       std::string abscex = "g4rw_full_grid_abscex_coeffs_" + std::to_string(j);
-      fEvents.back().MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
+      the_event.MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
     }
   
   
-    fEvents.back().MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
+    the_event.MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
                                 (*g4rw_full_grid_proton_coeffs)[0]);
   
     bool found_start = false;
@@ -991,12 +1115,12 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
       if ((*true_beam_traj_Z)[j] < fTrajZStart) continue;
   
       double delta = (*true_beam_traj_KE)[0] - (*true_beam_traj_KE)[j];
-      fEvents.back().SetDeltaEToTPC(delta);
+      the_event.SetDeltaEToTPC(delta);
       found_start = true;
       break;
     }
     if (!found_start) {
-      fEvents.back().SetDeltaEToTPC(-999.);
+      the_event.SetDeltaEToTPC(-999.);
     }
   
   }
@@ -1010,118 +1134,122 @@ void protoana::PDSPThinSliceFitter::NewBuildMC() {
       fMCTree->GetEntry(i);
   
       fFakeDataEvents.push_back(ThinSliceEvent(event, subrun, run));
+      auto & the_event = fFakeDataEvents.back();
       if (!(fFakeDataEvents.size() % 20000))
         std::cout << fFakeDataEvents.size() << std::endl;
-      fFakeDataEvents.back().SetMCStatVarWeight(fRNG.Poisson(1));
-      fFakeDataEvents.back().SetSampleID(sample_ID);
-      fFakeDataEvents.back().SetSelectionID(selection_ID);
-      fFakeDataEvents.back().SetCalUpSelectionID(cal_up_selection_ID);
-      fFakeDataEvents.back().SetCalDownSelectionID(cal_down_selection_ID);
+      the_event.SetMCStatVarWeight(fRNG.Poisson(1));
+      the_event.SetSampleID(sample_ID);
+      the_event.SetSelectionID(selection_ID);
+      the_event.SetCalUpSelectionID(cal_up_selection_ID);
+      the_event.SetCalDownSelectionID(cal_down_selection_ID);
   
-      fFakeDataEvents.back().SetFrontUpSelectionID(selection_ID_front_shift_up);
-      fFakeDataEvents.back().SetFrontDownSelectionID(selection_ID_front_shift_down);
-      fFakeDataEvents.back().SetBackUpSelectionID(selection_ID_back_shift_up);
-      fFakeDataEvents.back().SetBackDownSelectionID(selection_ID_back_shift_down);
+      the_event.SetFrontUpSelectionID(selection_ID_front_shift_up);
+      the_event.SetFrontDownSelectionID(selection_ID_front_shift_down);
+      the_event.SetBackUpSelectionID(selection_ID_back_shift_up);
+      the_event.SetBackDownSelectionID(selection_ID_back_shift_down);
   
-      fFakeDataEvents.back().SetTrueInteractingEnergy(true_beam_interactingEnergy);
+      the_event.SetTrueInteractingEnergy(true_beam_interactingEnergy);
       // if (fDoEnergyByLen) {
-      //   fFakeDataEvents.back().SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
+      //   the_event.SetRecoInteractingEnergy((*reco_beam_incidentEnergies)[0] - 2.1*reco_beam_alt_len);
       // }
       // else {
-        fFakeDataEvents.back().SetRecoInteractingEnergy(reco_beam_interactingEnergy);
+        the_event.SetRecoInteractingEnergy(reco_beam_interactingEnergy);
       // }
-      fFakeDataEvents.back().SetTrueEndP(true_beam_endP);
-      fFakeDataEvents.back().SetTrueEndZ(true_beam_endZ);
-      fFakeDataEvents.back().SetTrueStartP(true_beam_startP);
-      fFakeDataEvents.back().SetTrueMass(true_beam_mass);
-      fFakeDataEvents.back().SetRecoEndZ(reco_beam_endZ);
-      fFakeDataEvents.back().SetRecoStartX_SCE(reco_beam_startX_SCE);
-      fFakeDataEvents.back().SetRecoStartY_SCE(reco_beam_startY_SCE);
-      fFakeDataEvents.back().SetRecoStartZ_SCE(reco_beam_startZ_SCE);
-      fFakeDataEvents.back().SetRecoEndZ_SCE(reco_beam_endZ_SCE);
-      fFakeDataEvents.back().SetVertexMichelScore(vertex_michel_score);
-      fFakeDataEvents.back().SetVertexNHits(vertex_nhits);
+      the_event.SetTrueEndP(true_beam_endP);
+      the_event.SetTrueEndZ(true_beam_endZ);
+      the_event.SetTrueStartP(true_beam_startP);
+      the_event.SetTrueMass(true_beam_mass);
+      the_event.SetRecoEndZ(reco_beam_endZ);
+      the_event.SetRecoStartX_SCE(reco_beam_startX_SCE);
+      the_event.SetRecoStartY_SCE(reco_beam_startY_SCE);
+      the_event.SetRecoStartZ_SCE(reco_beam_startZ_SCE);
+      the_event.SetRecoEndZ_SCE(reco_beam_endZ_SCE);
+      the_event.SetVertexMichelScore(vertex_michel_score);
+      the_event.SetVertexNHits(vertex_nhits);
   
-      fFakeDataEvents.back().SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
-      fFakeDataEvents.back().SetTrueInitEnergy(
+      the_event.SetRecoIncidentEnergies(*reco_beam_incidentEnergies);
+      the_event.SetTrueInitEnergy(
           (true_beam_incidentEnergies->size() > 0 ?
            true_beam_incidentEnergies->at(0) : -999.));
-      fFakeDataEvents.back().SetTrueTrajZ(*true_beam_traj_Z);
-      fFakeDataEvents.back().SetTrueTrajKE(*true_beam_traj_KE);
+
+      if (fUseBeamShift)
+        the_event.SetBeamShiftDelta(GetBeamShiftDelta(the_event.GetTrueInitEnergy()));
+      the_event.SetTrueTrajZ(*true_beam_traj_Z);
+      the_event.SetTrueTrajKE(*true_beam_traj_KE);
   
-      fFakeDataEvents.back().SetBeamInstP(beam_inst_P);
-      fFakeDataEvents.back().SetPDG(true_beam_PDG);
+      the_event.SetBeamInstP(beam_inst_P);
+      the_event.SetPDG(true_beam_PDG);
       if (fFakeDataRoutine == "EffVar") {
-        fFakeDataEvents.back().SetRecoDaughterTrackThetas(*reco_daughter_track_thetas); }
-      fFakeDataEvents.back().SetTrueDaughterPDGs(*true_beam_daughter_PDG);
-      fFakeDataEvents.back().SetTrueDaughterStartPs(*true_beam_daughter_startP);
-      fFakeDataEvents.back().SetRecoDaughterTrackScores(*reco_daughter_track_scores);
-      fFakeDataEvents.back().SetHasPi0Shower(has_pi0_shower);
-      fFakeDataEvents.back().SetLeadingPCostheta(leading_p_costheta);
-      fFakeDataEvents.back().SetLeadingPiPlusCostheta(leading_piplus_costheta);
-      fFakeDataEvents.back().SetLeadingPi0Costheta(leading_pi0_costheta);
-      fFakeDataEvents.back().SetLeadingPMomentum(leading_p_momentum);
-      fFakeDataEvents.back().SetLeadingPiPlusMomentum(leading_piplus_momentum);
-      fFakeDataEvents.back().SetLeadingPi0Momentum(leading_pi0_momentum);
-      fFakeDataEvents.back().SetIsBeamScraper(is_beam_scraper);
-      fFakeDataEvents.back().SetRecoShowerEnergy(*reco_daughter_shower_energy);
+        the_event.SetRecoDaughterTrackThetas(*reco_daughter_track_thetas); }
+      the_event.SetTrueDaughterPDGs(*true_beam_daughter_PDG);
+      the_event.SetTrueDaughterStartPs(*true_beam_daughter_startP);
+      the_event.SetRecoDaughterTrackScores(*reco_daughter_track_scores);
+      the_event.SetHasPi0Shower(has_pi0_shower);
+      the_event.SetLeadingPCostheta(leading_p_costheta);
+      the_event.SetLeadingPiPlusCostheta(leading_piplus_costheta);
+      the_event.SetLeadingPi0Costheta(leading_pi0_costheta);
+      the_event.SetLeadingPMomentum(leading_p_momentum);
+      the_event.SetLeadingPiPlusMomentum(leading_piplus_momentum);
+      the_event.SetLeadingPi0Momentum(leading_pi0_momentum);
+      the_event.SetIsBeamScraper(is_beam_scraper);
+      the_event.SetRecoShowerEnergy(*reco_daughter_shower_energy);
   
-      fFakeDataEvents.back().SetTrueID(true_beam_ID);
-      fFakeDataEvents.back().SetTrueNNeutrons(true_n_neutrons);
-      fFakeDataEvents.back().SetTrueNProtons(true_n_protons);
-      fFakeDataEvents.back().SetTrueNPiPlus(true_n_piplus);
-      fFakeDataEvents.back().SetTrueNPiMinus(true_n_piminus);
-      fFakeDataEvents.back().SetTrueNPi0(true_n_pi0);
-      fFakeDataEvents.back().SetRecoToTrueID(reco_beam_true_byHits_ID);
+      the_event.SetTrueID(true_beam_ID);
+      the_event.SetTrueNNeutrons(true_n_neutrons);
+      the_event.SetTrueNProtons(true_n_protons);
+      the_event.SetTrueNPiPlus(true_n_piplus);
+      the_event.SetTrueNPiMinus(true_n_piminus);
+      the_event.SetTrueNPi0(true_n_pi0);
+      the_event.SetRecoToTrueID(reco_beam_true_byHits_ID);
   
       for (size_t j = 0; j < daughter_dQdXs->size(); ++j) {
   
-        fFakeDataEvents.back().AddRecoDaughterEField((*daughter_EFields)[j]);
+        the_event.AddRecoDaughterEField((*daughter_EFields)[j]);
         auto nhits = (*reco_daughter_chi2_nhits)[j];
-        fFakeDataEvents.back().AddOneChi2PerHit(
+        the_event.AddOneChi2PerHit(
             (nhits > 0) ?
             (*reco_daughter_chi2)[j]/nhits :
             -999.
         );
-        fFakeDataEvents.back().AddOneTrunc_dEdX(
+        the_event.AddOneTrunc_dEdX(
           (*reco_daughter_truncated_dEdX)[j]
         );
       }
   
       for (size_t j = 0; j < g4rw_full_fine_piplus_coeffs->size(); ++j) {
         std::string fine_full = "g4rw_full_fine_piplus_coeffs_" + std::to_string(j);
-        fFakeDataEvents.back().MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
+        the_event.MakeG4RWCoeff(fine_full, (*g4rw_full_fine_piplus_coeffs)[j]);
       }
       for (size_t j = 0; j < g4rw_full_grid_abscex_coeffs->size(); ++j) {
         std::string abscex = "g4rw_full_grid_abscex_coeffs_" + std::to_string(j);
-        fFakeDataEvents.back().MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
+        the_event.MakeG4RWCoeff(abscex, (*g4rw_full_grid_abscex_coeffs)[j]);
   
       }
   
       for (size_t j = 0; j < g4rw_downstream_grid_piplus_coeffs->size(); ++j) {
         std::string name_full = "g4rw_full_grid_piplus_coeffs_" + std::to_string(j);
-        fFakeDataEvents.back().MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
+        the_event.MakeG4RWCoeff(name_full, (*g4rw_full_grid_piplus_coeffs)[j]);
   
   
         std::string name_downstream = "g4rw_downstream_grid_piplus_coeffs_" +
                                      std::to_string(j);
-        fFakeDataEvents.back().MakeG4RWCoeff(name_downstream,
+        the_event.MakeG4RWCoeff(name_downstream,
                                     (*g4rw_downstream_grid_piplus_coeffs)[j]);
       }
   
-      fFakeDataEvents.back().MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
+      the_event.MakeG4RWCoeff("g4rw_full_grid_proton_coeffs",
                                             (*g4rw_full_grid_proton_coeffs)[0]);
       bool found_start = false;
       for (size_t j = 1; j < true_beam_traj_Z->size(); ++j) {
         if ((*true_beam_traj_Z)[j-1] < fTrajZStart &&
             fTrajZStart < (*true_beam_traj_Z)[j+1]) {
           double delta = (*true_beam_traj_KE)[0] - (*true_beam_traj_KE)[j];
-          fFakeDataEvents.back().SetDeltaEToTPC(delta);
+          the_event.SetDeltaEToTPC(delta);
           found_start = true;
           break;
         }
       }
-      if (!found_start) fFakeDataEvents.back().SetDeltaEToTPC(-999.);
+      if (!found_start) the_event.SetDeltaEToTPC(-999.);
     }
     auto new_time = std::chrono::high_resolution_clock::now();
     auto delta =
@@ -3085,7 +3213,12 @@ void protoana::PDSPThinSliceFitter::NewRefillLoop(
       weight *= FakeDataWeight(event);
     }
 
-    int beam_bin = GetBeamBin(event.GetBeamInstP()/*, true*/);
+    double beam_p_delta = 0.;
+    if (!fFakeDataActive && fUseBeamShift) {
+      beam_p_delta = event.GetBeamShiftDelta();
+    }
+
+    int beam_bin = GetBeamBin(event.GetBeamInstP() + beam_p_delta/*, true*/);
 
     fThinSliceStrategy->FillHistsFromEvent(
       event, mc_dists, beam_bin, std::ref(fRefillMutex),
@@ -3494,14 +3627,16 @@ void protoana::PDSPThinSliceFitter::Configure(std::string fcl_file) {
 
   // fExtraHistSets = fAnalysisOptions.get<std::vector<fhicl::ParameterSet>>("ExtraHists", {});
 
-  // fAddDiffInQuadrature = pset.get<bool>("AddDiffInQuadrature", false);
-  // if (fAddDiffInQuadrature) {
-  //   //std::vector<std::pair<int, std::string>> temp_vec
-  //   //    = pset.get<std::vector<std::pair<int, std::string>>>("Diffs");
-  //   //fDiffGraphs = std::map<int, std::string>(temp_vec.begin(), temp_vec.end());
-  //   fDiffCovName = pset.get<std::string>("DiffCovName");
-  //   fDiffGraphFile = pset.get<std::string>("DiffGraphFile");
-  // }
+  fUseBeamShift = pset.get<bool>("UseBeamShift", false);
+  if (fUseBeamShift) {
+    auto beam_shift_options = pset.get<fhicl::ParameterSet>("BeamShiftRoutine");
+    fBeamShiftInputFileName = beam_shift_options.get<std::string>("InputName", "");
+    OpenBeamShiftInput();
+    SetupBeamShift();
+    fBeamShiftNominalP0 = beam_shift_options.get<double>("NominalP0");
+    fBeamShiftNominalP1 = beam_shift_options.get<double>("NominalP1");
+    fBeamShiftNominalP2 = beam_shift_options.get<double>("NominalP2");
+  }
 
   fAddSignalConstraint = pset.get<bool>("AddSignalConstraint", false);
   fSignalConstraintSize = pset.get<double>("SignalConstraintSize", 10.);

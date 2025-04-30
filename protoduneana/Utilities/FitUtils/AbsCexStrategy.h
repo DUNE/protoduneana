@@ -17,10 +17,10 @@ public:
     virtual void BuildDists(ThinSliceDistHolder & holder, const fhicl::ParameterSet & pset, std::string label = "") override;
     virtual double GetEventWeight(const ThinSliceEvent & event) const override;
     virtual int GetSignalBin(const ThinSliceEvent & event, const ThinSliceDistHolder & dists) const override;
-    virtual int GetBeamBin(
-        const std::vector<double> & beam_energy_bins,
-        const ThinSliceEvent & event,
-        bool restrict_P) const override;
+    // virtual int GetBeamBin(
+    //     const std::vector<double> & beam_energy_bins,
+    //     const ThinSliceEvent & event,
+    //     bool restrict_P) const override;
     virtual void CompareDataMC(const ThinSliceDistHolder & holder, const ThinSliceDataSet & dataset, TFile & fout) const override;
     virtual void CalcXSecs(ThinSliceDistHolder & holder, double scale = 1.) const override;
     virtual double CalcChi2(const ThinSliceDistHolder & holder, ThinSliceDataSet & dataset) const override;

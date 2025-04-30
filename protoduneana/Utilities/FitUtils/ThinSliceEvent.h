@@ -513,6 +513,9 @@ class ThinSliceEvent {
   double GetDeltaEToTPC() const {return delta_e_to_tpc;};
   void SetDeltaEToTPC(double delta_e) {delta_e_to_tpc = delta_e;};
 
+  void SetBeamShiftDelta(double delta) {beam_shift_delta = delta;};
+  double GetBeamShiftDelta() const {return beam_shift_delta;};
+
   double GetLeadingPCostheta() const {return leading_p_costheta;};
   double GetLeadingPiPlusCostheta() const {return leading_piplus_costheta;};
   double GetLeadingPi0Costheta() const {return leading_pi0_costheta;};
@@ -611,6 +614,7 @@ class ThinSliceEvent {
   int true_beam_ID;
   int reco_beam_true_byHits_ID;
   double delta_e_to_tpc;
+  double beam_shift_delta = 0.;
   double leading_p_costheta, leading_piplus_costheta, leading_pi0_costheta;
   double leading_p_momentum, leading_piplus_momentum, leading_pi0_momentum;
   int reco_beam_origin = -999;

@@ -117,28 +117,28 @@ void protoana::AbsCexStrategy::FillDataHistsFromEvent(
 }
 
 //TODO -- remove
-int protoana::AbsCexStrategy::GetBeamBin(
-    const std::vector<double> & beam_energy_bins,
-    const ThinSliceEvent & event,
-    bool restrict_P) const {
+// int protoana::AbsCexStrategy::GetBeamBin(
+//     const std::vector<double> & beam_energy_bins,
+//     const ThinSliceEvent & event,
+//     bool restrict_P) const {
   
-        double momentum = event.GetBeamInstP();
+//         double momentum = event.GetBeamInstP();
 
-        int bin = -1;
-        for (size_t j = 1; j < beam_energy_bins.size(); ++j) {
-        if ((beam_energy_bins[j-1] <= 1.e3*momentum) &&
-            (1.e3*momentum < beam_energy_bins[j])) {
-            bin = j - 1;
-            break;
-        }
-        }
-        if (bin == -1 && !restrict_P) {
-            std::string message = "Could not find beam energy bin for " +
-                                    std::to_string(momentum);
-            throw std::runtime_error(message);
-        }
-        return bin;
-}
+//         int bin = -1;
+//         for (size_t j = 1; j < beam_energy_bins.size(); ++j) {
+//         if ((beam_energy_bins[j-1] <= 1.e3*momentum) &&
+//             (1.e3*momentum < beam_energy_bins[j])) {
+//             bin = j - 1;
+//             break;
+//         }
+//         }
+//         if (bin == -1 && !restrict_P) {
+//             std::string message = "Could not find beam energy bin for " +
+//                                     std::to_string(momentum);
+//             throw std::runtime_error(message);
+//         }
+//         return bin;
+// }
 
 
 void protoana::AbsCexStrategy::FillHistsFromEvent(
