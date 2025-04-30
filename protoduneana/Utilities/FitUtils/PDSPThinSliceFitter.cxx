@@ -1510,6 +1510,7 @@ void protoana::PDSPThinSliceFitter::BuildDataHists() {
     // fFillIncidentInFunction = true;
     // fUseFakeSamples = true;
     fUseFakeEvents = true;
+    fFakeDataActive = true;
     // fThinSliceDriver->TurnOnFakeData();
   
     // std::cout << "Vary stats: " << fVaryMCStatsForFakeData << std::endl;
@@ -1571,6 +1572,7 @@ void protoana::PDSPThinSliceFitter::BuildDataHists() {
     // fThinSliceDriver->SetStatVar(false);
     // fThinSliceDriver->SetFillFakeInMain(false);
     //Refill the hists for comparisons
+    fFakeDataActive = false;
     fUseFakeEvents = false;
     fFitFunction(&vals[0]);
   }
@@ -1738,6 +1740,7 @@ void protoana::PDSPThinSliceFitter::BuildDataHists() {
     // fFillIncidentInFunction = false;
   }
   else {
+    throw std::runtime_error("No Longer Implemented");
     if (!fNoFakeReset) {
       for (auto it = fFakeSamples.begin(); it != fFakeSamples.end(); ++it) {
         for (size_t i = 0; i < it->second.size(); ++i) {
@@ -3043,6 +3046,11 @@ void protoana::PDSPThinSliceFitter::NewRefillLoop(
     if (fCoutLevel > 1) {
       std::cout << "Event " << i << event.GetSelectionID() << std::endl;
     }
+
+    if (fVaryMCStats && !fFakeDataActive) {
+      weight *= event.GetMCStatVarWeight();
+    }
+
 
     bool is_signal = (std::find(
       mc_dists.GetSignalIDs().begin(), mc_dists.GetSignalIDs().end(),
