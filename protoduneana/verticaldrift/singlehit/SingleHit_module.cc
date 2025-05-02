@@ -2712,12 +2712,14 @@ std::vector<std::string> pdvdana::SingleHit::GetGeneratorTag( art::Event const &
 
     }// end for MCtruth
 
-    //sort to but greates trackID in first position
+    //sort by trackID, greater in first position
     std::sort(vTrackIdToLabelPair.begin(), vTrackIdToLabelPair.end(), [](std::pair<int,std::string> a, std::pair<int,std::string> b){ return a.first > b.first;});
 
     // reassociation for quick access
     std::string noTrackID = "no association";
-    std::vector<std::string> vGeneratorLabels( vTrackIdToLabelPair[0].first +1 , noTrackID);
+
+    std::vector<std::string> vGeneratorLabels;
+    if ( !vTrackIdToLabelPair.empty() ) vGeneratorLabels.resize( vTrackIdToLabelPair[0].first +1 , noTrackID);
 
     for(int j = 0 ; j < (int) vTrackIdToLabelPair.size() ; j++)
     {
