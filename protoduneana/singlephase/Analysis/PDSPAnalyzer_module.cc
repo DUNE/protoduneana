@@ -42,6 +42,7 @@
 #include "protoduneana/Utilities/ProtoDUNEEmptyEventFinder.h"
 
 #include "protoduneana/Utilities/G4ReweightUtils.h"
+// #include "dunesim/EventGenerator/Utils/ProtoDUNETriggeredBeamUtils.h"
 //#include "duneprototypes/Protodune/singlephase/DataUtils/ProtoDUNEDataUtils.h"
 
 //#include "duneprototypes/Protodune/singlephase/DataUtils/ProtoDUNECalibration.h"
@@ -564,7 +565,8 @@ public:
   double lateralDist( TVector3 & n, TVector3 & x0, TVector3 & p );
 
 private:
-
+  recob::Track MakeTracks(const beam::ProtoDUNEBeamEvent & beamEvent);
+  TVector3 ProjectToTPC(TVector3 firstPoint, TVector3 secondPoint);
   void BeamTrackInfo(const art::Event & evt,
                      const recob::Track * thisTrack,
                      detinfo::DetectorClocksData const& clockData);
@@ -1057,6 +1059,7 @@ private:
   std::string fGeneratorTag;
   std::string fBeamModuleLabel;
   protoana::ProtoDUNEBeamlineUtils fBeamlineUtils;
+  // evgen::ProtoDUNETriggeredBeamUtils fMCBeamUtils;
   protoana::ProtoDUNEEmptyEventFinder fEmptyEventFinder;
   double fBeamPIDMomentum;
   std::string dEdX_template_name;
@@ -1088,6 +1091,7 @@ private:
   bool fCheckSlicesForBeam;
   bool fCheckTruncation;
   double fBeamInstPFix = 1.;
+  bool fDoBeamTrackFix = false;
   // SparseNet params 
   /// Module label for input space points
   std::string fSpacePointLabel;
@@ -1113,6 +1117,9 @@ private:
                     * KPlusMultiRW, * NeutronMultiRW, * FakeDataMultiRW,
                     * FineMultiRW, * fAbsCexMultiRW;
   G4ReweightManager * RWManager;
+
+  double fBPROF4Pos = 716124.;
+  double fBPROFEXTPos = 707555.;
 };
 
 
@@ -1150,7 +1157,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fCheckTruncation(p.get<bool>("CheckTruncation", false)),
 
   fBeamInstPFix(p.get<double>("BeamInstPFix", 1.)),
-
+  fDoBeamTrackFix(p.get<bool>("DoBeamTrackFix", false)),
   // SparseNet params
   fSpacePointLabel (p.get<std::string>    ("SpacePointLabel")), 
   fNeighbourRadii (p.get<std::vector<float>>("NeighbourRadii")),
@@ -1662,6 +1669,93 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
   }
 
   fTree->Fill();
+}
+
+// void pduneana::PDSPAnalyzer::BeamMonitorBasisVectors(){
+//   fBMBasisX = TVector3(1.,0.,0.);
+//   fBMBasisY = TVector3(0.,1.,0.);
+//   fBMBasisZ = TVector3(0.,0.,1.);
+//   RotateMonitorVector(fBMBasisX);
+//   RotateMonitorVector(fBMBasisY);
+//   RotateMonitorVector(fBMBasisZ);
+
+// }
+ 
+// //----------------------------------------------------------------------------------
+
+// void pduneana::PDSPAnalyzer::RotateMonitorVector(TVector3 &vec){
+
+//   // Note: reordering how these are done in order to keep the basis
+//   //       vectors of the monitors parallel to the ground. 
+//   vec.RotateX( fRotateMonitorYZ * TMath::Pi() / 180. );
+//   vec.RotateY( fRotateMonitorXZ * TMath::Pi() / 180. );
+
+// }
+
+// TVector3 pduneana::PDSPAnalyzer::ConvertProfCoordinates(double x, double y, double z, double zOffset){
+//   const double off = fNP04frontPos - zOffset;
+
+// //  TVector3 old(x,y,z);
+
+//   double newX = x*fBMBasisX.X() + y*fBMBasisY.X() + /*(z-zOffset)*fBMBasisZ.X()*/ + off*fabs(fBMBasisZ.X());
+//   double newY = x*fBMBasisX.Y() + y*fBMBasisY.Y() + /*(z-zOffset)*fBMBasisZ.Y()*/ + off*fabs(fBMBasisZ.Y());
+//   double newZ = x*fBMBasisX.Z() + y*fBMBasisY.Z() + /*(z-zOffset)              */ - off*fabs(fBMBasisZ.Z());
+
+//   newX += fBeamX*10.;
+//   newY += fBeamY*10.;
+//   newZ += fBeamZ*10.;
+
+//   TVector3 result(newX/10., newY/10., newZ/10.);
+//   return result;
+// }
+
+recob::Track pduneana::PDSPAnalyzer::MakeTracks(const beam::ProtoDUNEBeamEvent & beamEvent ){
+
+  const short fx1 = beamEvent.GetFBM( "XBPF022707" ).active[0];
+  const short fy1 = beamEvent.GetFBM( "XBPF022708" ).active[0];
+
+  const double x1 = ((96 - fx1) - .5);
+  const double y1 = ((96 - fy1) - .5);
+
+  TVector3 pos1 = fBeamlineUtils.ConvertMonitorCoordinates(
+      x1, y1, 0., fBPROFEXTPos);
+
+  const short fx2 = beamEvent.GetFBM( "XBPF022716" ).active[0];
+  const short fy2 = beamEvent.GetFBM( "XBPF022717" ).active[0];
+
+  const double x2 = ((96 - fx2) - .5);
+  const double y2 = ((96 - fy2) - .5);
+
+  TVector3 pos2 = fBeamlineUtils.ConvertMonitorCoordinates(
+      x2, y2, 0., fBPROF4Pos);
+ 
+  std::vector< TVector3 > thePoints = { pos1, pos2, ProjectToTPC( pos1, pos2 ) };
+  std::vector< TVector3 > theMomenta = {
+    ( pos2 - pos1 ).Unit(),
+    ( pos2 - pos1 ).Unit(),
+    ( pos2 - pos1 ).Unit()
+  };
+
+  // beamEvent.AddBeamTrack(
+  return recob::Track(
+      recob::TrackTrajectory(recob::tracking::convertCollToPoint( thePoints ),
+                             recob::tracking::convertCollToVector( theMomenta ),
+                             recob::Track::Flags_t( thePoints.size() ),
+                             false ),
+      0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1 
+    );
+  // );
+
+}
+TVector3 pduneana::PDSPAnalyzer::ProjectToTPC(TVector3 firstPoint, TVector3 secondPoint){
+  const TVector3 dR = (secondPoint - firstPoint);
+  
+  const double deltaZ = -1.*secondPoint.Z();
+  const double deltaX = deltaZ * (dR.X() / dR.Z());
+  const double deltaY = deltaZ * (dR.Y() / dR.Z());
+
+  TVector3 lastPoint = secondPoint + TVector3(deltaX, deltaY, deltaZ);
+  return lastPoint;
 }
 
 void pduneana::PDSPAnalyzer::beginJob() {
@@ -3338,13 +3432,15 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
       }
 
       reco_beam_incidentEnergies.push_back( init_KE );
-      for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
-        //use dedx * pitch or new hit calculation?
-        if (reco_beam_calo_points[i].dEdX < 0.) continue;
-        double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
-        reco_beam_incidentEnergies.push_back( this_energy );
+      if (reco_beam_calo_points.size() > 0) {
+        for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
+          //use dedx * pitch or new hit calculation?
+          if (reco_beam_calo_points[i].dEdX < 0.) continue;
+          double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
+          reco_beam_incidentEnergies.push_back( this_energy );
+        }
+        if( reco_beam_incidentEnergies.size() ) reco_beam_interactingEnergy = reco_beam_incidentEnergies.back();
       }
-      if( reco_beam_incidentEnergies.size() ) reco_beam_interactingEnergy = reco_beam_incidentEnergies.back();
     //} // END OF THIN SLICE
   }
 
@@ -4197,6 +4293,19 @@ void pduneana::PDSPAnalyzer::BeamInstInfo(const art::Event & evt) {
   }
 
   beam_inst_nTracks = nTracks;
+
+  if (fDoBeamTrackFix) {
+    auto the_track = MakeTracks(beamEvent);
+    beam_inst_X = the_track.Trajectory().End().X();
+    beam_inst_Y = the_track.Trajectory().End().Y();
+    beam_inst_Z = the_track.Trajectory().End().Z();
+
+    beam_inst_dirX = the_track.Trajectory().EndDirection().X();
+    beam_inst_dirY = the_track.Trajectory().EndDirection().Y();
+    beam_inst_dirZ = the_track.Trajectory().EndDirection().Z();
+    beam_inst_nTracks = 1;
+  }
+
   beam_inst_nMomenta = nMomenta;
 
   //beamline PID 
