@@ -1207,76 +1207,76 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
 
   if (fDoReweight) {
     //Pion Reweighter
-    auto material = p.get<fhicl::ParameterSet>("Material");
-    RWManager = new G4ReweightManager({material});
-    FracsFile = OpenFile(p.get< std::string >("FracsFile"));
-    ParSet = p.get<std::vector<fhicl::ParameterSet>>("ParameterSet");
-    FineParSet = p.get<std::vector<fhicl::ParameterSet>>("FineParameterSet");
-    //ParMaker = G4ReweightParameterMaker(ParSet);
-    MultiRW = new G4MultiReweighter(211, *FracsFile, ParSet,
-                                    material,
-                                    RWManager);
-    FineMultiRW = new G4MultiReweighter(211, *FracsFile, FineParSet,
-                                    material,
-                                    RWManager);
-    FakeDataParSet = p.get<std::vector<fhicl::ParameterSet>>("FakeDataParameterSet");
-    FakeDataMultiRW = new G4MultiReweighter(211, *FracsFile, FakeDataParSet,
-                                            material,
-                                            RWManager);
-    //Piminus Reweighter
-    //PiMinusFracsFile = OpenFile(p.get< std::string >("PiMinusFracsFile"));
-    //PiMinusMultiRW = new G4MultiReweighter(-211, *PiMinusFracsFile, ParSet,
-    //                                material,
-    //                                RWManager);
+    // auto material = p.get<fhicl::ParameterSet>("Material");
+    // RWManager = new G4ReweightManager({material});
+    // FracsFile = OpenFile(p.get< std::string >("FracsFile"));
+    // ParSet = p.get<std::vector<fhicl::ParameterSet>>("ParameterSet");
+    // FineParSet = p.get<std::vector<fhicl::ParameterSet>>("FineParameterSet");
+    // //ParMaker = G4ReweightParameterMaker(ParSet);
+    // MultiRW = new G4MultiReweighter(211, *FracsFile, ParSet,
+    //                                 material,
+    //                                 RWManager);
+    // FineMultiRW = new G4MultiReweighter(211, *FracsFile, FineParSet,
+    //                                 material,
+    //                                 RWManager);
+    // FakeDataParSet = p.get<std::vector<fhicl::ParameterSet>>("FakeDataParameterSet");
+    // FakeDataMultiRW = new G4MultiReweighter(211, *FracsFile, FakeDataParSet,
+    //                                         material,
+    //                                         RWManager);
+    // //Piminus Reweighter
+    // //PiMinusFracsFile = OpenFile(p.get< std::string >("PiMinusFracsFile"));
+    // //PiMinusMultiRW = new G4MultiReweighter(-211, *PiMinusFracsFile, ParSet,
+    // //                                material,
+    // //                                RWManager);
     
-    //Proton Reweighter
-    ProtFracsFile = OpenFile(p.get< std::string >("ProtFracsFile"));
-    ProtParSet = p.get<std::vector<fhicl::ParameterSet>>("ProtParameterSet");
-    //ProtParMaker = G4ReweightParameterMaker(ProtParSet);
-    ProtMultiRW = new G4MultiReweighter(
-        2212, *ProtFracsFile, ProtParSet,
-        material,
-        RWManager);
+    // //Proton Reweighter
+    // ProtFracsFile = OpenFile(p.get< std::string >("ProtFracsFile"));
+    // ProtParSet = p.get<std::vector<fhicl::ParameterSet>>("ProtParameterSet");
+    // //ProtParMaker = G4ReweightParameterMaker(ProtParSet);
+    // ProtMultiRW = new G4MultiReweighter(
+    //     2212, *ProtFracsFile, ProtParSet,
+    //     material,
+    //     RWManager);
     
 
-    //K Plus Reweighter
-    // -- Just use proton fracs and parameter set
-    // -- because it's just reaction
-    KPlusMultiRW = new G4MultiReweighter(
-        321, *ProtFracsFile, ProtParSet,
-        material,
-        RWManager);
+    // //K Plus Reweighter
+    // // -- Just use proton fracs and parameter set
+    // // -- because it's just reaction
+    // KPlusMultiRW = new G4MultiReweighter(
+    //     321, *ProtFracsFile, ProtParSet,
+    //     material,
+    //     RWManager);
 
-    //Neutron Reweighter
-    // -- Just use proton fracs and parameter set
-    // -- because it's just reaction
-    NeutronMultiRW = new G4MultiReweighter(
-        2112, *ProtFracsFile, ProtParSet,
-        material,
-        RWManager);
+    // //Neutron Reweighter
+    // // -- Just use proton fracs and parameter set
+    // // -- because it's just reaction
+    // NeutronMultiRW = new G4MultiReweighter(
+    //     2112, *ProtFracsFile, ProtParSet,
+    //     material,
+    //     RWManager);
     
-    TFile * abscex_file = TFile::Open(p.get<std::string>("AbsCexFile").c_str());
-    fAbsCexPars
-        = p.get<std::vector<fhicl::ParameterSet>>("AbsCexParameterSet");
-    ParMaker = G4ReweightParameterMaker(fAbsCexPars, {"abs", "cex", "other"});
+    // TFile * abscex_file = TFile::Open(p.get<std::string>("AbsCexFile").c_str());
+    // fAbsCexPars
+    //     = p.get<std::vector<fhicl::ParameterSet>>("AbsCexParameterSet");
+    // ParMaker = G4ReweightParameterMaker(fAbsCexPars, {"abs", "cex", "other"});
 
-    fAbsCex_reweighter = new AbsCexReweighter(
-        abscex_file, ParMaker.GetFSHists(),
-        material,
-        RWManager,
-        ParMaker.GetElasticHist());
-    fAbsCexMultiRW = new G4MultiReweighter(
-        211, *abscex_file, fAbsCexPars, ParMaker, material, fAbsCex_reweighter);
+    // fAbsCex_reweighter = new AbsCexReweighter(
+    //     abscex_file, ParMaker.GetFSHists(),
+    //     material,
+    //     RWManager,
+    //     ParMaker.GetElasticHist());
+    // fAbsCexMultiRW = new G4MultiReweighter(
+    //     211, *abscex_file, fAbsCexPars, ParMaker, material, fAbsCex_reweighter);
 
-    //Setting up grid points for mutliple variations
-    double start = p.get<double>("ParameterGridStart");
-    double delta = p.get<double>("ParameterGridDelta");
-    int n = p.get<int>("ParameterGridN"); 
-    for (int i = 0; i < n; ++i) {
-      fGridPoints.push_back(start);
-      start += delta;
-    }
-    fGridPair = p.get<std::pair<double, double>>("GridPair");
+    // //Setting up grid points for mutliple variations
+    // double start = p.get<double>("ParameterGridStart");
+    // double delta = p.get<double>("ParameterGridDelta");
+    // int n = p.get<int>("ParameterGridN"); 
+    // for (int i = 0; i < n; ++i) {
+    //   fGridPoints.push_back(start);
+    //   start += delta;
+    // }
+    // fGridPair = p.get<std::pair<double, double>>("GridPair");
 
 
     fReweightSuite = G4ReweightSuite(
@@ -1617,169 +1617,214 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
   //New style of weighting to get full hierarchy (i.e. from full event not 
   //just from the primary + downstreams) -- currently for piplus and proton
   if (!evt.isRealData() && fDoReweight) {
+    std::cout << "Doing Reweight" << std::endl;
     std::vector<std::vector<G4ReweightTraj *>> piplus_hierarchy 
         = BuildHierarchy(true_beam_ID, 211, plist, fGeometryService,
                          event, "LAr", false);
 
-    //std::cout << "Primary hierarchy" << std::endl; 
-    int ipart = 0;
-    for (auto & traj_vec : piplus_hierarchy) {
-      g4rw_piplus_traj_ps.push_back(std::vector<double>());
-      g4rw_piplus_traj_lens.push_back(std::vector<double>());
-      int itraj = 0;
-      for (auto * traj : traj_vec) {
-        //std::cout << "Part " << ipart << " Traj " << itraj << std::endl;
-        for (size_t istep = 0; istep < traj->GetNSteps(); ++istep) {
-          const auto & step = traj->GetStep(istep);
-          /*std::cout << "\t" << step->GetStepLength() << " " <<
-                       step->GetFullPreStepP() <<
-                       " " << " "  << std::endl;*/
-          g4rw_piplus_traj_ps.back().push_back(step.GetFullPreStepP());
-          g4rw_piplus_traj_lens.back().push_back(step.GetStepLength());
-        }
-        /*std::cout << "\t" << traj->HasChild(211).size() << " " <<
-                     traj->HasChild(-211).size() << " " <<
-                     traj->HasChild(111).size() << std::endl;*/
-        ++itraj;
-      }
-      //Children should only be at the last traj
-      g4rw_piplus_traj_npiplus.push_back(traj_vec.back()->HasChild(211).size());
-      g4rw_piplus_traj_npiminus.push_back(traj_vec.back()->HasChild(-211).size());
-      g4rw_piplus_traj_npi0.push_back(traj_vec.back()->HasChild(111).size());
-      ++ipart;
-    }
-
-    G4RWGridWeights(piplus_hierarchy, ParSet, g4rw_full_grid_piplus_weights,
-                    MultiRW);
-    for (auto weights : g4rw_full_grid_piplus_weights) {
-      g4rw_full_grid_piplus_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_grid_piplus_coeffs.back());
-
-
-    }
-
-    //Fine Weights
-    G4RWGridWeights(piplus_hierarchy, FineParSet, g4rw_full_fine_piplus_weights,
-                    FineMultiRW);
-    for (auto weights : g4rw_full_fine_piplus_weights) {
-      g4rw_full_fine_piplus_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_fine_piplus_coeffs.back());
-
-    }
-
-
-    G4RWGridWeights(piplus_hierarchy, FakeDataParSet,
-                    g4rw_full_grid_piplus_weights_fake_data,
-                    FakeDataMultiRW);
-    for (auto weights : g4rw_full_grid_piplus_weights_fake_data) {
-      g4rw_full_grid_piplus_coeffs_fake_data.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_grid_piplus_coeffs_fake_data.back());
-
-    }
-
-    //AbsCex Weights
+    auto part_mat = std::make_pair(211, "LAr");
+    auto npars = fReweightSuite.GetNPars(part_mat);
     
-    std::cout << "Getting abscex weigths" << std::endl;
-    G4RWGridWeights(piplus_hierarchy, fAbsCexPars,
-                    g4rw_full_grid_abscex_weights, fAbsCexMultiRW);
-    for (auto weights : g4rw_full_grid_abscex_weights) {
-      g4rw_full_grid_abscex_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_grid_abscex_coeffs.back());
+    //Loop over parameters
+    for (size_t ipar = 0; ipar < npars; ++ipar) {
+      std::string par_name
+      = fReweightSuite.GetParameterNames().at({211, "LAr"})[ipar];
+
+      std::cout << "Parameter: " << par_name << std::endl;
+
+      auto & output = fSuiteWeightMap[std::make_tuple(211, "LAr", par_name)];
+
+      
+      //Loop over the set of piplus trajectories
+      //Each one will get its own vector of weights
+      for (auto & traj_vec : piplus_hierarchy) {
+        std::cout << "New Particle" << std::endl;
+        int ipart = 0;
+        //Make a new vector for each particle in the trajectory
+        output.push_back({});
+
+        //Loop over trajectory segments
+        for (auto * traj : traj_vec) {
+          
+          auto weights = fReweightSuite.Scan(
+            (*traj), part_mat, ipar
+          );
+
+          if (ipart == 0) {
+            output.back().insert(
+              output.back().end(), weights.begin(), weights.end()
+            );
+          }
+          else {
+            for (size_t iw = 0; iw < weights.size(); ++iw) {
+              output.back()[iw] *= weights[iw];
+            }
+          }
+
+          ++ipart;
+        }
+      }
     }
+    
 
-    //Proton
-    std::vector<std::vector<G4ReweightTraj *>> proton_hierarchy 
-        = BuildHierarchy(true_beam_ID, 2212, plist, fGeometryService,
-                         event, "LAr", false);
-    G4RWGridWeights(proton_hierarchy, ProtParSet, g4rw_full_grid_proton_weights,
-                    ProtMultiRW);
-    for (auto weights : g4rw_full_grid_proton_weights) {
-      g4rw_full_grid_proton_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_grid_proton_coeffs.back());
+    //std::cout << "Primary hierarchy" << std::endl; 
+    // int ipart = 0;
+    // for (auto & traj_vec : piplus_hierarchy) {
+    //   g4rw_piplus_traj_ps.push_back(std::vector<double>());
+    //   g4rw_piplus_traj_lens.push_back(std::vector<double>());
+    //   int itraj = 0;
+    //   for (auto * traj : traj_vec) {
+    //     //std::cout << "Part " << ipart << " Traj " << itraj << std::endl;
+    //     for (size_t istep = 0; istep < traj->GetNSteps(); ++istep) {
+    //       const auto & step = traj->GetStep(istep);
+    //       /*std::cout << "\t" << step->GetStepLength() << " " <<
+    //                    step->GetFullPreStepP() <<
+    //                    " " << " "  << std::endl;*/
+    //       g4rw_piplus_traj_ps.back().push_back(step.GetFullPreStepP());
+    //       g4rw_piplus_traj_lens.back().push_back(step.GetStepLength());
+    //     }
+    //     /*std::cout << "\t" << traj->HasChild(211).size() << " " <<
+    //                  traj->HasChild(-211).size() << " " <<
+    //                  traj->HasChild(111).size() << std::endl;*/
+    //     ++itraj;
+    //   }
+    //   //Children should only be at the last traj
+    //   g4rw_piplus_traj_npiplus.push_back(traj_vec.back()->HasChild(211).size());
+    //   g4rw_piplus_traj_npiminus.push_back(traj_vec.back()->HasChild(-211).size());
+    //   g4rw_piplus_traj_npi0.push_back(traj_vec.back()->HasChild(111).size());
+    //   ++ipart;
+    // }
 
-    }
-
-    std::vector<std::vector<G4ReweightTraj *>> neutron_hierarchy 
-        = BuildHierarchy(true_beam_ID, 2112, plist, fGeometryService,
-                         event, "LAr", false);
-    G4RWGridWeights(neutron_hierarchy, ProtParSet,
-                    g4rw_full_grid_neutron_weights, NeutronMultiRW);
-    for (auto weights : g4rw_full_grid_neutron_weights) {
-      g4rw_full_grid_neutron_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_grid_neutron_coeffs.back());
-
-    }
-
-    std::vector<std::vector<G4ReweightTraj *>> kplus_hierarchy 
-        = BuildHierarchy(true_beam_ID, 321, plist, fGeometryService,
-                         event, "LAr", false);
-    G4RWGridWeights(kplus_hierarchy, ProtParSet, g4rw_full_grid_kplus_weights,
-                    KPlusMultiRW);
-    for (auto weights : g4rw_full_grid_kplus_weights) {
-      g4rw_full_grid_kplus_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_full_grid_kplus_coeffs.back());
-
-    }
-
-    std::vector<std::vector<G4ReweightTraj *>> downstream_piplus_hierarchy 
-        = BuildHierarchy(true_beam_ID, 211, plist, fGeometryService,
-                         event, "LAr", true);
-    G4RWGridWeights(downstream_piplus_hierarchy, ParSet,
-                    g4rw_downstream_grid_piplus_weights, MultiRW);
-    for (auto weights : g4rw_downstream_grid_piplus_weights) {
-      g4rw_downstream_grid_piplus_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_downstream_grid_piplus_coeffs.back());
-    }
-    G4RWGridWeights(downstream_piplus_hierarchy, fAbsCexPars,
-                    g4rw_downstream_grid_abscex_weights, fAbsCexMultiRW);
-    for (auto weights : g4rw_downstream_grid_abscex_weights) {
-      g4rw_downstream_grid_abscex_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_downstream_grid_abscex_coeffs.back());
-    }
+    // G4RWGridWeights(piplus_hierarchy, ParSet, g4rw_full_grid_piplus_weights,
+    //                 MultiRW);
+    // for (auto weights : g4rw_full_grid_piplus_weights) {
+    //   g4rw_full_grid_piplus_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_grid_piplus_coeffs.back());
 
 
-    std::cout << "Making trajs " << std::endl;
-    std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(
-        *true_beam_particle, plist,
-        fGeometryService, event);
-    std::cout << trajs.size() << std::endl;
+    // }
 
-    std::vector<std::vector<G4ReweightTraj *>> temp_hierarchy = {trajs};
-    G4MultiReweighter * primary_rw = 0x0;
-    std::cout << true_beam_PDG << std::endl;
-    if (true_beam_PDG == 211) {
-      primary_rw = MultiRW;
-    }
-    else if (true_beam_PDG == 2212) {
-      primary_rw = ProtMultiRW;
-    }
-    else if (true_beam_PDG == 321) {
-      primary_rw = KPlusMultiRW;
-    }
-    else {
-      primary_rw = MultiRW;
-    }
+    // //Fine Weights
+    // G4RWGridWeights(piplus_hierarchy, FineParSet, g4rw_full_fine_piplus_weights,
+    //                 FineMultiRW);
+    // for (auto weights : g4rw_full_fine_piplus_weights) {
+    //   g4rw_full_fine_piplus_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_fine_piplus_coeffs.back());
 
-    G4RWGridWeights(
-        temp_hierarchy, ((true_beam_PDG == 211 || true_beam_PDG == -13) ?
-                         ParSet : ProtParSet),
-        g4rw_primary_grid_weights, primary_rw);
-    std::cout << "Weights; " << g4rw_primary_grid_weights.size() << std::endl;
-    for (auto weights : g4rw_primary_grid_weights) {
-      g4rw_primary_grid_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_primary_grid_coeffs.back());
-    }
+    // }
 
-    G4RWGridWeights(
-        temp_hierarchy, fAbsCexPars,
-        g4rw_primary_grid_abscex_weights, fAbsCexMultiRW);
-    for (auto weights : g4rw_primary_grid_abscex_weights) {
-      g4rw_primary_grid_abscex_coeffs.push_back(std::vector<double>());
-      GetG4RWCoeffs(weights, g4rw_primary_grid_abscex_coeffs.back());
-    }
 
-    //FineWeights
-    //
+    // G4RWGridWeights(piplus_hierarchy, FakeDataParSet,
+    //                 g4rw_full_grid_piplus_weights_fake_data,
+    //                 FakeDataMultiRW);
+    // for (auto weights : g4rw_full_grid_piplus_weights_fake_data) {
+    //   g4rw_full_grid_piplus_coeffs_fake_data.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_grid_piplus_coeffs_fake_data.back());
+
+    // }
+
+    // //AbsCex Weights
+    
+    // std::cout << "Getting abscex weigths" << std::endl;
+    // G4RWGridWeights(piplus_hierarchy, fAbsCexPars,
+    //                 g4rw_full_grid_abscex_weights, fAbsCexMultiRW);
+    // for (auto weights : g4rw_full_grid_abscex_weights) {
+    //   g4rw_full_grid_abscex_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_grid_abscex_coeffs.back());
+    // }
+
+    // //Proton
+    // std::vector<std::vector<G4ReweightTraj *>> proton_hierarchy 
+    //     = BuildHierarchy(true_beam_ID, 2212, plist, fGeometryService,
+    //                      event, "LAr", false);
+    // G4RWGridWeights(proton_hierarchy, ProtParSet, g4rw_full_grid_proton_weights,
+    //                 ProtMultiRW);
+    // for (auto weights : g4rw_full_grid_proton_weights) {
+    //   g4rw_full_grid_proton_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_grid_proton_coeffs.back());
+
+    // }
+
+    // std::vector<std::vector<G4ReweightTraj *>> neutron_hierarchy 
+    //     = BuildHierarchy(true_beam_ID, 2112, plist, fGeometryService,
+    //                      event, "LAr", false);
+    // G4RWGridWeights(neutron_hierarchy, ProtParSet,
+    //                 g4rw_full_grid_neutron_weights, NeutronMultiRW);
+    // for (auto weights : g4rw_full_grid_neutron_weights) {
+    //   g4rw_full_grid_neutron_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_grid_neutron_coeffs.back());
+
+    // }
+
+    // std::vector<std::vector<G4ReweightTraj *>> kplus_hierarchy 
+    //     = BuildHierarchy(true_beam_ID, 321, plist, fGeometryService,
+    //                      event, "LAr", false);
+    // G4RWGridWeights(kplus_hierarchy, ProtParSet, g4rw_full_grid_kplus_weights,
+    //                 KPlusMultiRW);
+    // for (auto weights : g4rw_full_grid_kplus_weights) {
+    //   g4rw_full_grid_kplus_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_full_grid_kplus_coeffs.back());
+
+    // }
+
+    // std::vector<std::vector<G4ReweightTraj *>> downstream_piplus_hierarchy 
+    //     = BuildHierarchy(true_beam_ID, 211, plist, fGeometryService,
+    //                      event, "LAr", true);
+    // G4RWGridWeights(downstream_piplus_hierarchy, ParSet,
+    //                 g4rw_downstream_grid_piplus_weights, MultiRW);
+    // for (auto weights : g4rw_downstream_grid_piplus_weights) {
+    //   g4rw_downstream_grid_piplus_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_downstream_grid_piplus_coeffs.back());
+    // }
+    // G4RWGridWeights(downstream_piplus_hierarchy, fAbsCexPars,
+    //                 g4rw_downstream_grid_abscex_weights, fAbsCexMultiRW);
+    // for (auto weights : g4rw_downstream_grid_abscex_weights) {
+    //   g4rw_downstream_grid_abscex_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_downstream_grid_abscex_coeffs.back());
+    // }
+
+
+    // std::cout << "Making trajs " << std::endl;
+    // std::vector<G4ReweightTraj *> trajs = CreateNRWTrajs(
+    //     *true_beam_particle, plist,
+    //     fGeometryService, event);
+    // std::cout << trajs.size() << std::endl;
+
+    // std::vector<std::vector<G4ReweightTraj *>> temp_hierarchy = {trajs};
+    // G4MultiReweighter * primary_rw = 0x0;
+    // std::cout << true_beam_PDG << std::endl;
+    // if (true_beam_PDG == 211) {
+    //   primary_rw = MultiRW;
+    // }
+    // else if (true_beam_PDG == 2212) {
+    //   primary_rw = ProtMultiRW;
+    // }
+    // else if (true_beam_PDG == 321) {
+    //   primary_rw = KPlusMultiRW;
+    // }
+    // else {
+    //   primary_rw = MultiRW;
+    // }
+
+    // G4RWGridWeights(
+    //     temp_hierarchy, ((true_beam_PDG == 211 || true_beam_PDG == -13) ?
+    //                      ParSet : ProtParSet),
+    //     g4rw_primary_grid_weights, primary_rw);
+    // std::cout << "Weights; " << g4rw_primary_grid_weights.size() << std::endl;
+    // for (auto weights : g4rw_primary_grid_weights) {
+    //   g4rw_primary_grid_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_primary_grid_coeffs.back());
+    // }
+
+    // G4RWGridWeights(
+    //     temp_hierarchy, fAbsCexPars,
+    //     g4rw_primary_grid_abscex_weights, fAbsCexMultiRW);
+    // for (auto weights : g4rw_primary_grid_abscex_weights) {
+    //   g4rw_primary_grid_abscex_coeffs.push_back(std::vector<double>());
+    //   GetG4RWCoeffs(weights, g4rw_primary_grid_abscex_coeffs.back());
+    // }
+
+
 
   }
 
@@ -2404,7 +2449,7 @@ void pduneana::PDSPAnalyzer::beginJob() {
     };
 
     for (const auto & [part_mat, par_names] :
-         reweight_suite.GetParameterNames()) {
+         fReweightSuite.GetParameterNames()) {
       int pdg = part_mat.first;
       auto material = part_mat.second;
 
@@ -2416,7 +2461,7 @@ void pduneana::PDSPAnalyzer::beginJob() {
         std::string branch_name = PDGStrings[pdg] + "_" + material + "_" + name
                                   + "_weights";
 
-        fTree.Branch(branch_name.c_str(),
+        fTree->Branch(branch_name.c_str(),
                      &fSuiteWeightMap[part_mat_param]);
       }
     }
@@ -3008,6 +3053,10 @@ void pduneana::PDSPAnalyzer::reset()
   g4rw_piplus_traj_npiplus.clear();
   g4rw_piplus_traj_npiminus.clear();
   g4rw_piplus_traj_npi0.clear();
+
+  for (auto & [key, weights] : fSuiteWeightMap) { 
+    weights.clear();
+  }
 }
 
 

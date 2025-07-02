@@ -1,0 +1,52 @@
+BEGIN_PROLOG
+
+
+MaterialSets: {
+    LAr: {
+        Name: "LAr"
+        Density: 1.390 # Standardize this
+        Components: [
+            {
+                Z:    18
+                Mass: 39.95
+                Fraction: 1.
+            }
+        ]
+    }
+}
+
+PiPlusReweight: {
+
+    Name: "PiPlusReweight"
+    PDG: 211
+    Material: @local::MaterialSets.LAr
+    FracsFile: "Geant4ReweightInput/LAr_PiPlus_cascade_0_9000.root"
+    ParameterSet: [
+    { 
+        Cut: "reac"
+        Name: "fReac"
+        Value: 1.0
+        Range: [000., 2000.]
+    },
+    { 
+        Cut: "abs"
+        Name: "fAbs"
+        Value: 1.0
+        Range: [000., 2000.]
+    }
+    ]
+
+}
+    
+  ReweightSuite: {
+
+    Materials: [
+      @local::MaterialSets.LAr
+    ]
+
+    
+    Reweights: [
+      @local::PiPlusReweight
+    ]
+  }
+END_PROLOG
