@@ -1,0 +1,34 @@
+#include "analysisConfig.fcl"
+#include "services_dune.fcl"
+
+process_name: ParticleEvents
+
+source:
+{
+    module_type:    RootInput
+    maxEvents:      -1
+}
+
+services:
+{
+    TFileService: { fileName: "analysisOutput.root" }
+    # @table::dunefd_1x2x6_simulation_services
+    TimeTracker: {}
+    RandomNumberGenerator: {}
+    WireReadout:                @local::dune_wire_readout
+    DetectorPropertiesService:  @local::protodunevd_detproperties
+    FileCatalogMetadata:        @local::art_file_catalog_mc
+                                @table::protodunevd_reco_services
+    LArPropertiesService:       @local::dunefd_properties
+}
+
+physics:
+{
+    analyzers:
+    {
+        ana: @local::analyseEvents
+    }
+
+    path0:      [ ana ]
+    end_paths:  [path0]
+}
