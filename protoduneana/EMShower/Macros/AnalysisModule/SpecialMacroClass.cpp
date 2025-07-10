@@ -12,6 +12,7 @@ SpecialMacro::SpecialMacro(std::string filePath, float electronEnergy) : Tree(fi
     fMCParticleEndPositionX = new double[NMaxMCParticles];
     fMCParticleEndPositionY = new double[NMaxMCParticles];
     fMCParticleEndPositionZ = new double[NMaxMCParticles];
+    fMCParticlePdgCode = new unsigned int[NMaxMCParticles];
 
     // === Set branch addresses for MC ===
     std::cout << "SetBranchAddress MC" << std::endl;
@@ -24,6 +25,7 @@ SpecialMacro::SpecialMacro(std::string filePath, float electronEnergy) : Tree(fi
     tree->SetBranchAddress("MCParticleEndPositionX", fMCParticleEndPositionX);
     tree->SetBranchAddress("MCParticleEndPositionY", fMCParticleEndPositionY);
     tree->SetBranchAddress("MCParticleEndPositionZ", fMCParticleEndPositionZ);
+    tree->SetBranchAddress("MCParticlePdgCode", fMCParticlePdgCode);
 
     // === Allocate memory for Reco ===
     std::cout << "Allocate memory Reco" << std::endl;
@@ -137,55 +139,56 @@ SpecialMacro::SpecialMacro(std::string filePath, float electronEnergy) : Tree(fi
 SpecialMacro::~SpecialMacro() {
     std::cout << "SpecialMacro destructor" << std::endl;
     // === Delete allocated memory for MC ===
-    // delete[] fMCParticleEnergy;
-    // delete[] fMCParticleStartPositionX;
-    // delete[] fMCParticleStartPositionY;
-    // delete[] fMCParticleStartPositionZ;
-    // delete[] fMCParticleEndPositionX;
-    // delete[] fMCParticleEndPositionY;
-    // delete[] fMCParticleEndPositionZ;
+    delete[] fMCParticleEnergy;
+    delete[] fMCParticleStartPositionX;
+    delete[] fMCParticleStartPositionY;
+    delete[] fMCParticleStartPositionZ;
+    delete[] fMCParticleEndPositionX;
+    delete[] fMCParticleEndPositionY;
+    delete[] fMCParticleEndPositionZ;
+    delete[] fMCParticlePdgCode;
 
     // === Delete allocated memory for Reco ===
-    // delete[] fTrackLength;
-    // delete[] fTrackStartX;
-    // delete[] fTrackStartY;
-    // delete[] fTrackStartZ;
-    // delete[] fTrackEndX;
-    // delete[] fTrackEndY;
-    // delete[] fTrackEndZ;
-    // delete[] fShowerEnergy;
-    // delete[] fShowerStartX;
-    // delete[] fShowerStartY;
-    // delete[] fShowerStartZ;
-    // delete[] fShowerEndX;
-    // delete[] fShowerEndY;
-    // delete[] fShowerEndZ;
-    // delete[] fShowerLength;
+    delete[] fTrackLength;
+    delete[] fTrackStartX;
+    delete[] fTrackStartY;
+    delete[] fTrackStartZ;
+    delete[] fTrackEndX;
+    delete[] fTrackEndY;
+    delete[] fTrackEndZ;
+    delete[] fShowerEnergy;
+    delete[] fShowerStartX;
+    delete[] fShowerStartY;
+    delete[] fShowerStartZ;
+    delete[] fShowerEndX;
+    delete[] fShowerEndY;
+    delete[] fShowerEndZ;
+    delete[] fShowerLength;
 
     // === Delete allocated memory for BG ===
-    // delete[] fAr39Energy;
-    // delete[] fAr39StartX;
-    // delete[] fAr39StartY;
-    // delete[] fAr39StartZ;
-    // delete[] fAr39PdgCode;
+    delete[] fAr39Energy;
+    delete[] fAr39StartX;
+    delete[] fAr39StartY;
+    delete[] fAr39StartZ;
+    delete[] fAr39PdgCode;
 
-    // delete[] fAr42Energy;
-    // delete[] fAr42StartX;
-    // delete[] fAr42StartY;
-    // delete[] fAr42StartZ;
-    // delete[] fAr42PdgCode;
+    delete[] fAr42Energy;
+    delete[] fAr42StartX;
+    delete[] fAr42StartY;
+    delete[] fAr42StartZ;
+    delete[] fAr42PdgCode;
 
-    // delete[] fKr85Energy;
-    // delete[] fKr85StartX;
-    // delete[] fKr85StartY;
-    // delete[] fKr85StartZ;
-    // delete[] fKr85PdgCode;
+    delete[] fKr85Energy;
+    delete[] fKr85StartX;
+    delete[] fKr85StartY;
+    delete[] fKr85StartZ;
+    delete[] fKr85PdgCode;
 
-    // delete[] fCosmicEnergy;
-    // delete[] fCosmicStartX;
-    // delete[] fCosmicStartY;
-    // delete[] fCosmicStartZ;
-    // delete[] fCosmicPdgCode;
+    delete[] fCosmicEnergy;
+    delete[] fCosmicStartX;
+    delete[] fCosmicStartY;
+    delete[] fCosmicStartZ;
+    delete[] fCosmicPdgCode;
 }
 
 void SpecialMacro::RecoEnergyIC(double* EnergyIC, double height, double r1, double r2) {
@@ -210,11 +213,57 @@ void SpecialMacro::RecoEnergyIC(double* EnergyIC, double height, double r1, doub
     }
 }
 
-void SpecialMacro::MCEnergyIC(double* EnergyIC, double height, double r1, double r2) {
+void SpecialMacro::MCEnergyIC(double* EnergyIC, double height, double r1, double r2, std::vector<int> pdgCode) {
     for (Long64_t i=0; i<nentries; i++) {
+        /** Different possible PDG code : 
+        - -211       : pion^-
+        - -13        : muon^-
+        - -11        : positron
+        - 11         : electron
+        - 13         : muon
+        - 2212       : proton
+        MARLEY user guide : https://www.marleygen.org/interpret_output.html
+        - 1000010020 : deuterium
+        - 1000010030 : tritium
+        - 1000020040 : alpha particle
+        - 1000120260 : magnesium(26)
+        - 1000130270 : aluminium(27)
+        - 1000140280 : silicium(28)
+        - 1000140290 : silicium(29)
+        - 1000140300 : silicium(30)
+        - 1000150310 : phosphorus(31)
+        - 1000150330 : phosphorus(33)
+        - 1000150340 : phosphorus(34)
+        - 1000150350 : phosphorus(35)
+        - 1000160320 : sulfur(32)
+        - 1000160330 : sulfur(33)
+        - 1000160340 : sulfur(34)
+        - 1000160350 : sulfur(35)
+        - 1000160360 : sulfur(36)
+        - 1000160380 : sulfur(38)
+        - 1000170350 : chlorine(35)
+        - 1000170360 : chlorine(36)
+        - 1000170370 : chlorine(37)
+        - 1000170380 : chlorine(38)
+        - 1000170390 : chlorine(39)
+        - 1000170400 : chlorine(40)
+        - 1000180360 : argon(36)
+        - 1000180370 : argon(37)
+        - 1000180380 : argon(38)
+        - 1000180390 : argon(39)
+        - 1000180400 : argon(40)
+        - 1000180410 : argon(41)
+        **/ 
         tree->GetEntry(i);
         for (unsigned int j=0; j<fNMCParticles; j++) {
-            if (logic_utils::particleInCone(fMCParticleStartPositionX[j],fMCParticleStartPositionY[j],
+            bool passingParticle = true;
+            // If particle's pdg code isn't in the pdgCode vector pass it.
+            for (const auto& code : pdgCode) if (fMCParticlePdgCode[j]!=code) passingParticle = false;
+            // If vector is empty, accept all particles.
+            if (pdgCode.empty()) passingParticle = false;
+            if (passingParticle) continue;
+
+            if (logic_utils::particleInCone(fMCParticleStartPositionX[j], fMCParticleStartPositionY[j],
                 fMCParticleStartPositionZ[j], height, r1, r2)) {
                 EnergyIC[i] += fMCParticleEnergy[j];
             }

@@ -7,6 +7,7 @@ class SpecialMacro : public Tree {
     public:
         // === MC ===
         unsigned int fNMCParticles;
+        double fMCTotalEnergy;
         double* fMCParticleEnergy;
         double* fMCParticleStartPositionX;
         double* fMCParticleStartPositionY;
@@ -14,7 +15,7 @@ class SpecialMacro : public Tree {
         double* fMCParticleEndPositionX;
         double* fMCParticleEndPositionY;
         double* fMCParticleEndPositionZ;
-        double fMCTotalEnergy;
+        unsigned int* fMCParticlePdgCode;
 
         // === Reco ===
         unsigned int fNParticles;
@@ -79,7 +80,7 @@ class SpecialMacro : public Tree {
         // === Methods ===
         void RecoEnergyIC(double* EnergyIC, double height, double r1, double r2);
 
-        void MCEnergyIC(double* EnergyIC, double height, double r1, double r2);
+        void MCEnergyIC(double* EnergyIC, double height, double r1, double r2, std::vector<int> pdgCode);
 };
 
 #endif // SPECIAL_MACRO_CLASS_H

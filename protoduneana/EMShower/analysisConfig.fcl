@@ -1,0 +1,19 @@
+BEGIN_PROLOG
+
+analyseEvents:
+{
+    module_type:        "ParticleEvents"
+    TruthLabel:         "largeant"
+    PFParticleLabel:    "pandora"
+    TrackLabel:         "pandoraTrack"
+    ShowerLabel:        "pandoraShower"
+    HitLabel:           "linecluster"
+    RollUpUnsavedIDs:	"true"
+    EdepLabel:          "largeant:LArG4DetectorServicevolTPCActive"
+    Ar39Label:          "ar39"
+    Ar42Label:          "ar42"
+    Kr85Label:          "kr85"
+    CosmicLabel:        "cosmicgenerator"
+}
+
+END_PROLOG

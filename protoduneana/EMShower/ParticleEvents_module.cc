@@ -98,8 +98,6 @@ private:
     double fMCParticleEndPositionY[NMaxMCParticles];
     double fMCParticleEndPositionZ[NMaxMCParticles];
     int fMCParticlePdgCode[NMaxMCParticles];
-    // double fMCParticleX0ZAngle[NMaxMCParticles];
-    // double fMCParticleY0ZAngle[NMaxMCParticles];
     
     // === Reco information ===
     unsigned int fNParticles;
@@ -221,8 +219,6 @@ void analyse::ParticleEvents::beginJob() {
     fTree->Branch("MCParticleEndPositionY", fMCParticleEndPositionY, "MCParticleEndPositionY[nMCParticles]/D");
     fTree->Branch("MCParticleEndPositionZ", fMCParticleEndPositionZ, "MCParticleEndPositionZ[nMCParticles]/D");
     fTree->Branch("MCParticlePdgCode", fMCParticlePdgCode, "MCParticlePdgCode[nMCParticles]/i");
-    // fTree->Branch("MCParticleX0ZAngle", fMCParticleX0ZAngle, "MCParticleX0ZAngle[nMCParticles]/D");
-    // fTree->Branch("MCParticleY0ZAngle", fMCParticleY0ZAngle, "MCParticleY0ZAngle[nMCParticles]/D");
     
     // === Track reco information ===
     fTree->Branch("TrackLength", fTrackLength, "TrackLength[nParticles]/D");
@@ -504,8 +500,6 @@ void analyse::ParticleEvents::reset() {
         fMCParticleEndPositionY[i] = 0;
         fMCParticleEndPositionZ[i] = 0;
         fMCParticlePdgCode[i] = 0;
-        // fMCParticleX0ZAngle[i] = 0;
-        // fMCParticleY0ZAngle[i] = 0;
     }
     
     // === Reset BG info ===

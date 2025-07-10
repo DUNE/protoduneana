@@ -8,15 +8,16 @@ void EnergyIC_macro() {
     double height = 200.;
     double r1 = 30.;
     double r2 = 60.;
+    std::vector<int> pdgCode = {};
 
     double EnergyIC[tree.nentries];
     std::cout << "Compute energyIC" << std::endl;
-    tree.MCEnergyIC(EnergyIC, height, r1, r2);
+    tree.MCEnergyIC(EnergyIC, height, r1, r2, pdgCode);
 
-    // =========== Create canvas ===========
+    // === Create canvas ===
     TCanvas* c1 = new TCanvas("c1", "Energy Completion", 1920, 1080);
 
-    // =========== Create histogram ===========
+    // === Create histogram ===
     double minVal = *std::minmax_element(EnergyIC, EnergyIC+tree.nentries).first;
     double maxVal = *std::minmax_element(EnergyIC, EnergyIC+tree.nentries).second;
     TH1F* h1 = new TH1F("h1", ";Energy (GeV);Number of events", 100, minVal, maxVal);
@@ -32,13 +33,13 @@ void EnergyIC_macro() {
     std::cout << "Mean: " << mean << std::endl;
     std::cout << "RMS: " << rms << std::endl;
 
-    // =========== Save the plot ===========
+    // === Save the plot ===
     if (saveData) {
         std::string savePath = "/exp/dune/app/users/chalamet/development/srcs/duneana/duneana/AnaTest/Figures/Special/RecoEnergyIC_1GeV_BGCosmics.png";
         c1->SaveAs(savePath.c_str());
     }
 
-    // =========== Clean up ===========
+    // === Clean up ===
     delete c1;
     delete h1;
 }

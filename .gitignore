@@ -11,3 +11,4 @@
 *.so
 *.d
 protoduneana/singlephase/efficiencystudy/fife_cfgs/*list
+.vscode
