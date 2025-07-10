@@ -1,4 +1,4 @@
-# Electromagnetic shower analysis
+# Electromagnetic shower analysis (version : v10_04_04d01)
 ### Goals :
 - optimize the reconstructed energy of electromagnetic shower using a fiducial volume
 - study the different backgrounds sources (cosmological and radiological)
