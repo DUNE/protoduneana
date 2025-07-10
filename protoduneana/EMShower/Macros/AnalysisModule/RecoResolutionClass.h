@@ -1,0 +1,34 @@
+#ifndef RECO_RESOLUTION_CLASS_H
+#define RECO_RESOLUTION_CLASS_H
+
+#include "MCRecoClass.h"
+
+class RecoResolution : public Reco {
+public:
+double (*Resolution)[nR2][nHeight];
+double (*ResolutionErr)[nR2][nHeight];
+double (*ResolutionMin)[nVolume];
+double (*ReductedResolutionError)[nVolume];
+std::vector<double>* VolumeFiltered;
+std::vector<double>* ResolutionFiltered;
+std::vector<double>* ResolutionErrorFiltered;
+
+    // === Constructor ===
+    RecoResolution(std::string filePath, float electronEnergy);
+
+    // === Destructor ===
+    ~RecoResolution() override;
+
+    // === Methods ===
+    void ComputeResolution(int iR1, int iR2, int iHeight);
+    
+    void ComputeResolutionError(int iR1, int iR2, int iHeight);
+
+    void Draw2DMap(int iR1, std::string savePath);
+
+    void DrawMin(int iR1, std::string savePath);
+
+    void DrawMinFinal(std::string savePathPlot, std::string savePathData);
+};
+
+#endif // RECO_RESOLUTION_CLASS_H
