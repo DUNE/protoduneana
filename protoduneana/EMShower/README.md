@@ -1,6 +1,9 @@
 # Electromagnetic shower analysis (version : v10_04_04d01_e26_prof)
-### using the branch : 
+### Using the branch : 
 You will need to checkout ```dunesw```, ```dunecore```, ```duneprototypes```, ```duneopdet```, ```dunereco```, ```duneana``` as well as this branch ```protoduneana/feature/chalamet_PDVD_EM_shower```, using the following command in ```$MRB_SOURCE``` folder : ```mrb g -t version dunesw``` (for ```dunesw```) , version should be >v10_04_04d01_e26_prof.
+
+### Input constraints :
+It can only read simulation with geometry v4.
 
 ### Goals :
 - optimize the reconstructed energy of electromagnetic shower using a fiducial volume
