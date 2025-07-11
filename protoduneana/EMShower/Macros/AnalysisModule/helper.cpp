@@ -1,7 +1,7 @@
 #include "helper.h"
 
 namespace help {
-    // ========== Convert double to string and remove trailing zeros ==========
+    // === Convert double to string and remove trailing zeros ===
     std::string doubleToString(double value) {
         std::ostringstream oss;
         oss << value;

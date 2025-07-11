@@ -5,9 +5,9 @@ constexpr int nHeight = 3;
 constexpr int nR2 = 2;
 constexpr int nR1 = 1;
 constexpr int nVolume = 10;
-constexpr int nEnergies = 1;
+constexpr int nEnergies = 4;
 
-constexpr double ElectronEnergy[nEnergies] = {1.0};
+constexpr double ElectronEnergy[nEnergies] = {0.3, 0.5, 0.75, 1.0};
 constexpr double R1[nR1] = {40.0};
 constexpr double R2[nR2] = {70.0, 100.0};
 constexpr double sHeights[nHeight] = {20.0};
