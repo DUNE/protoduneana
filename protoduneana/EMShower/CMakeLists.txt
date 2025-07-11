@@ -1,0 +1,47 @@
+art_make(MODULE_LIBRARIES
+    art::Framework_Core
+    art::Framework_Principal
+    art::Framework_Services_Registry
+    art::Persistency_Common
+    canvas::canvas
+    art::Persistency_Provenance
+    art::Utilities
+    messagefacility::MF_MessageLogger
+    cetlib::cetlib
+    cetlib_except::cetlib_except
+    larcorealg::Geometry
+    nusimdata::SimulationBase
+    larcore::Geometry_Geometry_service
+    larsim::Simulation 
+    larsim::MCCheater_BackTrackerService_service
+    larsim::MCCheater_ParticleInventoryService_service
+    larreco::RecoAlg
+    ROOT::Core ROOT::Hist ROOT::Tree
+    ProtoDUNEUtilities
+    art_root_io::tfile_support
+    art_root_io::TFileService_service
+    nug4::ParticleNavigation 
+    lardataobj::Simulation
+    larsim::Utils
+    lardata::Utilities
+    larevt::Filters
+    lardataobj::RawData
+    lardataobj::RecoBase
+    lardataobj::AnalysisBase
+    lardata::RecoObjects
+    lardata::ArtDataHelper
+    larpandora::LArPandoraInterface
+    dunecore::SignalShapingServiceDUNE10kt_service
+    dunecore::SignalShapingServiceDUNE35t_service
+    dunereco::AnaUtils
+    fhiclcpp::fhiclcpp
+    ROOT::Geom
+    ROOT::XMLIO
+    ROOT::Gdml
+)
+
+
+install_headers()
+install_fhicl()
+install_source()
+install_scripts()
