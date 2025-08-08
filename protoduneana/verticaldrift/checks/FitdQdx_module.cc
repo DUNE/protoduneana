@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 // Class:       FitdQdx
 // Plugin Type: analyzer (Unknown Unknown)
 // File:        FitdQdx_module.cc
@@ -88,6 +88,8 @@ private:
   string   fTrackModuleLabel;
 
   // Cut parameters
+  bool     fHalfDet;
+  float    fHeight = 0.;
   float    fTrackLenMin;
   float    fTrackLenMax;
   float    fYZfid;
@@ -116,7 +118,6 @@ private:
   // Detector properties
   unsigned int fNtpcs;
   unsigned int fNplanes;
-  float    fHeight;
   float    fXmin = 1e6;
   float    fXmax =-1e6;
   float    fYmin = 1e6;
@@ -207,6 +208,8 @@ pdvdana::FitdQdx::FitdQdx(fhicl::ParameterSet const& p)
   : EDAnalyzer{p},
   fLogLevel(                       p.get< int >("LogLevel")),
   fTrackModuleLabel(               p.get< std::string  >("TrackModuleLabel")),
+  fHalfDet(                        p.get< bool  >("HalfDet")),
+  fHeight(                         p.get< float >("Height")),
   fTrackLenMin(                    p.get< float >("TrackLenMin")),
   fTrackLenMax(                    p.get< float >("TrackLenMax")),
   fYZfid(                          p.get< float >("YZfid")),
@@ -291,7 +294,7 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
 
       // Remove tracks that are not crossing the anode/cathode planes
       // -> unknown drift time
-      if(fabs(fTrackStartX - fTrackEndX) < 0.95*fHeight || fabs(fTrackStartX - fTrackEndX) > 1.05*fHeight) continue;
+      //if(fabs(fTrackStartX - fTrackEndX) < 0.95*fHeight || fabs(fTrackStartX - fTrackEndX) > 1.05*fHeight) continue;
 
       // Check if the track is reconstructed upwards or downwards
       // for now, assume all reconstructed muons should be going downwards
@@ -487,9 +490,12 @@ void pdvdana::FitdQdx::beginJob()
       else if(vw == 2) std::cout << fWireReadoutGeom.Plane({0, 0, geo::kZ}).WirePitch() << std::endl;
     }
   }
-  fHeight = fXmax-fXmin;
+  if(fHeight==0){
+    fHeight = fXmax-fXmin;
+    if(fHalfDet) fHeight /= 2.;
+  }
 
-  std::cout << "  Geometry boundaries: [" << fXmin << "," << fXmax << "] [" << fYmin << "," << fYmax << "] ["<< fZmin << "," << fZmax << "]" << std::endl;
+  std::cout << "  Geometry boundaries: [" << fXmin << "," << fXmax << "] [" << fYmin << "," << fYmax << "] ["<< fZmin << "," << fZmax << "] -> Height: " << fHeight << " cm" << std::endl;
 
   int iXbins = 5*int(fXmax-fXmin)+1;
   int iYbins =   int(fYmax-fYmin)+1;
