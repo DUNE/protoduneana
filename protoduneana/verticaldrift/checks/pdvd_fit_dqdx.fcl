@@ -3,19 +3,19 @@
 process_name: PDVPfitDqDx
 
 services:{
-    TFileService:                 { fileName: "fit_dqdx_results-v09_69_01d00.root" }
+    TFileService:                 { fileName: "fit_dqdx_results.root" }
     TimeTracker:                  {}
     RandomNumberGenerator:        {}
     AuxDetGeometry:               @local::dunecrpcb_auxdet_geo
     WireReadout:                  @local::dune_wire_readout
-    Geometry:                     @local::dunecrpcb_geo
     LArPropertiesService:         @local::dunefd_properties
     DetectorClocksService:        @local::protodune_detectorclocks
-    DetectorPropertiesService:    @local::protodune_detproperties
+    DetectorPropertiesService:    @local::protodunevd_detproperties
     SpaceCharge:                  @local::dunefd_spacecharge
+    @table::protodunevd_reco_services
 }
 
-services.DetectorPropertiesService.Efield: [0.411, 1.0, 1.0]
+services.DetectorPropertiesService.Efield: [0.450, 1.0, 1.0]
 
 source:
 {
@@ -36,18 +36,20 @@ physics:
         module_type:                     "FitdQdx"
         LogLevel:                        1
         TrackModuleLabel:                "pandoraTrack"
-        TrackLenMin:                     23
+        Height:                          338
+        HalfDet:                         false
+        TrackLenMin:                     50
         TrackLenMax:                     430
         YZfid:                           25
         QMin:                             3
-        DtBins:                          81
+        DtBins:                          400
         DtMin:                           -2
-        DtMax:                           160
+        DtMax:                           2000
         DtFitMin:                        20
-        DtFitMax:                        140
-        DQdxBins:                        200
+        DtFitMax:                        1000
+        DQdxBins:                        400
         DQdxMin:                         0
-        DQdxMax:                         20
+        DQdxMax:                         200
         DQdxFitMin:                      5
         DQdxFitMax:                      15
         FieldDistortion:                 false
