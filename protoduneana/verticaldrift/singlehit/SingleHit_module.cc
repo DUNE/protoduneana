@@ -319,7 +319,14 @@ private:
   std::vector<float> vVetoTrackEndY;
   std::vector<float> vVetoTrackEndZ;
 
+
+  /////////////////////
+  float  firstEnergy;
+
+
   //function needed
+  float GetFirstMCTruthEnergy(  art::Event const& e , std::string fG4Label , int LogLevel , art::ServiceHandle<cheat::BackTrackerService> bt_serv );
+
   void print(std::vector<float> v);
   void print( std::vector<std::vector<int>> vv );
   bool AllSame(std::vector<int> v);
@@ -500,6 +507,9 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
 
   // Initializing colection Hit counter
   fHitCounter = 0;
+ 
+  ///////////
+  firstEnergy = -99;
 
   //clock 
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
@@ -516,7 +526,11 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
   
   //retrieve map trackID MC particle to genrator tag
   std::vector<std::string> vTrackIDToGeneratorTag;
-  if (!e.isRealData()) vTrackIDToGeneratorTag = GetGeneratorTag( e , fG4Label , LogLevel , bt_serv );
+  if (!e.isRealData()) 
+  {
+      vTrackIDToGeneratorTag = GetGeneratorTag( e , fG4Label , LogLevel , bt_serv );
+      firstEnergy = GetFirstMCTruthEnergy( e , fG4Label , LogLevel , bt_serv );
+  }
  
   //retrieve hit list
   //art::InputTag hittag(fHitLabel);
@@ -759,6 +773,8 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
         vMCPart_Startz.push_back(-9999);
       }   
       //if( LogLevel > 2) print(vMCPart_Endz); 
+      //firstEnergy = GetFirstMCTruthEnergy( e , fG4Label , LogLevel , bt_serv );
+
     }// end if event != real data
     else
     {
@@ -1402,6 +1418,7 @@ void pdvdana::SingleHit::beginJob()
 
     //add branches
     tHitTree->Branch("eventID"       , &fEventID       );
+    //tHitTree->Branch("firstEnergy"   , &firstEnergy    );
     tHitTree->Branch("CRP_T0"        , &CRP_T0         );
     tHitTree->Branch("wireID"        , &fWire          );
     tHitTree->Branch("hitNumber"     , &fHitNumber     );
@@ -1456,7 +1473,7 @@ void pdvdana::SingleHit::beginJob()
     tHitTree->Branch("vectorOFMCParticleSY"      , &vMCPart_Starty    );
     tHitTree->Branch("vectorOFMCParticleSZ"      , &vMCPart_Startz    );
     tHitTree->Branch("vectorOFGeneratorTag"      , &vGenerator_tag    );
-
+    tHitTree->Branch("TrueEnergy"                , &sumMCEnergy       );
   }
 
   // CLUSTER TREE
@@ -1464,6 +1481,7 @@ void pdvdana::SingleHit::beginJob()
 
   tClusterTree->Branch("AsConverged"        , &fAsConverged     );
   tClusterTree->Branch("eventID"            , &fEventID         );
+  //tClusterTree->Branch("firstEnergy"        , &firstEnergy      );
   tClusterTree->Branch("CRP_T0"             , &CRP_T0           );
   tClusterTree->Branch("NumberOfCluster"    , &NCluster         );
   tClusterTree->Branch("Z"                  , &vZCluster        );
@@ -1508,6 +1526,48 @@ void pdvdana::SingleHit::endJob()
 {
   // Implementation of optional member function here.
 }
+
+float pdvdana::SingleHit::GetFirstMCTruthEnergy(  art::Event const& e , std::string fG4Label , int LogLevel , art::ServiceHandle<cheat::BackTrackerService> bt_serv )
+{
+    std::vector<art::Handle<std::vector<simb::MCTruth>>> mcTruths;
+    mcTruths = e.getMany<std::vector<simb::MCTruth>>();
+
+    //std::cout << "there are " << mcTruths.size() << "MCTruth (should be 1)" << std::endl;
+    float energy = 0;
+    int i = 0;
+    for (auto const &mcTruth : mcTruths)
+    {
+        if( i >0) break;
+        i++;
+        //int j = 0;
+        // MC truth (gen) Mc particle association (g4)
+        art::FindManyP<simb::MCParticle> MCTruthsToMCParticles( mcTruth , e , fG4Label );
+        std::vector<art::Ptr<simb::MCParticle>> mcParts = MCTruthsToMCParticles.at(0);
+
+	//std::cout << "there are " << mcParts.size() << " in this mcTruth" << std::endl;
+        //MCPartcounter += (int) mcParts.size();
+
+        for (const art::Ptr<simb::MCParticle> ptr : mcParts)
+        { 
+            //if( j >0) break;
+	    //j++;
+	    //if ( ptr->NumberDaughters() != 0) continue;
+	    //if (ptr->TrackId() != 0)  continue;
+            //std::cout << " particule " << ptr->TrackId() << std::endl;
+	    //std::cout << " N daughter " << ptr->NumberDaughters() << std::endl;
+	    //std::cout << " mother ID "  << ptr->Mother() << std::endl;
+	    //std::cout << " Energy " << ptr->E() << std::endl;
+            if (ptr->Mother() != 0) continue;
+            energy = ptr->E();
+        }
+    }
+    //std::cout << " total energy " << energy << std::endl;
+    //std::cout << " /////////////////" << std::endl; 
+    return energy;
+}
+
+
+
 
 void pdvdana::SingleHit::print(std::vector<std::vector<int>> vv )
 {
@@ -2200,7 +2260,7 @@ float pdvdana::SingleHit::GetDist2D(float y0,float z0,float y1,float z1){
 float pdvdana::SingleHit::mean(float y,float z){
     return (z+y)/2.;
 }
-
+/*
 void pdvdana::SingleHit::kpp(point pts, int len, point cent, int n_cent)
 {
 #       define for_len for (j = 0, p = pts; j < len; j++, p++)
@@ -2224,6 +2284,50 @@ void pdvdana::SingleHit::kpp(point pts, int len, point cent, int n_cent)
         }
     }
     for_len p->group = nearest(p, cent, n_cluster, 0);
+    free(d);
+}*/
+
+void pdvdana::SingleHit::kpp(point pts, int len, point cent, int n_cent)// bool verbose)
+{
+#       define for_len for (j = 0, p = pts; j < len; j++, p++)
+    int j;
+    int n_cluster;
+    float sum, *d = (float*)malloc(sizeof(float) * len);
+
+    // //For c++ weighted, discrete distribution sampling
+    // std::random_device rd;
+    // std::mt19937 gen(rd());
+    std::vector<float> distances(len, FLT_MAX);
+
+    point p;
+    cent[0] = pts[ rand() % len ]; //1) Choose one center to be one of the datapoints at random
+
+    for (n_cluster = 1; n_cluster < n_cent; n_cluster++) { //Loop over the other clusters
+        // std::cout << "Setting cluster " << n_cluster << std::endl;
+        sum = 0;
+        //auto start = std::chrono::high_resolution_clock::now();
+        //For each point, find the distance to the newest added centroid
+        //And compare it to the previous min distance
+        for (int ipt = 0; ipt < len; ++ipt) {
+          distances[ipt] = std::min(distances[ipt], dist2(&pts[ipt], &cent[n_cluster-1]));
+          d[ipt] = distances[ipt];
+          sum += distances[ipt]; //Sum the squared differences 
+
+        }
+
+        //auto end = std::chrono::high_resolution_clock::now();
+        //auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+        //if (verbose) std::cout << n_cluster << " Calculating nearest took: " << duration.count() << " nanoseconds" << std::endl;
+
+        sum = randf(sum); //3) Choose randomly from (0, total squared difference) to set a new center
+        for_len {
+            if ((sum -= d[j]) > 0) continue;
+            cent[n_cluster] = pts[j];
+            break;
+        }
+    }
+    for_len p->group = nearest(p, cent, n_cluster, 0);//Find the initial nearest centers
     free(d);
 }
 
@@ -2712,14 +2816,12 @@ std::vector<std::string> pdvdana::SingleHit::GetGeneratorTag( art::Event const &
 
     }// end for MCtruth
 
-    //sort by trackID, greater in first position
+    //sort to but greates trackID in first position
     std::sort(vTrackIdToLabelPair.begin(), vTrackIdToLabelPair.end(), [](std::pair<int,std::string> a, std::pair<int,std::string> b){ return a.first > b.first;});
 
     // reassociation for quick access
     std::string noTrackID = "no association";
-
-    std::vector<std::string> vGeneratorLabels;
-    if ( !vTrackIdToLabelPair.empty() ) vGeneratorLabels.resize( vTrackIdToLabelPair[0].first +1 , noTrackID);
+    std::vector<std::string> vGeneratorLabels( vTrackIdToLabelPair[0].first +1 , noTrackID);
 
     for(int j = 0 ; j < (int) vTrackIdToLabelPair.size() ; j++)
     {
