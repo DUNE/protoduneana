@@ -1,5 +1,5 @@
 #include "services_dune.fcl"
-#include "services_vdcoldbox.fcl" 
+#include "services_protodunevd.fcl" 
 #include "SingleHitParameters.fcl"
 
 #include "tools_dune.fcl" 
@@ -32,9 +32,6 @@ services:
 
 }
 
-services.Geometry.Name: "protodunevd_v4"
-services.Geometry.GDML: "protodunevd_v4_refactored.gdml"
-services.Geometry.ROOT: "protodunevd_v4_refactored.gdml"
 
 physics:
 {
