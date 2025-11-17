@@ -1,0 +1,14 @@
+BEGIN_PROLOG
+cafmakerpdune: {
+    module_type: CAFMakerPDUNE
+    MCTruthLabel: generator
+    PandoraLabel: pandora
+    ParticleIDLabel: ""
+    TrackLabel: pandora2Track
+    ShowerLabel: pandora2Shower
+    SpacePointLabel: pandora
+    HitLabel: hitpdune
+    G4Label: largeant
+    CreateFlatCAF: false
+}
+END_PROLOG
