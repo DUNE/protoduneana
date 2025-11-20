@@ -1,4 +1,5 @@
 #include "protoduneana/Utilities/ProtoDUNEBeamlineUtils.h"
+#include "lardataalg/Utilities/TrackingTypeUtils.h"
 
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
