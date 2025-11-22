@@ -163,7 +163,9 @@ private:
   float fTrackEndX;
   float fTrackEndY;
   float fTrackEndZ;
-  bool  bTrackAnode;
+  //bool  bTrackAnode;
+  bool  bTopPlaneCrossing;
+  bool  bBotPlaneCrossing;
   bool  bTrackCathode;
   bool  bTrackRevert;
 
@@ -255,7 +257,11 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
     if( fLogLevel >= 2 ) std::cout << "Start analysing event " << fEventNum << " ..." << std::endl;
 
     // Get list of reconstructed tracks
-    auto Tracks   = e.getValidHandle<vector<recob::Track>>(fTrackModuleLabel);
+    art::Handle< std::vector< recob::Track >> Tracks;
+    e.getByLabel(fTrackModuleLabel, Tracks);
+
+    if(!Tracks) return;
+
     art::FindManyP<recob::Hit, recob::TrackHitMeta> fmHits(Tracks, e, fTrackModuleLabel);
 
     if( fLogLevel >= 2 ) std::cout << "  #tracks:    " << Tracks->size()    << std::endl;
@@ -267,7 +273,9 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
       const recob::Track& track = Tracks->at(trk);
 
       // Initialize output vectors
-      bTrackAnode  = false;
+      //bTrackAnode  = false;
+      bTopPlaneCrossing = false;
+      bBotPlaneCrossing = false;
       bTrackCathode= false;
       fTrackLength = -999;
       fTrackTheta  = -999;
@@ -334,10 +342,10 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
         if(fTrackEndX   < fXmin || fTrackEndX   > 0    ) continue;
       }
 
-      bTrackAnode  = true;
-      bTrackCathode= true;
-      bool bTopPlaneCrossing = true; // anode for TDE and cathode for BDE
-      bool bBotPlaneCrossing = true; // anode for BDE and cathode for TDE
+      //bTrackAnode  = true;
+      bTrackCathode= false;
+      bTopPlaneCrossing = true; // anode for TDE and cathode for BDE
+      bBotPlaneCrossing = true; // anode for BDE and cathode for TDE
 
       // Remove tracks that start outside the detector in the horizontal plane
       if(fTrackStartY < fYmin+fYZfid || fTrackStartY > fYmax-fYZfid) bTopPlaneCrossing = false;
@@ -433,6 +441,12 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
           // due to prefered reconstructed direction along the beam axis (Y or Z coordinate?) in pandora
           int vol = 0;
 
+	  if(tpc > 7) vol = 1;
+
+	  if(fTrackStartX > 0 && fTrackEndX < 0) bTrackCathode = true;
+
+
+	  /*
 	  if(tpc < 8){ // BDE tpcs
 	    bTrackCathode = bTopPlaneCrossing;
 	    bTrackAnode   = bBotPlaneCrossing;
@@ -448,7 +462,7 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
 	    if(bTrackAnode)        fX = fXmax + fX - fTrackStartX;
 	    else if(bTrackCathode) fX = fX - fTrackEndX + fXcat;
 	  }
-
+*/
 
           if( fLogLevel >= 5 )
             std::cout << "        -> ( " << fX << "," << fY << "," << fZ << ") - pitch: " << pitch << " - charge:" << charge << " - dQdx: " << charge/pitch << std::endl;
@@ -677,7 +691,8 @@ void pdvdana::FitdQdx::beginJob()
   fTree->Branch("TrackEndX",   &fTrackEndX,   "TrackEndX/F"   );
   fTree->Branch("TrackEndY",   &fTrackEndY,   "TrackEndY/F"   );
   fTree->Branch("TrackEndZ",   &fTrackEndZ,   "TrackEndZ/F"   );
-  fTree->Branch("TrackAnode",  &bTrackAnode,  "TrackAnode/O"  );
+  fTree->Branch("TrackAnodeTop",&bTopPlaneCrossing,"TrackAnodeTop/O");
+  fTree->Branch("TrackAnodeBot",&bBotPlaneCrossing,"TrackAnodeBot/O");
   fTree->Branch("TrackCathode",&bTrackCathode,"TrackCathode/O");
   fTree->Branch("TrackRevert", &bTrackRevert, "TrackRevert/O" );
   fTree->Branch("TrackQ",      &fTrackQ   );
