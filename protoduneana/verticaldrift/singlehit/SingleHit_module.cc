@@ -534,10 +534,15 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
  
   //retrieve hit list
   //art::InputTag hittag(fHitLabel);
-  auto const HitList = e.getValidHandle<vector<recob::Hit>>(fHitLabel);
-  fNHits = HitList->size();
- 
-  if (fNHits == 0)
+  //auto const HitList = e.getValidHandle<vector<recob::Hit>>(fHitLabel);
+
+  art::Handle< std::vector< recob::Hit >> HitListHandle;
+  e.getByLabel(fHitLabel, HitListHandle);
+
+
+  //std::vector<art::Ptr<recob::Hit> > HitList;
+  //if (HitListHandle){ art::fill_ptr_vector(HitList, HitListHandle); fNHits = HitList.size();}
+  if(!HitListHandle)
   {
     if( LogLevel > 2) std::cout << " NO HIT IN EVENT " << fEventID << std::endl;
 
@@ -663,6 +668,9 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
     return;
   } 
 
+  std::vector<recob::Hit> const& HitList(*HitListHandle);
+  fNHits = HitList.size();
+
   if( !lSingleIndex.empty()   ) lSingleIndex.clear();
   if( !lIsolatedIndex.empty() ) lIsolatedIndex.clear();
 
@@ -698,10 +706,15 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
 
 
   if( LogLevel > 5) std::cout << "THERE ARE " << fNHits << " HITS" << std::endl;
-  for(int index =0 ; index<fNHits; index++)
+  int index = -1;
+  for (const auto& hit : HitList) 
   {
-
-    const recob::Hit& hit = HitList->at(index);
+    index++;
+//
+//for(int index =0 ; index<fNHits; index++)
+//  {
+//
+//    const recob::Hit& hit = HitList.at(index);
     if (!e.isRealData()) 
     {
 
