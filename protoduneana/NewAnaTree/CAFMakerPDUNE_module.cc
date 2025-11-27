@@ -55,6 +55,7 @@
 #include "larsim/Utils/TruthMatchUtils.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
+#include "lardata/ArtDataHelper/MVAReader.h"
 
 
 // root
@@ -97,15 +98,21 @@ namespace caf {
 
       void FillMetaInfo(caf::SRDetectorMeta &meta, art::Event const& evt) const;
       void FillBeamInfo(caf::SRBeamBranch &beam, const art::Event &evt) const;
+      void GetMVAResults(caf::SRPFP & output_pfp,
+          const recob::PFParticle & pfp, 
+          const art::Event &evt, anab::MVAReader<recob::Hit,4> * hitResults, 
+          int planeid, 
+          bool charge_weighted) const;
       void FillRecoInfo(caf::SRCommonRecoBranch &recoBranch, caf::SRFD &fdBranch, const art::Event &evt) const;
       void FillRecoParticlesInfo(caf::SRRecoParticlesBranch &recoParticlesBranch, caf::SRFD &fdBranch, const art::Event &evt) const;
       void FillDirectionInfo(caf::SRDirectionBranch &dirBranch, const art::Event &evt) const;
-      void FillTruthMatchingAndOverlap(art::Ptr<recob::PFParticle> const& pfp, const art::Event &evt, std::vector<TrueParticleID> &truth, std::vector<float> &truthOverlap) const;
+      void FillTruthMatchingAndOverlap(const recob::PFParticle & pfp, const art::Event &evt, std::vector<TrueParticleID> &truth, std::vector<float> &truthOverlap) const;
       void FillPFPMetadata(caf::SRPFP &pfpBranch, art::Ptr<recob::PFParticle> const& pfp, const art::Event &evt) const;
       // double GetSingleHitsEnergy(art::Event const& evt, int plane) const;
 
       std::string fMCTruthLabel;
       std::string fPandoraLabel;
+      std::string fMVALabel;
       std::string fParticleIDLabel;
       std::string fTrackLabel;
       std::string fShowerLabel;
@@ -158,6 +165,7 @@ namespace caf {
     : EDAnalyzer(pset),
       fMCTruthLabel(pset.get<std::string>("MCTruthLabel")),
       fPandoraLabel(pset.get< std::string >("PandoraLabel")),
+      fMVALabel(pset.get< std::string >("MVALabel")),
       fParticleIDLabel(pset.get< std::string >("ParticleIDLabel")),
       fTrackLabel(pset.get< std::string >("TrackLabel")),
       fShowerLabel(pset.get< std::string >("ShowerLabel")),
@@ -423,14 +431,14 @@ namespace caf {
 
 
   void CAFMakerPDUNE::FillTruthMatchingAndOverlap(
-    art::Ptr<recob::PFParticle> const& pfp,
+    const recob::PFParticle & pfp,
     const art::Event &evt, std::vector<TrueParticleID> &truth,
     std::vector<float> &truthOverlap) const {
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
 
     //First getting all the hits belonging to that PFP
-    std::vector<art::Ptr<recob::Hit>> hits = dune_ana::DUNEAnaPFParticleUtils::GetHits(pfp, evt, fPandoraLabel);
-
+    // std::vector<art::Ptr<recob::Hit>> hits = dune_ana::DUNEAnaPFParticleUtils::GetHits(pfp, evt, fPandoraLabel);
+    const auto & hits = pfpUtil.GetPFParticleHits_Ptrs(pfp, evt, fPandoraLabel);
     TruthMatchUtils::IDToEDepositMap idToEDepositMap;
     for (const art::Ptr<recob::Hit>& pHit : hits){
       TruthMatchUtils::FillG4IDToEnergyDepositMap(idToEDepositMap, clockData, pHit, true);
@@ -442,13 +450,13 @@ namespace caf {
     }
 
     if (totalEDeposit <= 0) {
-      mf::LogWarning("CAFMakerPDUNE") << "No energy deposit found for PFP with ID " << pfp->Self() << ". Skipping truth matching.";
+      mf::LogWarning("CAFMakerPDUNE") << "No energy deposit found for PFP with ID " << pfp.Self() << ". Skipping truth matching.";
       return;
     }
 
     for (const auto& [id, eDeposit] : idToEDepositMap) {
       if (fMCParticlesMap.count(id) == 0) {
-        mf::LogWarning("CAFMakerPDUNE") << "No MCParticle found with ID " << id << " for PFP with ID " << pfp->Self() << ". Skipping.";
+        mf::LogWarning("CAFMakerPDUNE") << "No MCParticle found with ID " << id << " for PFP with ID " << pfp.Self() << ". Skipping.";
         continue;
       }
 
@@ -465,7 +473,6 @@ namespace caf {
       truth.push_back(truePart);
       truthOverlap.push_back(eDeposit / totalEDeposit);
     }
-
 
   }
 
@@ -534,10 +541,58 @@ namespace caf {
 
   //------------------------------------------------------------------------------
 
+  void CAFMakerPDUNE::GetMVAResults(
+    caf::SRPFP & output_pfp,
+    const recob::PFParticle & pfp, 
+    const art::Event &evt, anab::MVAReader<recob::Hit,4> * hitResults, 
+    int planeid, 
+    bool charge_weighted) const {
+
+    if (planeid < -1 || planeid > 2) {
+      std::stringstream ss;
+      ss << "Unknown planeid (" << planeid << ") provided to GetMVAResults";
+      throw std::runtime_error(
+        ss.str()
+      );
+    }
+
+    //First getting all the hits belonging to that PFP
+    const auto & hits = (
+      planeid == -1 ?
+      pfpUtil.GetPFParticleHits_Ptrs(pfp, evt, fPandoraLabel) :
+      pfpUtil.GetPFParticleHitsFromPlane_Ptrs(pfp, evt, fPandoraLabel, planeid)
+    );
+
+    float denom = 0.;
+    output_pfp.cnn_stem_scores.charge_weighted = charge_weighted;
+    output_pfp.cnn_stem_scores.plane_ID = planeid;
+    for (const auto & hit : hits){
+      auto output = hitResults->getOutput(hit);
+
+      float scale = (charge_weighted ? hit->Integral() : 1.);
+
+      output_pfp.cnn_stem_scores.track_score += scale*output[hitResults->getIndex("track")];
+      output_pfp.cnn_stem_scores.shower_score += scale*output[hitResults->getIndex("em")];
+      output_pfp.cnn_stem_scores.empty_score += scale*output[hitResults->getIndex("none")];
+      output_pfp.cnn_stem_scores.michel_score += scale*output[hitResults->getIndex("michel")];
+      denom += scale;
+    }
+
+    if (denom > 0.) {
+      output_pfp.cnn_stem_scores /= denom;
+    }
+    else {
+      output_pfp.cnn_stem_scores.track_score = output_pfp.NaN;
+      output_pfp.cnn_stem_scores.shower_score = output_pfp.NaN;
+      output_pfp.cnn_stem_scores.empty_score = output_pfp.NaN;
+      output_pfp.cnn_stem_scores.michel_score = output_pfp.NaN;
+    }
+  }
+
+  //------------------------------------------------------------------------------
+
   void CAFMakerPDUNE::FillRecoParticlesInfo(caf::SRRecoParticlesBranch &recoParticlesBranch, caf::SRFD &fdBranch, const art::Event &evt) const
   {
-    //Doing quite a lot of things here related to saving the reco particles
-    //Will try to be pedagogical in the comments
 
     //Getting Ar density in g/cm3
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
@@ -545,159 +600,335 @@ namespace caf {
     double lar_density = detProp.Density();
 
     //Getting all the PFParticles from the event
-    lar_pandora::PFParticleVector particleVector;
-    lar_pandora::LArPandoraHelper::CollectPFParticles(evt, fPandoraLabel, particleVector);
+    // lar_pandora::PFParticleVector particleVector;
+    // lar_pandora::LArPandoraHelper::CollectPFParticles(evt, fPandoraLabel, particleVector);
 
-    //Creating the FD interaction record where we are going to save the tracks/showers in parallel to the PFPs objects
-    caf::SRFDInt fdIxn;
+    //Get all PFParticles in the event
+    auto pfpVec
+        = evt.getValidHandle<std::vector<recob::PFParticle>>(fPandoraLabel);
+    
+    anab::MVAReader<recob::Hit,4> * hitResults = new anab::MVAReader<recob::Hit, 4>(evt, fMVALabel/*"emtrkmichelid:emtrkmichel"*/ );
+    
+    const auto sliceMap = pfpUtil.GetPFParticleSliceMap(evt, fPandoraLabel);
+    std::cout << sliceMap.size() << " Slices" << std::endl;
+    int n_test_beam_slices = 0;
+    for (const auto & [slice, particle_vector] : sliceMap) {
+      // std::cout << "NParticles: " << particle_vector.size() << std::endl;
+      if (particle_vector.size() == 0)
+        throw std::runtime_error("Found empty particle vector in a slice");
+      // if (particle_vector.size() == 0) continue;
 
-    //Iterating on all the PFParticles to fill the reco particles
-    for (unsigned int n = 0; n < particleVector.size(); ++n) {
-      std::cout << "Processing part " << n << "/" << particleVector.size() << std::endl;
-      const art::Ptr<recob::PFParticle> particle = particleVector.at(n);
-      // if(particle->Self() == nuID){ //Skipping the neutrino that is not a "real" reco particle
-      //   continue;
-      // }
+      //Creating the FD interaction record where we are going to save the tracks/showers in parallel to the PFPs objects
+      caf::SRFDInt fdIxn;
 
-      //Creating the particle record for this PFP
-      caf::SRRecoParticle particle_record;
+      bool is_test_beam = false;
+      auto slice_particle = particle_vector[0];
+      is_test_beam = pfpUtil.IsBeamParticle(*slice_particle, evt, fPandoraLabel);
+      if(!is_test_beam) continue;
 
-      FillTruthMatchingAndOverlap(particle, evt, particle_record.truth, particle_record.truthOverlap);
+      std::deque<const recob::PFParticle*> to_add{slice_particle};
 
-      //Getting the track and shower objects associated to the PFP
-      const recob::Track * track = 0x0;
-      //Unlike what its name suggets, this function only checks if an associated track exists
-      // if(dune_ana::DUNEAnaPFParticleUtils::IsTrack(particle, evt, fPandoraLabel, fTrackLabel)){
-      //   track = dune_ana::DUNEAnaPFParticleUtils::GetTrack(particle, evt, fPandoraLabel, fTrackLabel);
-      // }
-      const auto * part_ptr = particle.get();
-      try {
-        track = pfpUtil.GetPFParticleTrack(*(part_ptr), evt, fPandoraLabel, fTrackLabel);
-      }
-      catch (const cet::exception &e) {
-        mf::LogInfo("CAFMakerPDUNE") << "No associated track object. Moving on";
-      }
-      std::cout << "Got Track " << track << std::endl;
-      
-      const recob::Shower * shower = 0x0;
-      try {
-        shower = pfpUtil.GetPFParticleShower(*(part_ptr), evt, fPandoraLabel, fShowerLabel);
-      }
-      catch (const cet::exception &e) {
-        mf::LogInfo("CAFMakerPDUNE") << "No associated shower object. Moving on";
-      }
-      // if(dune_ana::DUNEAnaPFParticleUtils::IsShower(particle, evt, fPandoraLabel, fShowerLabel)) {
-      //   shower = dune_ana::DUNEAnaPFParticleUtils::GetShower(particle, evt, fPandoraLabel, fShowerLabel);
-      // }
-      
-      std::cout << "Got Shower " << shower << std::endl;
+      while (to_add.size() > 0) {
 
-      //Seeing which option Pandora prefers
-      bool isTrack = lar_pandora::LArPandoraHelper::IsTrack(particle);
-
-      //For every PFP we create a track and a shower object and save it, independently of the existence of a track object to keep the PFP/Track/Shower parallel indexing
-      SRTrack srtrack;
-      SRShower srshower;
-
-      //This variable will be updated correctly during the recob::Track processing and will be used to fill the reco particle energy method if isTrack.
-      caf::PartEMethod trackErecoMethod = caf::PartEMethod::kUnknownMethod;
-
-      if(track){
-        // std::cout << "Getting track stuff" << std::endl;
-        srtrack.start.SetX(track->Start().X());
-        srtrack.start.SetY(track->Start().Y());
-        srtrack.start.SetZ(track->Start().Z());
-
-        srtrack.end.SetX(track->End().X());
-        srtrack.end.SetY(track->End().Y());
-        srtrack.end.SetZ(track->End().Z());
-
-        srtrack.dir.SetX(track->StartDirection().X());
-        srtrack.dir.SetY(track->StartDirection().Y());
-        srtrack.dir.SetZ(track->StartDirection().Z());
-
-        srtrack.enddir.SetX(track->EndDirection().X());
-        srtrack.enddir.SetY(track->EndDirection().Y());
-        srtrack.enddir.SetZ(track->EndDirection().Z());
-
-        //srtrack.qual TODO: Not sure we have anything relevant to put on the FD side for this at the moment
-
-        srtrack.len_gcm2 = track->Length() * lar_density; //Length in g/cm2
-        srtrack.len_cm = track->Length();
-
-        //TODO: I would prefer to use some unified module that the user can setup and that will decide how to compute the energy rather than making a specific choice here
-        //Putting Evis as placeholder to not confuse the user too much
-        trackErecoMethod = caf::PartEMethod::kCalorimetry; //Using the visible energy of the PFP
-
-        //Truth matching already filled at the PFP level, no need to do it again here
-        //srtrack.truth
-        //srtrack.truthOverlap
-
-      }
-
-      if(shower){
-        // std::cout << "Getting shower stuff" << std::endl;
-        //Filling the shower information
-        srshower.start.SetX(shower->ShowerStart().X());
-        srshower.start.SetY(shower->ShowerStart().Y());
-        srshower.start.SetZ(shower->ShowerStart().Z());
-
-        srshower.direction.SetX(shower->Direction().X());
-        srshower.direction.SetY(shower->Direction().Y());
-        srshower.direction.SetZ(shower->Direction().Z());
+        const auto * particle = to_add.front();
+        to_add.pop_front();
         
-        //Truth matching already filled at the PFP level, no need to do it again here
-        //srshower.truth
-        //srshower.truthOverlap
-      }
+        // std::cout << "Found test beam slice. N particles in slice: " << slice.second.size() << std::endl;
 
-      if(isTrack){
-        if(track){ //I hope this condition is always fullfilled is the particle is tagged at track, but who knows...
-          // std::cout << "Getting track stuff2" << std::endl;
-          particle_record.start = SRVector3D(track->Start().X(), track->Start().Y(), track->Start().Z());
-          particle_record.end = SRVector3D(track->End().X(), track->End().Y(), track->End().Z());
-          particle_record.E = srtrack.E;
-          particle_record.E_method = trackErecoMethod;
+        //Creating the particle record for this PFP
+        caf::SRRecoParticle particle_record;
+        FillTruthMatchingAndOverlap(*particle, evt, particle_record.truth, particle_record.truthOverlap);
+
+        //Getting the track and shower objects associated to the PFP
+        const recob::Track * track = 0x0;
+        try {
+          track = pfpUtil.GetPFParticleTrack(*(particle), evt, fPandoraLabel, fTrackLabel);
         }
-        particle_record.origRecoObjType = caf::RecoObjType::kTrack;
-      }
-      else{
-        if(shower){ //I hope this condition is always fullfilled is the particle is tagged at shower, but who knows...
-          // std::cout << "Getting shower stuff2" << std::endl;
-          particle_record.start = SRVector3D(shower->ShowerStart().X(), shower->ShowerStart().Y(), shower->ShowerStart().Z());
-          //Only filling the start, no defined end for a shower
+        catch (const cet::exception &e) {
+          mf::LogInfo("CAFMakerPDUNE") << "No associated track object. Moving on";
+        }
+        
+        const recob::Shower * shower = 0x0;
+        try {
+          shower = pfpUtil.GetPFParticleShower(*(particle), evt, fPandoraLabel, fShowerLabel);
+        }
+        catch (const cet::exception &e) {
+          mf::LogInfo("CAFMakerPDUNE") << "No associated shower object. Moving on";
+        }
 
-          particle_record.E = srshower.Evis; //Using the visible energy of the PFP
-          particle_record.E_method = caf::PartEMethod::kCalorimetry;
+        //Seeing which option Pandora prefers
+        // bool isTrack = lar_pandora::LArPandoraHelper::IsTrack(particle);
+
+        //For every PFP we create a track and a shower object and save it, independently of the existence of a track object to keep the PFP/Track/Shower parallel indexing
+        SRTrack srtrack;
+        SRShower srshower;
+
+        //This variable will be updated correctly during the recob::Track processing and will be used to fill the reco particle energy method if isTrack.
+        // caf::PartEMethod trackErecoMethod = caf::PartEMethod::kUnknownMethod;
+
+        if(track){
+          // std::cout << "Getting track stuff" << std::endl;
+          srtrack.start.SetX(track->Start().X());
+          srtrack.start.SetY(track->Start().Y());
+          srtrack.start.SetZ(track->Start().Z());
+
+          srtrack.end.SetX(track->End().X());
+          srtrack.end.SetY(track->End().Y());
+          srtrack.end.SetZ(track->End().Z());
+
+          srtrack.dir.SetX(track->StartDirection().X());
+          srtrack.dir.SetY(track->StartDirection().Y());
+          srtrack.dir.SetZ(track->StartDirection().Z());
+
+          srtrack.enddir.SetX(track->EndDirection().X());
+          srtrack.enddir.SetY(track->EndDirection().Y());
+          srtrack.enddir.SetZ(track->EndDirection().Z());
+
+          //srtrack.qual TODO: Not sure we have anything relevant to put on the FD side for this at the moment
+
+          srtrack.len_gcm2 = track->Length() * lar_density; //Length in g/cm2
+          srtrack.len_cm = track->Length();
+
+          //TODO: I would prefer to use some unified module that the user can setup and that will decide how to compute the energy rather than making a specific choice here
+          //Putting Evis as placeholder to not confuse the user too much
+          // trackErecoMethod = caf::PartEMethod::kCalorimetry; //Using the visible energy of the PFP
+
+          //Truth matching already filled at the PFP level, no need to do it again here
+          srtrack.truth = particle_record.truth;
+          srtrack.truthOverlap = particle_record.truthOverlap;
+
+        }
+
+        if(shower){
+          // std::cout << "Getting shower stuff" << std::endl;
+          //Filling the shower information
+          srshower.start.SetX(shower->ShowerStart().X());
+          srshower.start.SetY(shower->ShowerStart().Y());
+          srshower.start.SetZ(shower->ShowerStart().Z());
+
+          srshower.direction.SetX(shower->Direction().X());
+          srshower.direction.SetY(shower->Direction().Y());
+          srshower.direction.SetZ(shower->Direction().Z());
           
+          //Truth matching already filled at the PFP level, no need to do it again here
+          srshower.truth = particle_record.truth;        
+          srshower.truthOverlap = particle_record.truthOverlap;
         }
-        particle_record.origRecoObjType = caf::RecoObjType::kShower;
+
+        // if(isTrack){
+        //   if(track){ //I hope this condition is always fullfilled is the particle is tagged at track, but who knows...
+        //     // std::cout << "Getting track stuff2" << std::endl;
+        //     particle_record.start = SRVector3D(track->Start().X(), track->Start().Y(), track->Start().Z());
+        //     particle_record.end = SRVector3D(track->End().X(), track->End().Y(), track->End().Z());
+        //     particle_record.E = srtrack.E;
+        //     particle_record.E_method = trackErecoMethod;
+        //   }
+        //   particle_record.origRecoObjType = caf::RecoObjType::kTrack;
+        // }
+        // else{
+        //   if(shower){ //I hope this condition is always fullfilled is the particle is tagged at shower, but who knows...
+        //     // std::cout << "Getting shower stuff2" << std::endl;
+        //     particle_record.start = SRVector3D(shower->ShowerStart().X(), shower->ShowerStart().Y(), shower->ShowerStart().Z());
+        //     //Only filling the start, no defined end for a shower
+
+        //     particle_record.E = srshower.Evis; //Using the visible energy of the PFP
+        //     particle_record.E_method = caf::PartEMethod::kCalorimetry;
+            
+        //   }
+        //   particle_record.origRecoObjType = caf::RecoObjType::kShower;
+        // }
+
+        //Saving the track record
+        fdIxn.tracks.push_back(std::move(srtrack));
+        fdIxn.ntracks++;
+
+        //Saving the shower record
+        fdIxn.showers.push_back(std::move(srshower));
+        fdIxn.nshowers++;
+
+        //Also saving PFP metadata
+        caf::SRPFP pfp_metarecord;
+        GetMVAResults(
+          pfp_metarecord,
+          *particle,
+          evt,
+          hitResults, 
+          2, //TODO -- make configurable
+          true
+        );
+        pfp_metarecord.parent = particle->Parent();
+        pfp_metarecord.daughters.insert(
+          pfp_metarecord.daughters.begin(),
+          particle->Daughters().begin(),particle->Daughters().end()
+        );
+        pfp_metarecord.truth = particle_record.truth;
+        pfp_metarecord.truthOverlap = particle_record.truthOverlap;
+        // FillPFPMetadata(pfp_metarecord, particle, evt);
+        fdIxn.pfps.push_back(std::move(pfp_metarecord));
+        fdIxn.npfps++;
+          
+        //Saving the particle record for this PFP
+        recoParticlesBranch.pandora.push_back(std::move(particle_record));
+        recoParticlesBranch.npandora++;
+
+        //Iterate over all daughters and add to the queue
+        for (size_t daughterID : particle->Daughters()) {
+          to_add.push_back(&(pfpVec->at(daughterID)));
+          std::cout << "Added daughter " << daughterID << std::endl;
+          // const recob::PFParticle * daughterPFP = &(pfpVec->at(daughterID));
+        }
       }
 
-      //Saving the track record
-      fdIxn.tracks.push_back(std::move(srtrack));
-      fdIxn.ntracks++;
-
-      //Saving the shower record
-      fdIxn.showers.push_back(std::move(srshower));
-      fdIxn.nshowers++;
-
-      //Also saving PFP metadata
-      caf::SRPFP pfp_metarecord;
-      FillPFPMetadata(pfp_metarecord, particle, evt);
-      fdIxn.pfps.push_back(std::move(pfp_metarecord));
-      fdIxn.npfps++;
-        
-      //Saving the particle record for this PFP
-      recoParticlesBranch.pandora.push_back(std::move(particle_record));
-      recoParticlesBranch.npandora++;
-
+      if (!is_test_beam) continue;
+      ++n_test_beam_slices;
+      fdBranch.pandora.push_back(std::move(fdIxn));
+      fdBranch.npandora++;
     }
+    
+    std::cout << "N test beam slices " << n_test_beam_slices << std::endl;
 
-    //Saving the FD interaction record
-    fdBranch.pandora.push_back(std::move(fdIxn));
-    fdBranch.npandora++;
-    std::cout << "Done" << std::endl;
+    // //Iterating on all the PFParticles to fill the reco particles
+    // int ntest = 0;
+    // for (unsigned int n = 0; n < particleVector.size(); ++n) {
+    //   std::cout << "Processing part " << n << "/" << particleVector.size() << std::endl;
+    //   const art::Ptr<recob::PFParticle> particle = particleVector.at(n);
+    //   const auto * part_ptr = particle.get();
+    //   // if(particle->Self() == nuID){ //Skipping the neutrino that is not a "real" reco particle
+    //   //   continue;
+    //   // }
+
+    //   // std::cout << "IsBeam: " << pfpUtil.IsBeamParticle(*(part_ptr), evt, fPandoraLabel) <<
+    //   //              " TestBeamScore " << pfpUtil.GetBeamCosmicScore(*part_ptr, evt, fPandoraLabel) << std::endl;
+    //   if (pfpUtil.IsBeamParticle(*(part_ptr), evt, fPandoraLabel))
+    //     ++ntest;
+
+
+      
+
+    //   //Getting the track and shower objects associated to the PFP
+    //   const recob::Track * track = 0x0;
+    //   try {
+    //     track = pfpUtil.GetPFParticleTrack(*(part_ptr), evt, fPandoraLabel, fTrackLabel);
+    //   }
+    //   catch (const cet::exception &e) {
+    //     mf::LogInfo("CAFMakerPDUNE") << "No associated track object. Moving on";
+    //   }
+      
+    //   const recob::Shower * shower = 0x0;
+    //   try {
+    //     shower = pfpUtil.GetPFParticleShower(*(part_ptr), evt, fPandoraLabel, fShowerLabel);
+    //   }
+    //   catch (const cet::exception &e) {
+    //     mf::LogInfo("CAFMakerPDUNE") << "No associated shower object. Moving on";
+    //   }
+
+    //   //Seeing which option Pandora prefers
+    //   bool isTrack = lar_pandora::LArPandoraHelper::IsTrack(particle);
+
+    //   //For every PFP we create a track and a shower object and save it, independently of the existence of a track object to keep the PFP/Track/Shower parallel indexing
+    //   SRTrack srtrack;
+    //   SRShower srshower;
+
+    //   //This variable will be updated correctly during the recob::Track processing and will be used to fill the reco particle energy method if isTrack.
+    //   caf::PartEMethod trackErecoMethod = caf::PartEMethod::kUnknownMethod;
+
+    //   if(track){
+    //     // std::cout << "Getting track stuff" << std::endl;
+    //     srtrack.start.SetX(track->Start().X());
+    //     srtrack.start.SetY(track->Start().Y());
+    //     srtrack.start.SetZ(track->Start().Z());
+
+    //     srtrack.end.SetX(track->End().X());
+    //     srtrack.end.SetY(track->End().Y());
+    //     srtrack.end.SetZ(track->End().Z());
+
+    //     srtrack.dir.SetX(track->StartDirection().X());
+    //     srtrack.dir.SetY(track->StartDirection().Y());
+    //     srtrack.dir.SetZ(track->StartDirection().Z());
+
+    //     srtrack.enddir.SetX(track->EndDirection().X());
+    //     srtrack.enddir.SetY(track->EndDirection().Y());
+    //     srtrack.enddir.SetZ(track->EndDirection().Z());
+
+    //     //srtrack.qual TODO: Not sure we have anything relevant to put on the FD side for this at the moment
+
+    //     srtrack.len_gcm2 = track->Length() * lar_density; //Length in g/cm2
+    //     srtrack.len_cm = track->Length();
+
+    //     //TODO: I would prefer to use some unified module that the user can setup and that will decide how to compute the energy rather than making a specific choice here
+    //     //Putting Evis as placeholder to not confuse the user too much
+    //     trackErecoMethod = caf::PartEMethod::kCalorimetry; //Using the visible energy of the PFP
+
+    //     //Truth matching already filled at the PFP level, no need to do it again here
+    //     srtrack.truth = particle_record.truth;
+    //     srtrack.truthOverlap = particle_record.truthOverlap;
+
+    //   }
+
+    //   if(shower){
+    //     // std::cout << "Getting shower stuff" << std::endl;
+    //     //Filling the shower information
+    //     srshower.start.SetX(shower->ShowerStart().X());
+    //     srshower.start.SetY(shower->ShowerStart().Y());
+    //     srshower.start.SetZ(shower->ShowerStart().Z());
+
+    //     srshower.direction.SetX(shower->Direction().X());
+    //     srshower.direction.SetY(shower->Direction().Y());
+    //     srshower.direction.SetZ(shower->Direction().Z());
+        
+    //     //Truth matching already filled at the PFP level, no need to do it again here
+    //     srshower.truth = particle_record.truth;        
+    //     srshower.truthOverlap = particle_record.truthOverlap;
+    //   }
+
+    //   if(isTrack){
+    //     if(track){ //I hope this condition is always fullfilled is the particle is tagged at track, but who knows...
+    //       // std::cout << "Getting track stuff2" << std::endl;
+    //       particle_record.start = SRVector3D(track->Start().X(), track->Start().Y(), track->Start().Z());
+    //       particle_record.end = SRVector3D(track->End().X(), track->End().Y(), track->End().Z());
+    //       particle_record.E = srtrack.E;
+    //       particle_record.E_method = trackErecoMethod;
+    //     }
+    //     particle_record.origRecoObjType = caf::RecoObjType::kTrack;
+    //   }
+    //   else{
+    //     if(shower){ //I hope this condition is always fullfilled is the particle is tagged at shower, but who knows...
+    //       // std::cout << "Getting shower stuff2" << std::endl;
+    //       particle_record.start = SRVector3D(shower->ShowerStart().X(), shower->ShowerStart().Y(), shower->ShowerStart().Z());
+    //       //Only filling the start, no defined end for a shower
+
+    //       particle_record.E = srshower.Evis; //Using the visible energy of the PFP
+    //       particle_record.E_method = caf::PartEMethod::kCalorimetry;
+          
+    //     }
+    //     particle_record.origRecoObjType = caf::RecoObjType::kShower;
+    //   }
+
+    //   //Saving the track record
+    //   fdIxn.tracks.push_back(std::move(srtrack));
+    //   fdIxn.ntracks++;
+
+    //   //Saving the shower record
+    //   fdIxn.showers.push_back(std::move(srshower));
+    //   fdIxn.nshowers++;
+
+    //   //Also saving PFP metadata
+    //   caf::SRPFP pfp_metarecord;
+    //   FillPFPMetadata(pfp_metarecord, particle, evt);
+    //   fdIxn.pfps.push_back(std::move(pfp_metarecord));
+    //   fdIxn.npfps++;
+        
+    //   //Saving the particle record for this PFP
+    //   recoParticlesBranch.pandora.push_back(std::move(particle_record));
+    //   recoParticlesBranch.npandora++;
+
+    // }
+    // std::cout << "N test beam candidates: " << ntest << std::endl;
+
+    // //Saving the FD interaction record
+    // fdBranch.pandora.push_back(std::move(fdIxn));
+    // fdBranch.npandora++;
+    // std::cout << "Done" << std::endl;
     // //Adding some extra record with all the leftover hits not associated to any particle
     // caf::SRRecoParticle single_hits;
     // single_hits.primary = false;

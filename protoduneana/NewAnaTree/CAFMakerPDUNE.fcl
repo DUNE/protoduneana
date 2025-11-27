@@ -3,6 +3,7 @@ cafmakerpdune: {
     module_type: CAFMakerPDUNE
     MCTruthLabel: generator
     PandoraLabel: pandora
+    MVALabel: "emtrkmichelid:emtrkmichel"
     ParticleIDLabel: ""
     TrackLabel: pandora2Track
     ShowerLabel: pandora2Shower
