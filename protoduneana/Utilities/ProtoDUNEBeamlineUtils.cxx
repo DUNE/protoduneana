@@ -3,6 +3,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "lardataalg/Utilities/TrackingTypeUtils.h"
 
 #include <algorithm>
 #include "TVector3.h"
