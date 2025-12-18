@@ -10,6 +10,7 @@ art_make( LIBRARY_NAME ProtoDUNEUtilities
                         larcorealg::Geometry
                         larcore::Geometry_Geometry_service
                         lardataalg::DetectorInfo
+                        lardataalg::UtilitiesHeaders
                         lardata::ArtDataHelper
                         lardata::Utilities
                         larsim::Simulation 
