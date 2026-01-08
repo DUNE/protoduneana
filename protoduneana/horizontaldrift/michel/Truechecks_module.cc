@@ -116,7 +116,7 @@ private:
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
   // Conversion factors
-  float feltoMeV =
+  //float feltoMeV =
       23.6 * 1e-6 / 0.7; // 23.6 eV/e- * 1e-6 MeV/eV / 0.7 recombination factor
   float fADCtoMeV =
       200 * 23.6 * 1e-6 / 0.7; // 200 e-/ADC.tick * 23.6 eV/e- * 1e-6 MeV/eV /
@@ -132,7 +132,8 @@ private:
   // Diagnostic Variables
   std::map<std::string, unsigned> map_mup_endproc;
   std::map<std::string, unsigned> map_mum_endproc;
-  unsigned n_mup = 0, n_mum = 0, n_mep = 0, n_mem = 0;
+  unsigned n_mup = 0, n_mum = 0;
+  // unsigned n_mep = 0, n_mem = 0;
   unsigned n_cme_wh = 0, n_cme_nh = 0;
   float mean_cme_h = 0;
 
@@ -550,8 +551,8 @@ void ana::Truechecks::analyze(art::Event const &e) {
     std::cout << "\tMichel Process = " << mcp_mich->Process()
               << " / muon end process = " << mcp->EndProcess() << std::endl;
 
-    float mich_ide_energy = 0;
-    float mich_hit_energy = 0;
+    //float mich_ide_energy = 0;
+    //float mich_hit_energy = 0;
     for (const recob::Hit *hit_michel : v_hit_michel) {
       if (hit_michel->View() != geo::kW)
         continue;
