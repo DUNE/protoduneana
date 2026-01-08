@@ -1,0 +1,65 @@
+#include "services_dune.fcl"
+#include "protodune_tools_dune.fcl"
+
+process_name: MichelTime
+
+services:
+{
+  #Load the service that manages root files for histograms.
+  TFileService: { fileName: "michelt0_Decon.root" }
+  TimeTracker:       {}
+  MemoryTracker:         { }     #default is one
+  RandomNumberGenerator: {}      #ART native random number generator
+#                @table::protodune_data_reco_services
+                @table::protodunehd_reco_services
+
+  #Added by Shu, 20241111---
+  Geometry:     @local::protodunehdv6_geo
+
+  message:      @local::standard_info
+  IFDH: {}
+}
+
+#load the geometry; Shu; 20241111---
+#services.Geometry.GDML: "protodunehd_v6_refactored.gdml"
+#services.Geometry.Name: "protodunehd_v6_refactored"
+#services.Geometry.ROOT: "protodunehd_v6_refactored.gdml"
+
+services.AuxDetGeometry.GDML: "protodunehd_v6_refactored.gdml"
+services.AuxDetGeometry.Name: "protodunehdv6"
+
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents:  1000           # Number of events to create
+}
+
+outputs:
+{
+}
+
+physics:
+{
+ analyzers:{}
+ 
+ ana:  [ t0 ]
+# ana: []
+ 
+ 
+ stream1:  [  ]
+
+ trigger_paths: [] 
+
+ #end_paths:     [ stream1, ana ] 
+ end_paths:     [  ana ] 
+}
+
+
+physics.analyzers.t0:  {
+    module_type:          "MichelTimingDataDeconHD"
+}
+
+
+
