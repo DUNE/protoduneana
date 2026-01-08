@@ -568,6 +568,10 @@ void ana::Truechecks::analyze(art::Event const &e) {
         }
       }
     }
+    // added by wyjang, 20260107 --- this was added to avoid clang compiler unused variable error
+    std::cout << "\tmich_ide_energy = " << mich_ide_energy << std::endl;
+    std::cout << "\tmich_hit_energy = " << mich_hit_energy << std::endl;
+    // ------------------------------------------------------------------------------------------
   }
 
   if (iLogLevel >= kBasics)
