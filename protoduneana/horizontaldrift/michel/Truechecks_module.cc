@@ -116,8 +116,9 @@ private:
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
   // Conversion factors
-  //float feltoMeV =
+  /*float feltoMeV =
       23.6 * 1e-6 / 0.7; // 23.6 eV/e- * 1e-6 MeV/eV / 0.7 recombination factor
+      */
   float fADCtoMeV =
       200 * 23.6 * 1e-6 / 0.7; // 200 e-/ADC.tick * 23.6 eV/e- * 1e-6 MeV/eV /
                                // 0.7 recombination factor
