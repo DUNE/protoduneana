@@ -551,8 +551,8 @@ void ana::Truechecks::analyze(art::Event const &e) {
     std::cout << "\tMichel Process = " << mcp_mich->Process()
               << " / muon end process = " << mcp->EndProcess() << std::endl;
 
-    //float mich_ide_energy = 0;
-    //float mich_hit_energy = 0;
+    float mich_ide_energy = 0;
+    float mich_hit_energy = 0;
     for (const recob::Hit *hit_michel : v_hit_michel) {
       if (hit_michel->View() != geo::kW)
         continue;
