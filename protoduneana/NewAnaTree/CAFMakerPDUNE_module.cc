@@ -24,6 +24,9 @@
 #include "art_root_io/TFileService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 
+#include "cetlib/search_path.h"
+#include "cetlib/filesystem.h"
+
 #include "duneanaobj/StandardRecord/StandardRecord.h"
 #include "duneanaobj/StandardRecord/SRGlobal.h"
 
@@ -49,6 +52,8 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "dunereco/AnaUtils/DUNEAnaPFParticleUtils.h"
 #include "protoduneana/Utilities/ProtoDUNEPFParticleUtils.h"
+#include "protoduneana/Utilities/ProtoDUNETrackUtils.h"
+#include "protoduneana/Utilities/ProtoDUNEShowerUtils.h"
 #include "dunereco/AnaUtils/DUNEAnaHitUtils.h"
 #include "dunereco/AnaUtils/DUNEAnaEventUtils.h"
 #include "dunereco/AnaUtils/DUNEAnaShowerUtils.h"
@@ -63,6 +68,7 @@
 #include "TTree.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TProfile.h"
 
 // pdg
 #include "Framework/ParticleData/PDGCodes.h"
@@ -92,6 +98,7 @@ namespace caf {
 
     private:
       void PreLoadMCParticlesInfo(art::Event const& evt);
+      TFile * OpenFile(const std::string filename);
       void FillTruthInfo(caf::SRTruthBranch& sr,
                          std::vector<simb::MCTruth> const& mctruth,
                          art::Event const& evt);
@@ -115,11 +122,17 @@ namespace caf {
       std::string fMVALabel;
       std::string fParticleIDLabel;
       std::string fTrackLabel;
+      std::string fTrackCaloLabel;
       std::string fShowerLabel;
+      std::string fShowerCaloLabel;
       std::string fSpacePointLabel;
       std::string fHitLabel;
       std::string fG4Label;
       protoana::ProtoDUNEPFParticleUtils pfpUtil;
+      protoana::ProtoDUNETrackUtils trackUtil;
+      protoana::ProtoDUNEShowerUtils showerUtil;
+      TFile * dEdX_template_file;
+      std::map< int, TProfile* > templates;
 
       std::map<int, std::tuple<art::Ptr<simb::MCParticle>, bool, int>> fMCParticlesMap; //[tid] = (MCParticle, isPrimary, SRParticle ID)
       uint fNprimaries = 0;
@@ -159,6 +172,38 @@ namespace caf {
 
   }; // class CAFMakerPDUNE
 
+    //To make auto-finding files easier for the dEdX template file
+  TFile * CAFMakerPDUNE::OpenFile(const std::string filename) {
+    TFile * theFile = 0x0;
+    mf::LogInfo("pduneana::OpenFile") << "Searching for " << filename;
+    if (cet::file_exists(filename)) {
+      mf::LogInfo("pduneana::OpenFile") << "File exists. Opening " << filename;
+      theFile = new TFile(filename.c_str());
+      if (!theFile ||theFile->IsZombie() || !theFile->IsOpen()) {
+        delete theFile;
+        theFile = 0x0;
+        throw cet::exception("PDSPAnalyzer_module.cc") << "Could not open " << filename;
+      }
+    }
+    else {
+      mf::LogInfo("pduneana::OpenFile") << "File does not exist here. Searching FW_SEARCH_PATH";
+      cet::search_path sp{"FW_SEARCH_PATH"};
+      std::string found_filename;
+      auto found = sp.find_file(filename, found_filename);
+      if (!found) {
+        throw cet::exception("PDSPAnalyzer_module.cc") << "Could not find " << filename;
+      }
+
+      mf::LogInfo("pduneana::OpenFile") << "Found file " << found_filename;
+      theFile = new TFile(found_filename.c_str());
+      if (!theFile ||theFile->IsZombie() || !theFile->IsOpen()) {
+        delete theFile;
+        theFile = 0x0;
+        throw cet::exception("PDSPAnalyzer_module.cc") << "Could not open " << found_filename;
+      }
+    }
+    return theFile;
+  }
 
   //------------------------------------------------------------------------------
   CAFMakerPDUNE::CAFMakerPDUNE(fhicl::ParameterSet const& pset)
@@ -168,7 +213,9 @@ namespace caf {
       fMVALabel(pset.get< std::string >("MVALabel")),
       fParticleIDLabel(pset.get< std::string >("ParticleIDLabel")),
       fTrackLabel(pset.get< std::string >("TrackLabel")),
+      fTrackCaloLabel(pset.get< std::string >("TrackCaloLabel")),
       fShowerLabel(pset.get< std::string >("ShowerLabel")),
+      fShowerCaloLabel(pset.get< std::string >("ShowerCaloLabel")),
       fSpacePointLabel(pset.get< std::string >("SpacePointLabel")),
       fHitLabel(pset.get< std::string >("HitLabel")),
       fG4Label(pset.get< std::string >("G4Label")),
@@ -183,6 +230,12 @@ namespace caf {
       fFlatFile = std::make_unique<TFile>("flatcaf.root", "RECREATE", "",
                             ROOT::CompressionSettings(ROOT::kLZ4, 1));
     }
+
+    dEdX_template_file = OpenFile(pset.get<std::string>("dEdX_template_name"));
+    templates[ 211 ]  = (TProfile*)dEdX_template_file->Get( "dedx_range_pi"  );
+    templates[ 321 ]  = (TProfile*)dEdX_template_file->Get( "dedx_range_ka"  );
+    templates[ 13 ]   = (TProfile*)dEdX_template_file->Get( "dedx_range_mu"  );
+    templates[ 2212 ] = (TProfile*)dEdX_template_file->Get( "dedx_range_pro" );
 
   }
 
@@ -697,6 +750,62 @@ namespace caf {
           srtrack.truth = particle_record.truth;
           srtrack.truthOverlap = particle_record.truthOverlap;
 
+          std::cout << "Fetching calo " << std::endl;
+          auto calo_obj =
+            trackUtil.GetRecoTrackCalorimetry(
+                *track, evt, fTrackLabel, fTrackCaloLabel);
+          std::cout << "Got " << calo_obj.size() << " calos" << std::endl;
+          bool found_calo = false;
+          size_t index = 0;
+          for ( index = 0; index < calo_obj.size(); ++index) {
+            auto plane = calo_obj[index].PlaneID().Plane;
+            std::cout << "Searching for calo " << index << " " << plane << std::endl;
+            if (plane == 2) { //TODO -- MAKE THIS CONFIGURABLE OR MORE FLEXIBLE FOR PDHD APA 1 
+              found_calo = true;
+              break;
+            }
+          }
+
+          // if (!found_calo) {
+          //   throw std::runtime_error("Could not find calo object for track");
+          // }
+
+          if (found_calo) {
+            std::cout << "Found calo" << std::endl;
+            auto temp_dEdx = calo_obj[index].dEdx();
+            auto temp_resRange = calo_obj[index].ResidualRange();
+
+            
+            std::vector<double> dEdx(temp_dEdx.begin(), temp_dEdx.end());
+            std::vector<double> resRange(temp_resRange.begin(), temp_resRange.end());
+            // std::cout << "Kinetic Energy: " << calo_obj[index].KineticEnergy() << std::endl;
+            srtrack.Evis = calo_obj[index].KineticEnergy();
+            
+            auto chi2_ndof_2212 = trackUtil.Chi2PID(
+              dEdx, resRange, templates.at(2212));
+            auto chi2_ndof_211 = trackUtil.Chi2PID(
+              dEdx, resRange, templates.at(211));
+            auto chi2_ndof_13 = trackUtil.Chi2PID(
+              dEdx, resRange, templates.at(13));
+            auto chi2_ndof_321 = trackUtil.Chi2PID(
+              dEdx, resRange, templates.at(321));
+                    
+            if (
+              (chi2_ndof_2212.second != chi2_ndof_13.second) ||
+              (chi2_ndof_2212.second != chi2_ndof_211.second) ||
+              (chi2_ndof_2212.second != chi2_ndof_211.second)
+            ) {
+              throw std::runtime_error("NDOF values from chi2 fits are different between hypotheses.");
+            }
+                    
+            srtrack.calo_pid.proton_score = chi2_ndof_2212.first;
+            srtrack.calo_pid.pion_score = chi2_ndof_211.first;
+            srtrack.calo_pid.muon_score = chi2_ndof_13.first;
+            srtrack.calo_pid.kaon_score = chi2_ndof_321.first;
+            srtrack.calo_pid.ndof = chi2_ndof_2212.second;
+            
+          }
+
         }
 
         if(shower){
@@ -713,6 +822,26 @@ namespace caf {
           //Truth matching already filled at the PFP level, no need to do it again here
           srshower.truth = particle_record.truth;        
           srshower.truthOverlap = particle_record.truthOverlap;
+
+          std::cout << "Fetching calo " << std::endl;
+          auto calo_obj =
+            showerUtil.GetRecoShowerCalorimetry(
+                *shower, evt, fShowerLabel, fShowerCaloLabel);
+          std::cout << "Got " << calo_obj.size() << " calos" << std::endl;
+          bool found_calo = false;
+          size_t index = 0;
+          for ( index = 0; index < calo_obj.size(); ++index) {
+            auto plane = calo_obj[index].PlaneID().Plane;
+            std::cout << "Searching for calo " << index << " " << plane << std::endl;
+            if (plane == 2) { //TODO -- MAKE THIS CONFIGURABLE OR MORE FLEXIBLE FOR PDHD APA 1 
+              found_calo = true;
+              break;
+            }
+          }
+
+          if (found_calo) {
+            srshower.Evis = calo_obj[index].KineticEnergy();
+          }
         }
 
         // if(isTrack){

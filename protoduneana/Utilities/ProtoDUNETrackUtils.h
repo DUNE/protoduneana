@@ -61,7 +61,7 @@ namespace protoana {
     BrokenTrack IsBrokenTrack( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet & BrokenTrackPars, const fhicl::ParameterSet & CalorimetryPars );
    /// Until we have fully calibrated calorimetry, use this PID algo
    std::pair< double, int > Chi2PIDFromTrack_MC( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, TProfile * profile );
-   std::pair< double, int > Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, TProfile * profile );
+   std::pair< double, int > Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, TProfile * profile ) const;
 
    // Get the hits from the track, organized by the Track Trajectory points
    //std::map< size_t, std::vector< const recob::Hit * > > GetRecoHitsFromTrajPoints( const recob::Track & track, art::Event const & evt, std::string trackModule );

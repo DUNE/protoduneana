@@ -7,6 +7,9 @@ cafmakerpdune: {
     ParticleIDLabel: ""
     TrackLabel: pandora2Track
     ShowerLabel: pandora2Shower
+    TrackCaloLabel: pandora2GnocchiCalo
+    ShowerCaloLabel: pandora2Showercalo 
+    dEdX_template_name: "dEdxrestemplates.root"
     SpacePointLabel: pandora
     HitLabel: hitpdune
     G4Label: largeant

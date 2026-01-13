@@ -421,7 +421,7 @@ std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PIDFromTrack_MC( con
 
 }
 
-std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, TProfile * profile ){
+std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, TProfile * profile ) const {
 
   double pid_chi2 = 0.; 
   int npt = 0;
