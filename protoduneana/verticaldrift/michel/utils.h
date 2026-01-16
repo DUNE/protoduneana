@@ -791,14 +791,13 @@ ana::Hit ana::MichelAnalyzer::GetHit(PtrHit const& ph) const {
 }
 
 // 2D projected distance in cm
-double ana::MichelAnalyzer::GetDistance(PtrHit const& ph1, PtrHit const& ph2, bool different_sections=false) const {
-    Hit h1 = GetHit(ph1), h2 = GetHit(ph2);
-    if (!different_sections && (h1.section != h2.section))
-        return std::numeric_limits<double>::max();
-    return sqrt(pow(h2.space - h1.space, 2) + pow((h2.tick - h1.tick) * fTick2cm, 2));
+double ana::MichelAnalyzer::GetDistance(PtrHit const& ph1, PtrHit const& ph2, bool allow_different_side=false) const {
+    return GetDistance(GetHit(ph1), GetHit(ph2), allow_different_side);
 }
-double ana::MichelAnalyzer::GetDistance(ana::Hit const& h1, ana::Hit const& h2, bool different_sections=false) const {
-    if (!different_sections && (h1.section != h2.section))
+double ana::MichelAnalyzer::GetDistance(ana::Hit const& h1, ana::Hit const& h2, bool allow_different_side=false) const {
+    int side1 = ana::sec2side.at(geoDet).at(h1.section);
+    int side2 = ana::sec2side.at(geoDet).at(h2.section);
+    if (!allow_different_side && (side1 != side2))
         return std::numeric_limits<double>::max();
     return sqrt(pow(h2.space - h1.space, 2) + pow((h2.tick - h1.tick) * fTick2cm, 2));
 }
