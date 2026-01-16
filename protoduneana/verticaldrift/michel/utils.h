@@ -26,31 +26,59 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOneP.h"
 
+#include "lardataobj/RecoBase/TrackHitMeta.h"
+
 #include <TTree.h>
 #include <TBranch.h>
 
 #include <cstdio>
 #include <algorithm>
 
-#define LOG(x) (fLog ? printf("\tLOG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)
-#define ASSERT(x)  if (!(fLog ? printf("\tAST " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)) continue; 
-#define DEBUG(x) if ((fLog ? printf("\tDBG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?1:2, x?"true":"false") : 0, x)) exit(1);
 
+#define LOG(x)         (fLog ? printf("\tLOG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)
+#define ASSERT(x) if (!(fLog ? printf("\tAST " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)) continue; 
+#define DEBUG(x)  if  ((fLog ? printf("\tDBG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?1:2, x?"true":"false") : 0, x)) exit(EXIT_FAILURE);
 
-using PtrHit = art::Ptr<recob::Hit>;
+using PtrHit    = art::Ptr<recob::Hit>;
 using VecPtrHit = std::vector<art::Ptr<recob::Hit>>;
-using PtrTrk = art::Ptr<recob::Track>;
+using PtrTrk    = art::Ptr<recob::Track>;
 using VecPtrTrk = std::vector<art::Ptr<recob::Track>>;
-using PtrShw = art::Ptr<recob::Shower>;
+using PtrShw    = art::Ptr<recob::Shower>;
 using VecPtrShw = std::vector<art::Ptr<recob::Shower>>;
 
 namespace ana {
+    /*
+    PDVD: (beam direction along Z, inside side1)
+    ┌─────────┬─────────┬─────────┬─────────┐  X
+    │ side1   │ side1   │ side1   │ side1   │  🡩
+    │ sec0    │ sec1    │ sec2    │ sec3    │  │  TOP
+    │ tpc8,10 │ tpc9,11 │ tpc12,14│ tpc13,15│  │
+    │         │         │         │         │  │
+    ├─────────┼─────────┼─────────┼─────────┤  │
+    │ side0   │ side0   │ side0   │ side0   │  │
+    │ sec4    │ sec5    │ sec6    │ sec7    │  │  BOT
+    │ tpc0,2  │ tpc1,3  │ tpc4,6  │ tpc5,7  │  │ 
+    │         │         │         │         │  │
+    └─────────┴─────────┴─────────┴─────────┘
+     ─────────────────────────────────────> Y
+
+    PDHD: (beam direction along Z, inside side0)
+    ┌─────────┬─────────┐ Y
+    │ side0   │ side1   │ 🡩
+    │ sec0    │ sec1    │ │
+    │ tpc1,5  │ tpc2,6  │ │
+    │         │         │ │
+    └─────────┴─────────┘  
+     ─────────────────> X
+       BOT       TOP
+    */
+
     enum EnumDet { kPDVD, kPDHD };
-    std::vector<unsigned> n_sec = {
+    std::vector<unsigned> const n_sec = {
         8, // PDVD
         2  // PDHD
     };
-    std::vector<std::map<unsigned, int>> tpc2sec = {
+    std::vector<std::map<unsigned, int>> const tpc2sec = {
         { // PDVD
             {0, 4}, {2, 4},
             {1, 5}, {3, 5},
@@ -67,22 +95,22 @@ namespace ana {
             {7, -1}, {3, -1}
         }
     };
-    std::vector<std::map<int, std::pair<unsigned, unsigned>>> sec2tpc = {
+    std::vector<std::map<int, std::pair<unsigned, unsigned>>> const sec2tpc = {
         { // PDVD
-            {0, {8, 10}},
-            {1, {9, 11}},
-            {2, {12, 14}},
-            {3, {13, 15}},
-            {4, {0, 2}},
-            {5, {1, 3}},
-            {6, {4, 6}},
-            {7, {5, 7}}
+            {0, {8, 10} },
+            {1, {9, 11} },
+            {2, {12, 14} },
+            {3, {13, 15} },
+            {4, {0, 2} },
+            {5, {1, 3} },
+            {6, {4, 6} },
+            {7, {5, 7} }
         }, { // PDHD
-            {0, {1, 5}},
-            {1, {2, 6}}
+            {0, {1, 5} },
+            {1, {2, 6} }
         }
     };
-    std::vector<std::map<unsigned, int>> tpc2side = {
+    std::vector<std::map<unsigned, int>> const tpc2side = {
         { // PDVD
             { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 },
             { 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 },
@@ -93,14 +121,14 @@ namespace ana {
             { 4, -1 }, { 5, 0 }, { 6, 1 }, { 7, -1 }
         }
     };
-    std::vector<std::map<int, std::vector<int>>> side2secs = {
+    std::vector<std::map<int, std::vector<int>>> const side2secs = {
         { // PDVD
             { 0, {4, 5, 6, 7} }, { 1, {0, 1, 2, 3} }
         }, { // PDHD
             { 0, {0} }, { 1, {1} }
         }
     };
-    std::vector<std::map<int, int>> sec2side = {
+    std::vector<std::map<int, int>> const sec2side = {
         { // PDVD
             {0, 1}, {1, 1}, {2, 1}, {3, 1},
             {4, 0}, {5, 0}, {6, 0}, {7, 0},
@@ -138,7 +166,7 @@ namespace ana {
         double distance(double x, double y) const {
             return abs(y - (m*x + p)) / sqrt(1 + m*m);
         }
-        double theta(int dirx) {
+        double theta(int dirx) const {
             return atan2(dirx*cov, dirx*(lp-vary));
         }
         void SetBranches(TTree* t, const char* pre="") {
@@ -389,14 +417,18 @@ namespace ana {
         iterator end() const { return iterator(this, N); }
     };
 
+    template<typename AnaStruct>
+    void SetBranches(TTree* t, const char* pre, AnaStruct* x) {   x->SetBranches(t, pre); }
+
     // reco to truth functions
     art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
     art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
-    simb::MCParticle const* trk2mcp(
+    // Computationally intensive!!
+    template<typename Data> simb::MCParticle const* trk2mcp(
         PtrTrk const& pt,
         detinfo::DetectorClocksData const& clockData,
-        art::FindManyP<recob::Hit> const& fmp_trk2hit
+        art::FindManyP<recob::Hit, Data> const& fmp_trk2hit
     ) {
         std::unordered_map<int, float> map_tid_ene;
         for (PtrHit const& p_hit : fmp_trk2hit.at(pt.key()))
@@ -411,11 +443,12 @@ namespace ana {
         return max_ene == -1 ? nullptr : pi_serv->TrackIdToParticle_P(tid_max);
     }
 
-    PtrTrk mcp2trk(
+    // Computationally intensive!!
+    template<typename Data> PtrTrk mcp2trk(
         simb::MCParticle const* mcp, 
         VecPtrTrk const& vp_trk,
         detinfo::DetectorClocksData const& clockData,
-        art::FindManyP<recob::Hit> const& fmp_trk2hit
+        art::FindManyP<recob::Hit, Data> const& fmp_trk2hit
     ) {
         std::unordered_map<PtrTrk, unsigned> map_trk_nhit;
         for (PtrTrk p_trk : vp_trk)
@@ -428,11 +461,11 @@ namespace ana {
                 max = p.second, p_trk_from_mcp = p.first;
         return p_trk_from_mcp;
     }
-    VecPtrTrk mcp2trks(
+    template<typename Data> VecPtrTrk mcp2trks(
         simb::MCParticle const* mcp,
         VecPtrTrk const& vpt_ev,
         detinfo::DetectorClocksData const& clockData,
-        art::FindManyP<recob::Hit> const& fmp_trk2hit
+        art::FindManyP<recob::Hit, Data> const& fmp_trk2hit
     ) {
         if (!mcp) return VecPtrTrk{};
         VecPtrTrk vpt_mcp;
@@ -447,7 +480,8 @@ namespace ana {
         simb::MCParticle const* mcp,
         VecPtrHit const& vph_ev,
         detinfo::DetectorClocksData const& clockData,
-        bool use_eve
+        bool use_eve,
+        std::vector<float> *energyFracs = nullptr
     ) {
         if (!mcp) return VecPtrHit{};
         VecPtrHit vph_mcp;
@@ -456,8 +490,10 @@ namespace ana {
                 ? bt_serv->HitToEveTrackIDEs(clockData, ph_ev)
                 : bt_serv->HitToTrackIDEs(clockData, ph_ev)
             )) {
-                if (ide.trackID == mcp->TrackId())
+                if (ide.trackID == mcp->TrackId()) {
                     vph_mcp.push_back(ph_ev);
+                    if (energyFracs) energyFracs->push_back(ide.energyFrac);
+                }
             }
         return vph_mcp;
     }
@@ -522,35 +558,52 @@ namespace ana {
         std::vector<int> secs; // sorted sections
         std::vector<LinearRegression> regs; // regressions per side
 
-        PtrHit start, end;
-        std::pair<PtrHit, PtrHit> cc; // cathode crossing
-        VecPtrHit sc; // section crossing
+        std::vector<size_t> secs_first;
+        size_t side_first;
 
-        SortedHits() : vph(0), secs(0), regs(2) {}
         operator bool() const { return !vph.empty(); }
-        bool is_cc() const { return cc.first && cc.second; }
-        bool is_sc() const { return !sc.empty(); }
+        PtrHit start() const { return vph.front(); }
+        PtrHit end() const { return vph.back(); }
+        bool is_cc() const { return side_first != 0; }
+        PtrHit cc_first() const { return is_cc() ? vph[side_first - 1] : PtrHit(); }
+        PtrHit cc_second() const { return is_cc() ? vph[side_first] : PtrHit(); }
+        bool is_sc() const { return !secs_first.empty(); }
+        VecPtrHit scs() const {
+            VecPtrHit res(0);
+            for (size_t i : secs_first) {
+                if (i != 0 and i != side_first) {
+                    res.push_back(vph[i-1]);
+                    res.push_back(vph[i]);
+                }
+            }
+            return res;
+        }
         int end_sec() const { return secs.back(); }
         LinearRegression end_reg(int det) const {
-            return regs[ana::sec2side[det][end_sec()]];
+            return regs[ana::sec2side.at(det).at(end_sec())];
         }
-    };
+        VecPtrHit::iterator after_cathode_it() { return vph.begin() + side_first; }
+        VecPtrHit::iterator endsec_it() { return vph.begin() + secs_first.back(); }
 
-    struct BraggOptions {
-        float body_dist; // distance from the end of the track to the body
-        unsigned reg_n; // number of hits to use for the regression
-        float track_length_cut; // cut on the track length
-        float nearby_radius; // radius to search for nearby hits
-        // float bragg_threshold; 
-    };
-    struct Bragg {
-        VecPtrHit vph_mu={}; // hits of the newly defined muon track
-        float mip_dQdx=0; // dQ/dx of the MIP
-        float max_dQdx=-1; // maximum dQ/dx of the muon
-        PtrHit end={}; // end of the muon track after bragg algorithm
-        enum EnumBraggError { kNoError, kEndNotFound, kSmallBody, kNoNearbyHits };
-        int error=-1; // error code of the bragg algorithm
-        operator bool() const { return error == kNoError; }
+        SortedHits() : vph(0), secs(0), regs(2), secs_first(0), side_first(0) {}
+
+        // PtrHit start, end;
+        // std::pair<PtrHit, PtrHit> cc; // cathode crossing
+        // VecPtrHit sc; // section crossing
+
+        // SortedHits() : vph(0), secs(0), regs(2) {}
+        // operator bool() const { return !vph.empty(); }
+        // bool is_cc() const { return cc.first && cc.second; }
+        // bool is_sc() const { return !sc.empty(); }
+        // int end_sec() const { return secs.back(); }
+        // LinearRegression end_reg(int det) const {
+        //     return regs[ana::sec2side.at(det).at(end_sec())];
+        // }
+
+        // size_t bot_index=0;
+        // size_t endsec_index=0;
+        // VecPtrHit::iterator bot_it() { return vph.begin() + bot_index; }
+        // VecPtrHit::iterator endsec_it() { return vph.begin() + endsec_index; }
     };
 
     class MichelAnalyzer {
@@ -573,9 +626,9 @@ namespace ana {
         enum EnumDet { kPDVD, kPDHD };
         float fTick2cm;
 
-        art::InputTag tag_mcp, tag_sed, tag_wir,
-            tag_hit, tag_clu, tag_trk,
-            tag_shw, tag_spt, tag_pfp;
+        art::InputTag   tag_mcp, tag_sed, tag_wir,
+                        tag_hit, tag_clu, tag_trk,
+                        tag_shw, tag_spt, tag_pfp;
 
         // VecPtrHit vph_ev;
         // VecPtrTrk vpt_ev;
@@ -596,40 +649,33 @@ namespace ana {
         double GetDistance(PtrHit const&, PtrHit const&, bool) const;
         double GetDistance(ana::Hit const&, ana::Hit const&, bool) const;
         simb::MCParticle const* GetMichelMCP(simb::MCParticle const*) const;
-        SortedHits GetSortedHits(
+        std::vector<float> GetdQds(
+            VecPtrHit const& vph,
+            unsigned smoothing_length,
+            unsigned *i_max = nullptr
+        ) const;
+        std::vector<float> GetdQds(
+            VecPtrHit::const_iterator first,
+            VecPtrHit::const_iterator last,
+            unsigned smoothing_length,
+            unsigned *i_max = nullptr
+        ) const;
+
+        // SortedHits GetSortedHits(
+        //     VecPtrHit const& vph_unsorted,
+        //     int dirz = 1,
+        //     geo::View_t view = geo::kW
+        // ) const;
+        SortedHits GetSortedHits_dirX(
             VecPtrHit const& vph_unsorted,
-            int dirz = 1,
+            int dirX = -1, // decreasing X
             geo::View_t view = geo::kW
         ) const;
-        std::vector<float> GetdQdx(
-            VecPtrHit const& vph,
-            unsigned smoothing_length
-        ) const;
-        Bragg GetBragg(
-            VecPtrHit const& vph_trk,
-            PtrHit const& ph_end,
-            PtrTrk const& pt,
-            VecPtrHit const& vph_ev,
-            art::FindOneP<recob::Track> const& fop_hit2trk,
-            BraggOptions const& opt
-        ) const;
-        Bragg GetSmallBragg(
-            VecPtrHit const& vph_trk,
-            PtrHit const& ph_end,
-            PtrTrk const& pt,
-            VecPtrHit const& vph_ev,
-            art::FindOneP<recob::Track> const& fop_hit2trk,
-            BraggOptions const& opt
-        ) const;
-        Bragg GetLongBragg(
-            VecPtrHit const& vph_trk,
-            PtrHit const& ph_end,
-            PtrTrk const& pt,
-            VecPtrHit const& vph_ev,
-            art::FindOneP<recob::Track> const& fop_hit2trk,
-            ana::LinearRegression const& reg_trk,
-            BraggOptions const& opt
-        ) const;
+        // SortedHits GetSortedHits_PDHD(
+        //     VecPtrHit const& vph_unsorted,
+        //     int dirX,
+        //     geo::View_t view = geo::kW
+        // ) const;
     };
 }
 
@@ -736,23 +782,22 @@ ana::Hit ana::MichelAnalyzer::GetHit(PtrHit const& ph) const {
     geo::WireID wid = ph->WireID();
     return {
         wid.TPC,
-        ana::tpc2sec[geoDet][wid.TPC],
+        ana::tpc2sec.at(geoDet).at(wid.TPC),
         float(GetSpace(wid)),
         ph->Channel(),
         ph->PeakTime(),
-        ph->Integral()
+        ph->ROISummedADC()
     };
 }
 
 // 2D projected distance in cm
-double ana::MichelAnalyzer::GetDistance(PtrHit const& ph1, PtrHit const& ph2, bool different_sections=false) const {
-    Hit h1 = GetHit(ph1), h2 = GetHit(ph2);
-    if (!different_sections && (h1.section != h2.section))
-        return std::numeric_limits<double>::max();
-    return sqrt(pow(h2.space - h1.space, 2) + pow((h2.tick - h1.tick) * fTick2cm, 2));
+double ana::MichelAnalyzer::GetDistance(PtrHit const& ph1, PtrHit const& ph2, bool allow_different_side=false) const {
+    return GetDistance(GetHit(ph1), GetHit(ph2), allow_different_side);
 }
-double ana::MichelAnalyzer::GetDistance(ana::Hit const& h1, ana::Hit const& h2, bool different_sections=false) const {
-    if (!different_sections && (h1.section != h2.section))
+double ana::MichelAnalyzer::GetDistance(ana::Hit const& h1, ana::Hit const& h2, bool allow_different_side=false) const {
+    int side1 = ana::sec2side.at(geoDet).at(h1.section);
+    int side2 = ana::sec2side.at(geoDet).at(h2.section);
+    if (!allow_different_side && (side1 != side2))
         return std::numeric_limits<double>::max();
     return sqrt(pow(h2.space - h1.space, 2) + pow((h2.tick - h1.tick) * fTick2cm, 2));
 }
@@ -788,106 +833,332 @@ simb::MCParticle const* ana::MichelAnalyzer::GetMichelMCP(
 // points at section crossing if any
 // (a section is a set of two adjacent TPCs)
 //
-// possible cause of failure:
+// cause of failure:
 // - no section with at least 4 (ana::LinearRegression::nmin) hits 
-ana::SortedHits ana::MichelAnalyzer::GetSortedHits(
+// ana::SortedHits ana::MichelAnalyzer::GetSortedHits(
+//     VecPtrHit const& vph_unsorted,
+//     int dirz,
+//     geo::View_t view
+// ) const {
+//     ana::SortedHits sh;
+//     // sh.vph_sec.resize(ana::n_sec[geoDet]);
+//     std::vector<VecPtrHit> vph_sec(ana::n_sec[geoDet]);
+//     std::vector<float> sec_mz(ana::n_sec[geoDet], 0);
+//     for (PtrHit const& ph : vph_unsorted) {
+//         if (ph->View() != view) continue;
+//         int side = ana::tpc2side.at(geoDet).at(ph->WireID().TPC);
+//         if (side == -1) continue; // skip hits on the other side of the anodes
+//         double z = GetSpace(ph->WireID());
+//         double t = ph->PeakTime() * fTick2cm;
+//         sh.regs[side].add(z, t);
+//         int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
+//         vph_sec[sec].push_back(ph);
+//         sec_mz[sec] += z;
+//     }
+//     sh.regs[0].compute();
+//     sh.regs[1].compute();
+
+//     // sec order according to the direction in Z
+//     for (unsigned sec=0; sec<ana::n_sec[geoDet]; sec++) {
+//         if (vph_sec[sec].size() < ana::LinearRegression::nmin) {
+//             vph_sec[sec].clear();
+//             sec_mz[sec] = 0;
+//         } else {
+//             sec_mz[sec] /= vph_sec[sec].size();
+//             sh.secs.push_back(sec);
+//         }
+//     }
+//     if (sh.secs.empty()) return ana::SortedHits{};
+
+//     std::sort(
+//         sh.secs.begin(), sh.secs.end(),
+//         [&sec_mz, dirz](int sec1, int sec2) {
+//             return (sec_mz[sec2] - sec_mz[sec1]) * dirz > 0;
+//         }
+//     );
+
+//     for (unsigned i=0; i<sh.secs.size(); i++) {
+//         int sec = sh.secs[i];
+//         ana::LinearRegression const& reg = sh.regs[ana::sec2side.at(geoDet).at(sec)];
+//         std::sort(
+//             vph_sec[sec].begin(), vph_sec[sec].end(),
+//             [&](PtrHit const& ph1, PtrHit const& ph2) {
+//                 double s1 = reg.projection(GetSpace(ph1->WireID()), ph1->PeakTime() * fTick2cm);
+//                 double s2 = reg.projection(GetSpace(ph2->WireID()), ph2->PeakTime() * fTick2cm);
+//                 return (s2 - s1) * dirz > 0;
+//             }
+//         );
+
+//         if (sec==sh.secs.front())
+//             sh.start = vph_sec[sec].front();
+//         else {
+//             if (ana::sec2side.at(geoDet).at(sec) != ana::sec2side.at(geoDet).at(sh.secs[i-1])) {
+//                 sh.cc.second = vph_sec[sec].front(); 
+//             } else
+//                 sh.sc.push_back(vph_sec[sec].front());
+//         } 
+//         if (sec==sh.secs.back())
+//             sh.end = vph_sec[sec].back();
+//         else {
+//             if (ana::sec2side.at(geoDet).at(sec) != ana::sec2side.at(geoDet).at(sh.secs[i+1])) {
+//                 sh.cc.first = vph_sec[sec].back(); 
+//             } else
+//                 sh.sc.push_back(vph_sec[sec].back());
+//         }
+//     }
+
+//     sh.bot_index = 0;
+//     for (int sec : sh.secs) {
+//         if (ana::sec2side.at(geoDet).at(sec) == 1) 
+//             sh.bot_index += vph_sec[sec].size();
+//         if (sec == sh.secs.back())
+//             sh.endsec_index = sh.vph.size();
+
+//         for (PtrHit const& ph : vph_sec[sec])
+//             sh.vph.push_back(ph);
+//     }
+
+//     return sh;
+// }
+
+ana::SortedHits ana::MichelAnalyzer::GetSortedHits_dirX(
     VecPtrHit const& vph_unsorted,
-    int dirz,
+    int dirX, 
     geo::View_t view
 ) const {
     ana::SortedHits sh;
     // sh.vph_sec.resize(ana::n_sec[geoDet]);
     std::vector<VecPtrHit> vph_sec(ana::n_sec[geoDet]);
-    std::vector<float> sec_mz(ana::n_sec[geoDet], 0);
+    std::vector<float> sec_mt(ana::n_sec[geoDet], 0);
     for (PtrHit const& ph : vph_unsorted) {
         if (ph->View() != view) continue;
-        int side = ana::tpc2side[geoDet][ph->WireID().TPC];
-        if (side == -1) continue; // skip hits on the other side of the anodes
+        int side = ana::tpc2side.at(geoDet).at(ph->WireID().TPC);
+        if (side == -1) continue; // skip hits on the other side of the anodes in PDHD
         double z = GetSpace(ph->WireID());
         double t = ph->PeakTime() * fTick2cm;
         sh.regs[side].add(z, t);
-        int sec = ana::tpc2sec[geoDet][ph->WireID().TPC];
+        int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
         vph_sec[sec].push_back(ph);
-        sec_mz[sec] += z;
+        sec_mt[sec] += t;
     }
     sh.regs[0].compute();
     sh.regs[1].compute();
 
-    // sec order according to the direction in Z
     for (unsigned sec=0; sec<ana::n_sec[geoDet]; sec++) {
         if (vph_sec[sec].size() < ana::LinearRegression::nmin) {
             vph_sec[sec].clear();
-            sec_mz[sec] = 0;
+            sec_mt[sec] = 0;
         } else {
-            sec_mz[sec] /= vph_sec[sec].size();
             sh.secs.push_back(sec);
+            sec_mt[sec] /= vph_sec[sec].size();
         }
     }
     if (sh.secs.empty()) return ana::SortedHits{};
+    
+    // first section in the bot volume
+    std::vector<int>::iterator bot_it = std::find_if(
+        sh.secs.begin(), sh.secs.end(),
+        [&](int sec) { return ana::sec2side.at(geoDet).at(sec) == 0; }
+    );
 
     std::sort(
-        sh.secs.begin(), sh.secs.end(),
-        [&sec_mz, dirz](int sec1, int sec2) {
-            return (sec_mz[sec2] - sec_mz[sec1]) * dirz > 0;
+        sh.secs.begin(), bot_it,
+        [&sec_mt, &dirX](int sec1, int sec2) {
+            // in top volume, increasing X <-> decreasing tick
+            return dirX * (sec_mt[sec1]-sec_mt[sec2]) > 0;
+        }
+    );
+    std::sort(
+        bot_it, sh.secs.end(),
+        [&sec_mt, &dirX](int sec1, int sec2) {
+            // in bot volume, increasing X <-> increasing tick
+            return dirX * (sec_mt[sec1]-sec_mt[sec2]) < 0;
         }
     );
 
     for (unsigned i=0; i<sh.secs.size(); i++) {
         int sec = sh.secs[i];
-        ana::LinearRegression const& reg = sh.regs[ana::sec2side[geoDet][sec]];
+        int side = ana::sec2side.at(geoDet).at(sec);
+        ana::LinearRegression const& reg = sh.regs[side];
+
+        // top volume (side==1): increasing X <-> decreasing tick <-> decreasing s for m>0
+        // bot volume (side==0): increasing X <-> increasing tick <-> increasing s for m>0
+        int sign = dirX * (side == 0 ? 1 : -1) * (reg.m > 0 ? 1 : -1);
+
+        VecPtrHit& vph = vph_sec[sec];
         std::sort(
-            vph_sec[sec].begin(), vph_sec[sec].end(),
+            vph.begin(), vph.end(),
             [&](PtrHit const& ph1, PtrHit const& ph2) {
                 double s1 = reg.projection(GetSpace(ph1->WireID()), ph1->PeakTime() * fTick2cm);
                 double s2 = reg.projection(GetSpace(ph2->WireID()), ph2->PeakTime() * fTick2cm);
-                return (s2 - s1) * dirz > 0;
+                return (s2 - s1) * sign > 0;
             }
         );
 
-        if (sec==sh.secs.front())
-            sh.start = vph_sec[sec].front();
-        else {
-            if (ana::sec2side[geoDet][sec] != ana::sec2side[geoDet][sh.secs[i-1]]) {
-                sh.cc.second = vph_sec[sec].front(); 
-            } else
-                sh.sc.push_back(vph_sec[sec].front());
-        } 
-        if (sec==sh.secs.back())
-            sh.end = vph_sec[sec].back();
-        else {
-            if (ana::sec2side[geoDet][sec] != ana::sec2side[geoDet][sh.secs[i+1]]) {
-                sh.cc.first = vph_sec[sec].back(); 
-            } else
-                sh.sc.push_back(vph_sec[sec].back());
-        }
+        // if (sec==sh.secs.front())
+        //     sh.start = vph.front();
+        // else {
+        //     int prev_side = ana::sec2side.at(geoDet).at(sh.secs[i-1]);
+        //     if (prev_side != side) {
+        //         sh.cc.second = vph.front(); 
+        //     } else
+        //         sh.sc.push_back(vph.front());
+        // } 
+        // if (sec==sh.secs.back())
+        //     sh.end = vph.back();
+        // else {
+        //     int next_side = ana::sec2side.at(geoDet).at(sh.secs[i+1]);
+        //     if (side != next_side) {
+        //         sh.cc.first = vph.back(); 
+        //     } else
+        //         sh.sc.push_back(vph.back());
+        // }
     }
 
-    for (int sec : sh.secs)
+    sh.vph.clear();
+    int prev_side=-1;
+    for (int sec : sh.secs) {
+        sh.secs_first.push_back(sh.vph.size());
+
+        int side = ana::sec2side.at(geoDet).at(sec);
+        if (prev_side != -1 && side != prev_side)
+            sh.side_first = sh.vph.size();
+        prev_side = side;
+
         for (PtrHit const& ph : vph_sec[sec])
             sh.vph.push_back(ph);
+    }
+
+    // sh.bot_index = 0;
+    // sh.vph.clear();
+    // for (int sec : sh.secs) {
+    //     int side = ana::sec2side.at(geoDet).at(sec);
+    //     if (side == 1) 
+    //         sh.bot_index += vph_sec[sec].size();
+    //     if (sec == sh.secs.back())
+    //         sh.endsec_index = sh.vph.size();
+
+    //     for (PtrHit const& ph : vph_sec[sec])
+    //         sh.vph.push_back(ph);
+    // }
 
     return sh;
 }
 
+// ana::SortedHits ana::MichelAnalyzer::GetSortedHits_PDHD(
+//     VecPtrHit const& vph_unsorted,
+//     int dirX,
+//     geo::View_t view
+// ) const {
+//     ana::SortedHits sh;
+//     // sh.vph_sec.resize(ana::n_sec[geoDet]);
+//     std::vector<VecPtrHit> vph_sec(ana::n_sec[geoDet]);
+//     std::vector<float> sec_mt(ana::n_sec[geoDet], 0);
+//     for (PtrHit const& ph : vph_unsorted) {
+//         if (ph->View() != view) continue;
+//         int side = ana::tpc2side.at(geoDet).at(ph->WireID().TPC);
+//         if (side == -1) continue; // skip hits on the other side of the anodes
+//         double z = GetSpace(ph->WireID());
+//         double t = ph->PeakTime() * fTick2cm;
+//         sh.regs[side].add(z, t);
+//         int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
+//         vph_sec[sec].push_back(ph);
+//         sec_mt[sec] += t;
+//     }
+//     sh.regs[0].compute();
+//     sh.regs[1].compute();
 
-std::vector<float> ana::MichelAnalyzer::GetdQdx(
+//     for (unsigned sec=0; sec<ana::n_sec[geoDet]; sec++) {
+//         if (vph_sec[sec].size() < ana::LinearRegression::nmin) {
+//             vph_sec[sec].clear();
+//             sec_mt[sec] = 0;
+//         } else {
+//             sh.secs.push_back(sec);
+//             sec_mt[sec] /= vph_sec[sec].size();
+//         }
+//     }
+//     if (sh.secs.empty()) return ana::SortedHits{};
+
+//     // if the track crosses the cathode, there are hits in both sections
+//     // sort them according to the provided X direction
+//     if (sh.secs.size() == 2 || dirX < 0) {
+//         std::swap(sh.secs[0], sh.secs[1]);
+//     }
+
+//     for (unsigned i=0; i<sh.secs.size(); i++) {
+//         int sec = sh.secs[i];
+//         int side = ana::sec2side.at(geoDet).at(sec);
+//         ana::LinearRegression const& reg = sh.regs[side];
+
+//         // dirX > 0: left to right <-> increasing tick <-> increasing s for m>0
+//         // dirX < 0: right to left <-> decreasing tick <-> decreasing s for m>0
+//         int sign = (dirX > 0 ? 1 : -1) * (reg.m > 0 ? 1 : -1);
+
+//         VecPtrHit& vph = vph_sec[sec];
+//         std::sort(
+//             vph.begin(), vph.end(),
+//             [&](PtrHit const& ph1, PtrHit const& ph2) {
+//                 double s1 = reg.projection(GetSpace(ph1->WireID()), ph1->PeakTime() * fTick2cm);
+//                 double s2 = reg.projection(GetSpace(ph2->WireID()), ph2->PeakTime() * fTick2cm);
+//                 return (s2 - s1) * sign > 0;
+//             }
+//         );
+
+//         if (sec==sh.secs.front())
+//             sh.start = vph.front();
+//         else {
+//             int prev_side = ana::sec2side.at(geoDet).at(sh.secs[i-1]);
+//             if (prev_side == 1 && side == 0) {
+//                 sh.cc.second = vph.front(); 
+//             } else
+//                 sh.sc.push_back(vph.front());
+//         } 
+//         if (sec==sh.secs.back())
+//             sh.end = vph.back();
+//         else {
+//             int next_side = ana::sec2side.at(geoDet).at(sh.secs[i+1]);
+//             if (side == 1 && next_side == 0) {
+//                 sh.cc.first = vph.back(); 
+//             } else
+//                 sh.sc.push_back(vph.back());
+//         }
+//     }
+
+//     sh.bot_index = 0; // MEANINGLESS IN PDHD
+//     sh.vph.clear();
+//     for (int sec : sh.secs) {
+//         int side = ana::sec2side.at(geoDet).at(sec);
+//         if (sec == sh.secs.back())
+//             sh.endsec_index = sh.vph.size();
+
+//         for (PtrHit const& ph : vph_sec[sec])
+//             sh.vph.push_back(ph);
+//     }
+
+//     return sh;
+// }
+
+std::vector<float> ana::MichelAnalyzer::GetdQds(
     VecPtrHit const& vph,
-    unsigned smoothing_length
+    unsigned smoothing_length,
+    unsigned *i_max
 ) const {
-    if (vph.size() <= smoothing_length) return std::vector<float>{};
+    size_t const length = vph.size();
+    if (length <= smoothing_length) return std::vector<float>(length, 0.F);
 
-    std::vector<float> dQdx(smoothing_length, 0.F);
+    float max = -1;
+    std::vector<float> v_dQds(smoothing_length, 0.F);
     for (auto iph=vph.begin()+smoothing_length; iph!=vph.end(); iph++) {
         VecPtrHit::const_iterator jph = iph-smoothing_length;
 
-        double dQ = std::accumulate(
+        float dQ = std::accumulate(
             jph, iph, 0.,
-            [](double sum, PtrHit const& ph) {
-                return sum+ph->Integral();
+            [](float sum, PtrHit const& ph) {
+                return sum+ph->ROISummedADC();
             }
         ) / smoothing_length;
 
-        double dx = 0;
+        float dx = 0;
         for (auto kph=jph; kph!=iph; kph++) {
             if (kph == vph.begin())
                 dx += GetDistance(*kph, *(kph+1));
@@ -901,304 +1172,47 @@ std::vector<float> ana::MichelAnalyzer::GetdQdx(
         }
         dx /= smoothing_length;
 
-        dQdx.push_back(dQ / dx);
+        float dQds = dQ / dx;
+
+        if (i_max && dQds > max) {
+            max = dQds;
+            *i_max = std::distance(vph.begin(), iph);
+        }
+
+        v_dQds.push_back(dQ / dx);
     }
-    return dQdx;
+    for (unsigned i=0; i<smoothing_length; i++)
+        v_dQds[i] = v_dQds[smoothing_length];
+
+    return v_dQds;
 }
 
-// recluster hits around the muon end,
-// compute local dE/dx along the cluster,
-// search for a peak in dE/dx (Bragg peak)
-//
-// possible causes of failure:
-// - the given end is not found in the track hits
-// - there is no enough hits (< 'fRegN') 'fBodyDistance' cm away from the end in the same section to start the clustering
-// - there is no hit 'fNearbyRadius' cm away from the end in the same section
-ana::Bragg ana::MichelAnalyzer::GetBragg(
-    VecPtrHit const& vph_trk,
-    PtrHit const& ph_end,
-    PtrTrk const& pt_mu,
-    VecPtrHit const& vph_ev,
-    art::FindOneP<recob::Track> const& fop_hit2trk,
-    ana::BraggOptions const& opt
+std::vector<float> ana::MichelAnalyzer::GetdQds(
+    VecPtrHit::const_iterator first,
+    VecPtrHit::const_iterator last,
+    unsigned smoothing_length,
+    unsigned *i_max
 ) const {
-    ana::Bragg bragg;
-    VecPtrHit vph_sec_trk;
-    int sec_end = ana::tpc2sec[geoDet][ph_end->WireID().TPC];
-    for (PtrHit const& ph : vph_trk)
-        if (ana::tpc2sec[geoDet][ph->WireID().TPC] == sec_end)
-            vph_sec_trk.push_back(ph);
-    
-    if (vph_sec_trk.empty()
-        || std::find_if(
-            vph_sec_trk.begin(), vph_sec_trk.end(),
-            [key=ph_end.key()](PtrHit const& ph) -> bool {
-                return ph.key() == key;
-            }
-        ) == vph_sec_trk.end()
-    ) {
-        bragg.error = ana::Bragg::kEndNotFound;
-        return bragg;
-    }
+    ptrdiff_t const length = std::distance(first,last);
+    if (length <= smoothing_length) return std::vector<float>(length, 0.F);
 
-    std::sort(
-        vph_sec_trk.begin(),
-        vph_sec_trk.end(),
-        [&](PtrHit const& ph1, PtrHit const& ph2) -> bool {
-            return GetDistance(ph1, ph_end) < GetDistance(ph2, ph_end);
-        }
-    );
+    float max = -1;
+    std::vector<float> v_dQds(smoothing_length, 0.F);
+    for (auto iph=first+smoothing_length; iph!=last; iph++) {
+        VecPtrHit::const_iterator jph = iph-smoothing_length;
 
-    VecPtrHit::iterator iph_body = std::find_if(
-        vph_sec_trk.begin(),
-        vph_sec_trk.end(),
-        [&](PtrHit const& h) -> bool {
-            return GetDistance(h, ph_end) >= opt.body_dist;
-        }
-    );
-
-    if (std::distance(iph_body, vph_sec_trk.end()) < opt.reg_n) {
-        bragg.error = ana::Bragg::kSmallBody;
-        return bragg;
-    }
-
-    VecPtrHit::iterator jph_body = std::find_if(
-        vph_sec_trk.begin(),
-        vph_sec_trk.end(),
-        [&](PtrHit const& h) -> bool {
-            return GetDistance(h, ph_end) >= 2*opt.body_dist;
-        }
-    );
-
-    float mip_dQ = 0;
-    float mip_dx = 0;
-    for (auto iph=iph_body; iph!=jph_body; iph++) {
-        mip_dQ += (*iph)->Integral();
-        if (iph == vph_sec_trk.begin())
-            mip_dx += GetDistance(*iph, *(iph+1));
-        else if (iph == vph_sec_trk.end()-1)
-            mip_dx += GetDistance(*(iph-1), *iph);
-        else 
-            mip_dx += .5 * (
-                GetDistance(*(iph-1), *iph)
-                + GetDistance(*iph, *(iph+1))
-            );
-    }
-    bragg.mip_dQdx = mip_dQ / mip_dx;
-
-    VecPtrHit vph_near;
-    for (PtrHit const& ph_ev : vph_ev) {
-        if (ph_ev->View() != geo::kW) continue;
-
-        if (ana::tpc2sec[geoDet][ph_ev->WireID().TPC] != sec_end) continue;
-
-        // check if the hit is close enough
-        if (GetDistance(ph_ev, ph_end) > opt.nearby_radius) continue;
-
-        // check if the hit is in a track
-        PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
-        if (pt_hit) {
-            // check if the hit is on the body of the track
-            if (pt_hit.key() == pt_mu.key()
-                && std::find_if(
-                    iph_body, vph_sec_trk.end(),
-                    [key=ph_ev.key()](PtrHit const& ph) -> bool {
-                        return ph.key() == key;
-                    }
-                ) != vph_sec_trk.end()
-            ) continue;
-            // check if the hit is on a long track
-            if (
-                pt_hit.key() != pt_mu.key()
-                && pt_hit->Length() > opt.track_length_cut
-            ) continue;
-        }
-
-        vph_near.push_back(ph_ev);
-    }
-    if (vph_near.empty()) {
-        bragg.error = ana::Bragg::kNoNearbyHits;
-        return bragg;
-    }
-
-    VecPtrHit vph_reg{iph_body, iph_body+opt.reg_n};
-    std::reverse(vph_reg.begin(), vph_reg.end());
-    struct RegressionResult { double theta, sigma; };
-    auto do_reg = [&](VecPtrHit const& vph) -> RegressionResult {
-        ana::LinearRegression reg;
-        for (PtrHit const& ph : vph) {
-            double z = GetSpace(ph->WireID());
-            double t = ph->PeakTime() * fTick2cm;
-            reg.add(z, t);
-        }
-        reg.compute();
-
-        int dirz = GetSpace(vph.back()->WireID())
-            > GetSpace(vph.front()->WireID())
-            ? 1 : -1;
-        double theta = reg.theta(dirz);
-        double sigma = TMath::Pi() / 4 / reg.corr;
-        return { theta, sigma };
-    };
-    RegressionResult reg = do_reg(vph_reg);
-
-    auto score = [&](PtrHit const& ph1, PtrHit const& ph2, double theta, double sigma) -> double {
-        double dz = GetSpace(ph2->WireID()) - GetSpace(ph1->WireID());
-        double dt = (ph2->PeakTime() - ph1->PeakTime()) * fTick2cm;
-        double da = atan2(dt, dz) - theta;
-        da = abs(da) < TMath::Pi() ? da : da - (da>0?1:-1)*2*TMath::Pi();
-        double r = sqrt(dt*dt + dz*dz);
-
-        return TMath::Gaus(da, 0, sigma) / r;
-    };
-
-    VecPtrHit vph_clu(vph_reg.begin(), vph_reg.end());
-    while (vph_near.size()) {
-        VecPtrHit::iterator iph_max = std::max_element(
-            vph_near.begin(), vph_near.end(),
-            [&](PtrHit const& ph1, PtrHit const& ph2) -> bool {
-                return score(vph_reg.back(), ph1, reg.theta, reg.sigma)
-                    < score(vph_reg.back(), ph2, reg.theta, reg.sigma);
-            }
-        );
-
-        vph_reg.push_back(*iph_max);
-        vph_clu.push_back(*iph_max);
-        vph_near.erase(iph_max);
-        vph_reg.erase(vph_reg.begin());
-
-        reg = do_reg(vph_reg);
-    }
-
-    std::vector<float> clu_dQdx = GetdQdx(vph_clu, opt.reg_n);
-    std::vector<float>::iterator it_max = std::max_element(clu_dQdx.begin(), clu_dQdx.end());
-    VecPtrHit::iterator iph_max = vph_clu.begin() + std::distance(clu_dQdx.begin(), it_max);
-    bragg.end = *iph_max;
-    bragg.max_dQdx = *it_max;
-
-    // unsigned const trailing_n = opt.reg_n;
-    // VecPtrHit::iterator iph_max;
-    // for (auto iph_clu=vph_clu.begin()+trailing_n; iph_clu!=vph_clu.end(); iph_clu++) {
-    //     VecPtrHit::iterator jph_clu = iph_clu-trailing_n;
-
-    //     double dQ = std::accumulate(
-    //         jph_clu, iph_clu, 0.,
-    //         [](double sum, PtrHit const& ph) {
-    //             return sum+ph->Integral();
-    //         }
-    //     ) / trailing_n;
-
-    //     double dx = 0;
-    //     for (auto iph=jph_clu; iph!=iph_clu; iph++) {
-    //         if (iph == vph_clu.begin())
-    //             dx += GetDistance(*iph, *(iph+1));
-    //         else if (iph == vph_clu.end()-1)
-    //             dx += GetDistance(*(iph-1), *iph);
-    //         else
-    //             dx += .5 * (
-    //                 GetDistance(*(iph-1), *iph)
-    //                 + GetDistance(*iph, *(iph+1))
-    //             );
-    //     }
-    //     dx /= trailing_n;
-
-    //     double dQdx = dQ / dx;
-    //     // if (dQdx > opt.bragg_threshold * bragg.mip_dQdx) {
-    //     //     bragg.end = *iph_clu;
-    //     //     break;
-    //     // }
-    //     if (dQdx > bragg.max_dQdx) {
-    //         bragg.max_dQdx = dQdx;
-    //         iph_max = iph_clu;
-    //     }
-    // }
-    // bragg.end = *iph_max;
-
-    bragg.vph_mu.assign(
-        vph_clu.begin(), 
-        iph_max==vph_clu.end() ? vph_clu.end() : iph_max+1
-    );
-    bragg.error = ana::Bragg::kNoError;
-    return bragg;
-}
-
-ana::Bragg ana::MichelAnalyzer::GetSmallBragg(
-    VecPtrHit const& vph_trk,
-    PtrHit const& ph_end,
-    PtrTrk const& pt_mu,
-    VecPtrHit const& vph_ev,
-    art::FindOneP<recob::Track> const& fop_hit2trk,
-    ana::BraggOptions const& opt
-) const {
-    ana::Bragg bragg;
-    VecPtrHit vph_sec_trk;
-    int sec_end = ana::tpc2sec[geoDet][ph_end->WireID().TPC];
-    for (PtrHit const& ph : vph_trk)
-        if (ana::tpc2sec[geoDet][ph->WireID().TPC] == sec_end)
-            vph_sec_trk.push_back(ph);
-    
-    if (vph_sec_trk.size() < 2
-        || std::find_if(
-            vph_sec_trk.begin(), vph_sec_trk.end(),
-            [key=ph_end.key()](PtrHit const& ph) -> bool {
-                return ph.key() == key;
-            }
-        ) == vph_sec_trk.end()
-    ) {
-        bragg.error = ana::Bragg::kEndNotFound;
-        return bragg;
-    }
-
-    // decreasing dist to end: body->end
-    std::sort(
-        vph_sec_trk.begin(), vph_sec_trk.end(),
-        [&](PtrHit const& ph1, PtrHit const& ph2) -> bool {
-            return GetDistance(ph1, ph_end) > GetDistance(ph2, ph_end);
-        }
-    );
-
-    VecPtrHit::iterator iph_body = std::find_if(
-        vph_sec_trk.begin(),
-        vph_sec_trk.end(),
-        [&](PtrHit const& ph) -> bool {
-            return GetDistance(ph, ph_end) <= opt.body_dist;
-        }
-    );
-
-    if (std::distance(vph_sec_trk.begin(), iph_body) < opt.reg_n) {
-        bragg.error = ana::Bragg::kSmallBody;
-        return bragg;
-    }
-
-    float mip_dQ = 0, mip_dx = 0;
-    for (auto iph=vph_sec_trk.begin(); iph!=iph_body; iph++) {
-        mip_dQ += (*iph)->Integral();
-        if (iph == vph_sec_trk.begin())
-            mip_dx += GetDistance(*iph, *(iph+1));
-        else if (iph == vph_sec_trk.end()-1)
-            mip_dx += GetDistance(*(iph-1), *iph);
-        else 
-            mip_dx += .5*(GetDistance(*(iph-1), *iph) + GetDistance(*iph, *(iph+1)));
-    }
-    bragg.mip_dQdx = mip_dQ / mip_dx;
-
-    VecPtrHit::iterator iph_max;
-    unsigned const trailing_n = opt.reg_n;
-    for (auto iph=iph_body; iph!=vph_sec_trk.end(); iph++) {
-        VecPtrHit::iterator jph = iph-trailing_n;
-
-        double dQ = std::accumulate(
+        float dQ = std::accumulate(
             jph, iph, 0.,
-            [](double sum, PtrHit const& ph) {
-                return sum+ph->Integral();
+            [](float sum, PtrHit const& ph) {
+                return sum+ph->ROISummedADC();
             }
-        ) / trailing_n;
+        ) / smoothing_length;
 
-        double dx = 0;
+        float dx = 0;
         for (auto kph=jph; kph!=iph; kph++) {
-            if (kph == vph_sec_trk.begin())
+            if (kph == first)
                 dx += GetDistance(*kph, *(kph+1));
-            else if (kph == vph_sec_trk.end()-1)
+            else if (kph == last-1)
                 dx += GetDistance(*(kph-1), *kph);
             else
                 dx += .5 * (
@@ -1206,157 +1220,19 @@ ana::Bragg ana::MichelAnalyzer::GetSmallBragg(
                     + GetDistance(*kph, *(kph+1))
                 );
         }
-        dx /= trailing_n;
+        dx /= smoothing_length;
 
-        double dQdx = dQ / dx;
-        if (dQdx > bragg.max_dQdx) {
-            bragg.max_dQdx = dQdx;
-            iph_max = iph;
+        float dQds = dQ / dx;
+
+        if (i_max && dQds > max) {
+            max = dQds;
+            *i_max = std::distance(first, iph);
         }
+
+        v_dQds.push_back(dQ / dx);
     }
-    bragg.end = *iph_max;
-    bragg.vph_mu.assign(
-        vph_sec_trk.begin(), 
-        iph_max==vph_sec_trk.end() ? vph_sec_trk.end() : iph_max+1
-    );
-    bragg.error = ana::Bragg::kNoError;
-    return bragg;
-}
+    for (unsigned i=0; i<smoothing_length; i++)
+        v_dQds[i] = v_dQds[smoothing_length];
 
-ana::Bragg ana::MichelAnalyzer::GetLongBragg(
-    VecPtrHit const& vph_trk,
-    PtrHit const& ph_end,
-    PtrTrk const& pt_mu,
-    VecPtrHit const& vph_ev,
-    art::FindOneP<recob::Track> const& fop_hit2trk,
-    ana::LinearRegression const& reg_trk,
-    ana::BraggOptions const& opt
-) const {
-    ana::Bragg bragg;
-    VecPtrHit vph_sec_trk;
-    int sec_end = ana::tpc2sec[geoDet][ph_end->WireID().TPC];
-    for (PtrHit const& ph : vph_trk)
-        if (ana::tpc2sec[geoDet][ph->WireID().TPC] == sec_end)
-            vph_sec_trk.push_back(ph);
-    
-    if (vph_sec_trk.size() < 2
-        || std::find_if(
-            vph_sec_trk.begin(), vph_sec_trk.end(),
-            [key=ph_end.key()](PtrHit const& ph) -> bool {
-                return ph.key() == key;
-            }
-        ) == vph_sec_trk.end()
-    ) {
-        bragg.error = ana::Bragg::kEndNotFound;
-        return bragg;
-    }
-
-    // decreasing dist to end: body->end
-    std::sort(
-        vph_sec_trk.begin(), vph_sec_trk.end(),
-        [&](PtrHit const& ph1, PtrHit const& ph2) -> bool {
-            return GetDistance(ph1, ph_end) > GetDistance(ph2, ph_end);
-        }
-    );
-
-    VecPtrHit::iterator iph_body = std::find_if(
-        vph_sec_trk.begin(),
-        vph_sec_trk.end(),
-        [&](PtrHit const& ph) -> bool {
-            return GetDistance(ph, ph_end) <= opt.body_dist;
-        }
-    );
-
-    if (std::distance(vph_sec_trk.begin(), iph_body) < opt.reg_n) {
-        bragg.error = ana::Bragg::kSmallBody;
-        return bragg;
-    }
-
-    float mip_dQ = 0, mip_dx = 0;
-    for (auto iph=vph_sec_trk.begin(); iph!=iph_body; iph++) {
-        mip_dQ += (*iph)->Integral();
-        if (iph == vph_sec_trk.begin())
-            mip_dx += GetDistance(*iph, *(iph+1));
-        else if (iph == vph_sec_trk.end()-1)
-            mip_dx += GetDistance(*(iph-1), *iph);
-        else 
-            mip_dx += .5*(GetDistance(*(iph-1), *iph) + GetDistance(*iph, *(iph+1)));
-    }
-    bragg.mip_dQdx = mip_dQ / mip_dx;
-
-    VecPtrHit vph_farther;
-    for (PtrHit const& ph_ev : vph_ev) {
-        if (ph_ev->View() != geo::kW) continue;
-        ana::Hit hit = GetHit(ph_ev);
-        if (hit.section != sec_end) continue;
-        if (GetDistance(ph_ev, ph_end) > opt.body_dist) continue;
-
-        if (std::find_if(
-            vph_sec_trk.begin(), vph_sec_trk.end(),
-            [key=ph_ev.key()](PtrHit const& ph) -> bool {
-                return ph.key() == key;
-            }
-        ) != vph_sec_trk.end()) continue;
-
-        if (reg_trk.distance(hit.space, hit.tick * fTick2cm) > 1) continue;
-        vph_farther.push_back(ph_ev);
-    }
-
-    // increasing dist to end: end->farther
-    std::sort(
-        vph_farther.begin(), vph_farther.end(),
-        [&](PtrHit const& ph1, PtrHit const& ph2) -> bool {
-            return GetDistance(ph1, ph_end) < GetDistance(ph2, ph_end);
-        }
-    );
-
-    vph_sec_trk.insert(vph_sec_trk.end(), vph_farther.begin(), vph_farther.end());
-
-    iph_body = std::find_if(
-        vph_sec_trk.begin(),
-        vph_sec_trk.end(),
-        [&](PtrHit const& ph) -> bool {
-            return GetDistance(ph, ph_end) <= opt.body_dist;
-        }
-    );
-
-    VecPtrHit::iterator iph_max;
-    unsigned const trailing_n = opt.reg_n;
-    for (auto iph=iph_body; iph!=vph_sec_trk.end(); iph++) {
-        VecPtrHit::iterator jph = iph-trailing_n;
-
-        double dQ = std::accumulate(
-            jph, iph, 0.,
-            [](double sum, PtrHit const& ph) {
-                return sum+ph->Integral();
-            }
-        ) / trailing_n;
-
-        double dx = 0;
-        for (auto kph=jph; kph!=iph; kph++) {
-            if (kph == vph_sec_trk.begin())
-                dx += GetDistance(*kph, *(kph+1));
-            else if (kph == vph_sec_trk.end()-1)
-                dx += GetDistance(*(kph-1), *kph);
-            else
-                dx += .5 * (
-                    GetDistance(*(kph-1), *kph)
-                    + GetDistance(*kph, *(kph+1))
-                );
-        }
-        dx /= trailing_n;
-
-        double dQdx = dQ / dx;
-        if (dQdx > bragg.max_dQdx) {
-            bragg.max_dQdx = dQdx;
-            iph_max = iph;
-        }
-    }
-    bragg.end = *iph_max;
-    bragg.vph_mu.assign(
-        vph_sec_trk.begin(), 
-        iph_max==vph_sec_trk.end() ? vph_sec_trk.end() : iph_max+1
-    );
-    bragg.error = ana::Bragg::kNoError;
-    return bragg;
+    return v_dQds;
 }

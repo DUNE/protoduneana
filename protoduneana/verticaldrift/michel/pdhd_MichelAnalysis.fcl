@@ -1,17 +1,17 @@
 #include "services_dune.fcl"
-#include "services_protodunevd.fcl" 
-#include "tools_dune.fcl"	
+#include "services_protodunehd.fcl" 
+#include "tools_dune.fcl"
 
-process_name: RunMichelTruth
+process_name: RunMichelAnalysis
 
 services: {
-    TFileService: { fileName: "pdvd_MichelTruth.root" }
+    TFileService: { fileName: "pdhd_MichelAnalysis.root" }
     TimeTracker: {}
     RandomNumberGenerator: {}
     WireReadout:                @local::dune_wire_readout
-    DetectorPropertiesService:  @local::protodunevd_detproperties
+    DetectorPropertiesService:  @local::protodunehd_detproperties
     FileCatalogMetadata:        @local::art_file_catalog_mc
-                                @table::protodunevd_reco_services
+                                @table::protodunehd_reco_services
     LArPropertiesService:       @local::dunefd_properties
 }
 
@@ -23,7 +23,7 @@ source: {
 physics: {
     analyzers: {
         checks: {
-            module_type:    "MichelTruth"
+            module_type:    "MichelAnalysis"
             Products:       [
                 ["SingleGen",  "cosmicgenerator", "",             "simb::MCTruth"],
                 ["G4Stage1",   "largeant",        "",             "simb::MCParticle"],
@@ -36,17 +36,9 @@ physics: {
                 ["Reco",       "pandora",         "",             "recob::SpacePoint"],
                 ["Reco",       "pandora",         "",             "recob::PFParticle"]
             ]
-            Log: true
+            Log: false
         }
     }
     ana: [ checks ]
     end_paths: [ ana ]
 }
-
-services.WireReadout.PDMapTool.MappingFile: "PDVD_PDS_Mapping_v07082025.json"
-services.DetectorClocksService.DefaultTrigTime:   2500
-services.DetectorClocksService.TriggerOffsetTPC:  2500
-services.DetectorClocksService.ClockSpeedTPC: 2
-services.DetectorPropertiesService.Efield: [0.450,3.125, 5e-1, 3.125]
-services.DetectorPropertiesService.NumberTimeSamples: 10000
-services.DetectorPropertiesService.ReadOutWindowSize: 10000
