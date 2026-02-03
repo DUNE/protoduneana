@@ -345,6 +345,7 @@ product          version
 duneana          v10_12_01d00
 duneprototypes   v10_12_01d00
 cetmodules	 v3_24_01	-	only_for_build
+duneanaobj   v03_12_00
 geant4reweight   v01_20_13
 end_product_list
 
@@ -352,11 +353,11 @@ end_product_list
 # We now define allowed qualifiers and the corresponding qualifiers for the depdencies.
 # Make a table by adding columns before "notes".
 # e15  - with gcc 6.4.0 and -std=c++14
-qualifier	duneprototypes          duneana         geant4reweight          notes
-c14:debug	c14:debug               c14:debug       c14:debug:s131           -nq-
-c14:prof	c14:prof                c14:prof        c14:prof:s131            -nq-
-e26:debug	e26:debug               e26:debug       e26:debug:s131           -nq-
-e26:prof	e26:prof                e26:prof        e26:prof:s131            -nq-
+qualifier	duneprototypes          duneana         geant4reweight   duneanaobj       notes
+c14:debug	c14:debug               c14:debug       c14:debug:s131    c14:debug      -nq-
+c14:prof	c14:prof                c14:prof        c14:prof:s131     c14:prof      -nq-
+e26:debug	e26:debug               e26:debug       e26:debug:s131    e26:debug     -nq-
+e26:prof	e26:prof                e26:prof        e26:prof:s131     e26:prof      -nq-
 end_qualifier_list
 
 
