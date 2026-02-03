@@ -86,7 +86,7 @@ private:
     float                   muEndAngle;
     bool                    muCathodeCrossing;
     bool                    muCathodeMisaligned;
-    bool                    muAnodeCrossing;
+    // bool                    muAnodeCrossing;
     std::vector<float>      muHitdQds;
     ana::Hits               muSphereHits;
     float                   muSphereEnergy;
@@ -185,10 +185,12 @@ ana::MichelAnalysis::MichelAnalysis(fhicl::ParameterSet const& p) :
         << "  Top Bounds: " << geoTop << std::endl
         << "  Bot Bounds: " << geoBot << std::endl;
     std::cout << "\033[1;93m" "Analysis Parameters:" "\033[0m" << std::endl
+        << "  Keep All Events: " << (inKeepAll ? "true" : "false") << std::endl
         << "  Track Length Cut: " << inTrackLengthCut << " cm" << std::endl
         << "  Fiducial Length: " << inFiducialLength << " cm" << std::endl
         << "  Barycenter Radius: " << inBarycenterRadius << " cm" << std::endl
-        << "  Michel Space Radius: " << inMichelRadius << " cm" << std::endl;
+        << "  Michel Space Radius: " << inMichelRadius << " cm" << std::endl
+        << "  Smoothing Length: " << inRegN << " points" << std::endl;
 
     evTree = asFile->make<TTree>("event","");
 
@@ -220,7 +222,7 @@ ana::MichelAnalysis::MichelAnalysis(fhicl::ParameterSet const& p) :
     // Hit
     muTree->Branch("RegError",                  &muRegError);
     muTree->Branch("CathodeCrossing",           &muCathodeCrossing);
-    muTree->Branch("AnodeCrossing",             &muAnodeCrossing);
+    // muTree->Branch("AnodeCrossing",             &muAnodeCrossing);
     SetBranches(muTree, "Start",                &muStartHit);
     muTree->Branch("StartHitX",                 &muStartHitX);
     muTree->Branch("StartHitY",                 &muStartHitY);
@@ -339,6 +341,11 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
         for (int i=bad_hit_indices.size()-1; i>=0; i--)
             vph_mu.erase(vph_mu.begin() + bad_hit_indices[i]);
 
+        ana::SortedHits sh_mu = GetSortedHits(vph_mu);
+        muRegError = !sh_mu;
+        ASSERT(!muRegError)
+
+        if (fLog) std::cout << "\t" "\033[1;93m" "e" << evIndex << "m" << evMuonNumber << " (" << muIndex << ")" "\033[0m" << std::endl;
 
         simb::MCParticle const* mcp = ana::trk2mcp(pt_ev, clockData, fmp_trk2hit);
         simb::MCParticle const* mcp_mi = nullptr;
@@ -350,8 +357,6 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
             vph_mi = ana::mcp2hits(mcp_mi, vph_ev, clockData, true, &energyFracs_mi);
         }
 
-        if (fLog) std::cout << "\t" "\033[1;93m" "e" << evIndex << "m" << evMuonNumber << " (" << muIndex << ")" "\033[0m" << std::endl;
-
         // ============================
         // Dump basic track information
         muLength = pt_ev->Length();
@@ -361,9 +366,9 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
         LOG(muLength >= inTrackLengthCut);
         if (!inKeepAll && muLength < inTrackLengthCut) continue;
 
-        bool is_up =  IsUpright(*pt_ev);
-        geo::Point_t Start = is_up ? pt_ev->Start() : pt_ev->End();
-        geo::Point_t End = is_up ? pt_ev->End() : pt_ev->Start();
+        bool track_is_up =  IsUpright(*pt_ev);
+        geo::Point_t Start = track_is_up ? pt_ev->Start() : pt_ev->End();
+        geo::Point_t End = track_is_up ? pt_ev->End() : pt_ev->Start();
         muStartPoint = ana::Point(Start);
         muEndPoint = ana::Point(End);
 
@@ -375,10 +380,11 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
         // sh_mu.cc.first -> last hit in the top volume (side1)
         // sh_mu.cc.second -> first hit in the bot volume (side0)
 
-        ana::SortedHits sh_mu = geoDet == kPDVD
-            ? GetSortedHits_dirX(vph_mu, -1) // PDVD: decreasing X <-> downward
-            : GetSortedHits_dirX(vph_mu, End.X() > Start.X() ? 1 : -1); // PDHD
-        muRegError = !sh_mu;
+        // ana::SortedHits sh_mu = geoDet == kPDVD
+        //     ? GetSortedHits_dirX(vph_mu, -1) // PDVD: decreasing X <-> downward
+        //     // THIS DOES NOT WORK FOR PDHD: the dirX from Pandora is bullshit
+        //     : GetSortedHits_dirX(vph_mu, End.X() > Start.X() ? 1 : -1); // PDHD
+        // muRegError = !sh_mu;
 
 
         // Sort Hits by their Index in the TrackHitMeta data
@@ -391,7 +397,7 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
                 return map_hitkey2metaidx.at(a.key()) < map_hitkey2metaidx.at(b.key());
             }
         );
-        int prev_sec = -1, prev_side = -1;
+        int prev_sec = -1, prev_side = kInvalidSide;
         PtrHit& prev_ph = sh_mu.vph.front();
         for (PtrHit const& ph : sh_mu.vph) {
             int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
@@ -402,12 +408,12 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
                 sh_mu.sc.push_back(ph);
             }
             prev_sec = sec;
-            if (side != -1) {
+            if (side != kInvalidSide) {
                 double z = GetSpace(ph->WireID());
                 double t = ph->PeakTime() * fTick2cm;
                 sh_mu.regs[side].add(z, t);
             }
-            if (prev_side != -1 && side != prev_side) {
+            if (prev_side != kInvalidSide && side != prev_side) {
                 sh_mu.cc = std::make_pair(prev_ph, ph);
             }
             prev_side = side;
@@ -415,384 +421,402 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
             // sh_mu.bot_index?
             // sh_mu.endsec_index?
         }
-        sh_mu.regs[0].compute();
-        sh_mu.regs[1].compute();
+        sh_mu.regs[kBot].compute();
+        sh_mu.regs[kTop].compute();
 
         sh_mu.start = sh_mu.vph.front();
         sh_mu.end = sh_mu.vph.back();
         */
 
-
-        LOG(!muRegError);
-        if (!inKeepAll && muRegError) continue;
-        if (!muRegError) {
-            // First hit of the track:
-            muStartHit = GetHit(sh_mu.start());
-            size_t start_track_idx = vhm_mu[map_hitkey2metaidx.at(sh_mu.start().key())]->Index();
-            muStartHitY = pt_ev->HasValidPoint(start_track_idx)
-                ? pt_ev->LocationAtPoint(start_track_idx).Y()
+        // Track orientation
+        bool is_up = true;
+        if (geoDet == kPDVD) {
+            int front_side = ana::tpc2side.at(geoDet).at(sh_mu.start()->WireID().TPC);
+            is_up = sh_mu.is_cc()
+                ? front_side == kTop
+                : ( front_side == kTop
+                    ? sh_mu.start()->PeakTime() < sh_mu.end()->PeakTime()
+                    : sh_mu.start()->PeakTime() > sh_mu.end()->PeakTime()
+                );
+        } else if (geoDet == kPDHD) {
+            size_t front_hit_track_idx = vhm_mu[map_hitkey2metaidx.at(sh_mu.start().key())]->Index();
+            float front_hit_y = pt_ev->HasValidPoint(front_hit_track_idx)
+                ? pt_ev->LocationAtPoint(front_hit_track_idx).Y()
                 : util::kBogusF;
-            bool start_in_Y = geoBot.y.isInside(muStartHitY, inFiducialLength) || geoTop.y.isInside(muStartHitY, inFiducialLength);
-            bool start_in_Z = geoBot.z.isInside(muStartHit.space, inFiducialLength) || geoTop.z.isInside(muStartHit.space, inFiducialLength);
-            bool start_in_T = wireWindow.isInside(muStartHit.tick, inFiducialLength / fTick2cm);
-
-            // Last hit of the track:
-            muEndHit = GetHit(sh_mu.end());
-            size_t end_track_idx = vhm_mu[map_hitkey2metaidx.at(sh_mu.end().key())]->Index();
-            muEndHitY = pt_ev->HasValidPoint(end_track_idx)
-                ? pt_ev->LocationAtPoint(end_track_idx).Y()
+            size_t back_hit_track_idx = vhm_mu[map_hitkey2metaidx.at(sh_mu.end().key())]->Index();
+            float back_hit_y = pt_ev->HasValidPoint(back_hit_track_idx)
+                ? pt_ev->LocationAtPoint(back_hit_track_idx).Y()
                 : util::kBogusF;
-            bool end_in_Y = geoBot.y.isInside(muEndHitY, inFiducialLength) || geoTop.y.isInside(muEndHitY, inFiducialLength);
-            bool end_in_Z = geoBot.z.isInside(muEndHit.space, inFiducialLength) || geoTop.z.isInside(muEndHit.space, inFiducialLength);
-            bool end_in_T = wireWindow.isInside(muEndHit.tick, inFiducialLength / fTick2cm);
+            is_up = front_hit_y > back_hit_y;
+        }
+        if (!is_up) sh_mu.reverse();
 
-            // Linear regression of hits, same side of the cathode as the end hit
-            muTopReg = sh_mu.regs[1];
-            muBotReg = sh_mu.regs[0];
-            LOG(muTopReg.r2 >= 0.5 && muBotReg.r2 >= 0.5);
-            if (!inKeepAll && !(muTopReg.r2 >= 0.5 && muBotReg.r2 >= 0.5)) continue;
+        // First hit of the track:
+        muStartHit = GetHit(sh_mu.start());
+        size_t start_track_idx = vhm_mu[map_hitkey2metaidx.at(sh_mu.start().key())]->Index();
+        muStartHitY = pt_ev->HasValidPoint(start_track_idx)
+            ? pt_ev->LocationAtPoint(start_track_idx).Y()
+            : util::kBogusF;
+        bool start_in_Y = geoBot.y.isInside(muStartHitY, inFiducialLength) || geoTop.y.isInside(muStartHitY, inFiducialLength);
+        bool start_in_Z = geoBot.z.isInside(muStartHit.space, inFiducialLength) || geoTop.z.isInside(muStartHit.space, inFiducialLength);
+        bool start_in_T = wireWindow.isInside(muStartHit.tick, inFiducialLength / fTick2cm);
 
-            // muEndSecHitdQds = GetdQds(sh_mu.endsec_it(), sh_mu.vph.end(), inRegN);
-            muHitdQds.clear();
-            std::vector<float> tmp;
-            tmp = GetdQds(sh_mu.vph.begin(), sh_mu.after_cathode_it(), inRegN);
-            muHitdQds.insert(muHitdQds.end(), tmp.begin(), tmp.end());
-            tmp = GetdQds(sh_mu.after_cathode_it(), sh_mu.vph.end(), inRegN);
-            muHitdQds.insert(muHitdQds.end(), tmp.begin(), tmp.end());
-            tmp.clear();
+        // Last hit of the track:
+        muEndHit = GetHit(sh_mu.end());
+        size_t end_track_idx = vhm_mu[map_hitkey2metaidx.at(sh_mu.end().key())]->Index();
+        muEndHitY = pt_ev->HasValidPoint(end_track_idx)
+            ? pt_ev->LocationAtPoint(end_track_idx).Y()
+            : util::kBogusF;
+        bool end_in_Y = geoBot.y.isInside(muEndHitY, inFiducialLength) || geoTop.y.isInside(muEndHitY, inFiducialLength);
+        bool end_in_Z = geoBot.z.isInside(muEndHit.space, inFiducialLength) || geoTop.z.isInside(muEndHit.space, inFiducialLength);
+        bool end_in_T = wireWindow.isInside(muEndHit.tick, inFiducialLength / fTick2cm);
 
-            // Cathode crossing <-> track has hits on both sides of the cathode
-            muCathodeCrossing = sh_mu.is_cc();
-            muCathodeMisaligned = sh_mu.is_cc()
-                && abs(sh_mu.cc_first()->PeakTime()-sh_mu.cc_second()->PeakTime())*fTick2cm < 3 * geoCathodeGap;
+        // Linear regression of hits, same side of the cathode as the end hit
+        muTopReg = sh_mu.regs[kTop];
+        muBotReg = sh_mu.regs[kBot];
+        LOG(muTopReg.r2 >= 0.5 && muBotReg.r2 >= 0.5);
+        if (!inKeepAll && !(muTopReg.r2 >= 0.5 && muBotReg.r2 >= 0.5)) continue;
 
-            LOG(muCathodeCrossing);
-            if (!inKeepAll && !muCathodeCrossing) continue;
+        // muEndSecHitdQds = GetdQds(sh_mu.endsec_it(), sh_mu.vph.end(), inRegN);
+        muHitdQds.clear();
+        std::vector<float> tmp;
+        tmp = GetdQds(sh_mu.vph.begin(), sh_mu.after_cathode_it(), inRegN);
+        muHitdQds.insert(muHitdQds.end(), tmp.begin(), tmp.end());
+        tmp = GetdQds(sh_mu.after_cathode_it(), sh_mu.vph.end(), inRegN);
+        muHitdQds.insert(muHitdQds.end(), tmp.begin(), tmp.end());
+        tmp.clear();
 
-            // switch (geoDet) {
-            // case kPDVD: /* ASSUMS DOWNWARD MUON */
-            //     muAnodeCrossing = muStartHit.section < 4
-            //         && geoTop.z.isInside(muStartHit.space, inFiducialLength)
-            //         && wireWindow.isInside(muStartHit.tick, inFiducialLength/fTick2cm);
-            //     break;
-            // case kPDHD:
-            //     muAnodeCrossing =
-            //         geoTop.z.isInside(muStartHit.space, inFiducialLength)
-            //         && wireWindow.isInside(muStartHit.tick, inFiducialLength/fTick2cm);
-            //     break;
-            // }
-            // LOG(muCathodeCrossing || muAnodeCrossing);
-            // if (!inKeepAll && (!muAnodeCrossing && !muCathodeCrossing)) continue;
+        // Cathode crossing <-> track has hits on both sides of the cathode
+        muCathodeCrossing = sh_mu.is_cc();
+        muCathodeMisaligned = sh_mu.is_cc()
+            && abs(sh_mu.cc_first()->PeakTime()-sh_mu.cc_second()->PeakTime())*fTick2cm < 3 * geoCathodeGap;
+
+        LOG(muCathodeCrossing);
+        if (!inKeepAll && !muCathodeCrossing) continue;
+
+        // switch (geoDet) {
+        // case kPDVD: /* ASSUMS DOWNWARD MUON */
+        //     muAnodeCrossing = muStartHit.section < 4
+        //         && geoTop.z.isInside(muStartHit.space, inFiducialLength)
+        //         && wireWindow.isInside(muStartHit.tick, inFiducialLength/fTick2cm);
+        //     break;
+        // case kPDHD:
+        //     muAnodeCrossing =
+        //         geoTop.z.isInside(muStartHit.space, inFiducialLength)
+        //         && wireWindow.isInside(muStartHit.tick, inFiducialLength/fTick2cm);
+        //     break;
+        // }
+        // LOG(muCathodeCrossing || muAnodeCrossing);
+        // if (!inKeepAll && (!muAnodeCrossing && !muCathodeCrossing)) continue;
 
 
-            // Calculate hit X positions for cathode crossing tracks
-            bool start_in_X=false;
-            bool end_in_X=false;
-            if (muCathodeCrossing) {
-                int start_side = ana::tpc2side.at(geoDet).at(muStartHit.tpc);
-                int end_side = ana::tpc2side.at(geoDet).at(muEndHit.tpc);
+        // Calculate hit X positions for cathode crossing tracks
+        bool start_in_X=false;
+        bool end_in_X=false;
+        if (muCathodeCrossing) {
+            int start_side = ana::tpc2side.at(geoDet).at(muStartHit.tpc);
+            int end_side = ana::tpc2side.at(geoDet).at(muEndHit.tpc);
 
-                // side0: X<0 | side1: X>0
-                muStartHitX = start_side == 0
-                    ? -(geoCathodeGap/2) - (sh_mu.cc_second()->PeakTime() - muStartHit.tick) * fTick2cm
-                    : +(geoCathodeGap/2) + (sh_mu.cc_first()->PeakTime() - muStartHit.tick) * fTick2cm;
-                start_in_X = start_side == 0
-                    ? geoBot.x.isInside(muStartHitX, inFiducialLength)
-                    : geoTop.x.isInside(muStartHitX, inFiducialLength);
+            // side0: X<0 | side1: X>0
+            muStartHitX = start_side == kBot
+                ? -(geoCathodeGap/2) - (sh_mu.cc_second()->PeakTime() - muStartHit.tick) * fTick2cm
+                : +(geoCathodeGap/2) + (sh_mu.cc_first()->PeakTime() - muStartHit.tick) * fTick2cm;
+            start_in_X = start_side == kBot
+                ? geoBot.x.isInside(muStartHitX, inFiducialLength)
+                : geoTop.x.isInside(muStartHitX, inFiducialLength);
 
-                muEndHitX = end_side == 0
-                    ? -(geoCathodeGap/2) - (sh_mu.cc_second()->PeakTime() - muEndHit.tick) * fTick2cm
-                    : +(geoCathodeGap/2) + (sh_mu.cc_first()->PeakTime() - muEndHit.tick) * fTick2cm;
-                end_in_X = end_side == 0
-                    ? geoBot.x.isInside(muEndHitX, inFiducialLength)
-                    : geoTop.x.isInside(muEndHitX, inFiducialLength);
+            muEndHitX = end_side == kBot
+                ? -(geoCathodeGap/2) - (sh_mu.cc_second()->PeakTime() - muEndHit.tick) * fTick2cm
+                : +(geoCathodeGap/2) + (sh_mu.cc_first()->PeakTime() - muEndHit.tick) * fTick2cm;
+            end_in_X = end_side == kBot
+                ? geoBot.x.isInside(muEndHitX, inFiducialLength)
+                : geoTop.x.isInside(muEndHitX, inFiducialLength);
+        }
+
+        muStartInXYZT = start_in_X && start_in_Y && start_in_Z && start_in_T;
+        muEndInXYZT = end_in_X && end_in_Y && end_in_Z && end_in_T;
+        LOG(muStartInXYZT);
+        LOG(muEndInXYZT);
+        if (!inKeepAll && !muEndInXYZT) continue;
+        for (PtrHit const& ph_mu : sh_mu.vph) {
+            if (ph_mu->View() != geo::kW) continue;
+            ana::Hit hit = GetHit(ph_mu);
+            muHits.push_back(hit);
+        }
+
+        VecPtrHit vph_ev_endsec;
+        for (PtrHit const& ph_ev : vph_ev) {
+            if (ph_ev->View() != geo::kW) continue;
+            int sec = ana::tpc2sec.at(geoDet).at(ph_ev->WireID().TPC);
+            if (sec != sh_mu.end_sec()) continue;
+            vph_ev_endsec.push_back(ph_ev);
+        }
+
+        muEndAngle = sh_mu.regs
+            [ana::sec2side.at(geoDet).at(muEndHit.section)]
+            .theta(muEndHit.space > muStartHit.space ? 1 : -1);
+        // integrate charges around muon endpoint
+        muSphereEnergy = 0;
+        muSphereEnergyTP = 0;
+        muSphereHasLongTrack = false;
+        // muSphereMaxShowerEnergy = 0;
+        for (PtrHit const& ph_ev : vph_ev_endsec) {
+            float dist = GetDistance(ph_ev, sh_mu.end());
+            if (dist > inMichelRadius) continue;
+
+            PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
+            if (pt_hit && pt_hit->Length() > inTrackLengthCut) {
+                if (pt_hit.key() != pt_ev.key()) muSphereHasLongTrack = true;
+                continue;
             }
 
-            muStartInXYZT = start_in_X && start_in_Y && start_in_Z && start_in_T;
-            muEndInXYZT = end_in_X && end_in_Y && end_in_Z && end_in_T;
-            LOG(muStartInXYZT);
-            LOG(muEndInXYZT);
-            if (!inKeepAll && !muEndInXYZT) continue;
-            for (PtrHit const& ph_mu : sh_mu.vph) {
-                if (ph_mu->View() != geo::kW) continue;
-                ana::Hit hit = GetHit(ph_mu);
-                muHits.push_back(hit);
+            // PtrShw ps_hit = fop_hit2shw.at(ph_ev.key());
+            // if (ps_hit)
+            //     for (double energy : ps_hit->Energy())
+            //         if (energy > muSphereMaxShowerEnergy)
+            //             muSphereMaxShowerEnergy = energy;
+
+            if (dist < inBarycenterRadius) {
+                muBaryHits.push_back(GetHit(ph_ev));
             }
 
-            VecPtrHit vph_ev_endsec;
-            for (PtrHit const& ph_ev : vph_ev) {
-                if (ph_ev->View() != geo::kW) continue;
-                int sec = ana::tpc2sec.at(geoDet).at(ph_ev->WireID().TPC);
-                if (sec != sh_mu.end_sec()) continue;
-                vph_ev_endsec.push_back(ph_ev);
-            }
+            ana::Hit hit = GetHit(ph_ev);
+            muSphereEnergy += ph_ev->ROISummedADC();
+            muSphereHits.push_back(hit);
 
-            muEndAngle = sh_mu.regs
-                [ana::sec2side.at(geoDet).at(muEndHit.section)]
-                .theta(muEndHit.space > muStartHit.space ? 1 : -1);
-            // integrate charges around muon endpoint
-            muSphereEnergy = 0;
-            muSphereEnergyTP = 0;
-            muSphereHasLongTrack = false;
-            // muSphereMaxShowerEnergy = 0;
-            for (PtrHit const& ph_ev : vph_ev_endsec) {
-                float dist = GetDistance(ph_ev, sh_mu.end());
-                if (dist > inMichelRadius) continue;
+            float da = (hit.vec(fTick2cm) - muEndHit.vec(fTick2cm)).angle() - muEndAngle;
+            da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
+            muSphereHitMuonAngle.push_back(da);
 
-                PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
-                if (pt_hit && pt_hit->Length() > inTrackLengthCut) {
-                    if (pt_hit.key() != pt_ev.key()) muSphereHasLongTrack = true;
-                    continue;
-                }
+            if (std::find_if(
+                vph_mi.begin(), vph_mi.end(),
+                [&ph_ev](PtrHit const& h) -> bool { return h.key() == ph_ev.key(); }
+            ) != vph_mi.end())
+                muSphereEnergyTP = ph_ev->ROISummedADC();
+        }
 
-                // PtrShw ps_hit = fop_hit2shw.at(ph_ev.key());
-                // if (ps_hit)
-                //     for (double energy : ps_hit->Energy())
-                //         if (energy > muSphereMaxShowerEnergy)
-                //             muSphereMaxShowerEnergy = energy;
+        // Cone
+        LOG(muBaryHits.size());
+        if (muBaryHits.size()) {
+            muBary = muBaryHits.barycenter(fTick2cm);
+            ana::Vec2 end_bary = muBary - muEndHit.vec(fTick2cm);
+            muBaryAngle = end_bary.angle();
+            float da = muBaryAngle - muEndAngle;
+            da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
+            muBaryMuonAngle = da;
 
-                if (dist < inBarycenterRadius) {
-                    muBaryHits.push_back(GetHit(ph_ev));
-                }
+            // if (inCone) {
+            //     // float angle = end_bary.angle();
+            //     PandoraConeEnergy = 0;
+            //     PandoraConeEnergyTP = 0;
+            //     for (PtrHit const& ph_ev : vph_ev_endsec) {
+            //         ana::Hit hit = GetHit(ph_ev);
+            //         PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
+            //         if (pt_hit && pt_hit->Length() > inTrackLengthCut) continue;
 
-                ana::Hit hit = GetHit(ph_ev);
-                muSphereEnergy += ph_ev->ROISummedADC();
-                muSphereHits.push_back(hit);
+            //         float dist = GetDistance(ph_ev, sh_mu.end);
+            //         if (dist > 30) continue;
 
-                float da = (hit.vec(fTick2cm) - muEndHit.vec(fTick2cm)).angle() - muEndAngle;
-                da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
-                muSphereHitMuonAngle.push_back(da);
+            //         ana::Vec2 end_hit = hit.vec(fTick2cm) - muEndHit.vec(fTick2cm);
+            //         float cosa = end_bary.dot(end_hit) / (end_bary.norm() * end_hit.norm());
 
-                if (std::find_if(
-                    vph_mi.begin(), vph_mi.end(),
-                    [&ph_ev](PtrHit const& h) -> bool { return h.key() == ph_ev.key(); }
-                ) != vph_mi.end())
-                    muSphereEnergyTP = ph_ev->ROISummedADC();
-            }
+            //         if (dist > 5
+            //             && cosa < cos(30.F * TMath::DegToRad())
+            //         ) continue;
 
-            // Cone
-            LOG(muBaryHits.size());
-            if (muBaryHits.size()) {
-                muBary = muBaryHits.barycenter(fTick2cm);
-                ana::Vec2 end_bary = muBary - muEndHit.vec(fTick2cm);
-                muBaryAngle = end_bary.angle();
-                float da = muBaryAngle - muEndAngle;
-                da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
-                muBaryMuonAngle = da;
+            //         bool tp = std::find_if(
+            //             vph_mi.begin(), vph_mi.end(),
+            //             [&ph_ev](PtrHit const& h) -> bool { return h.key() == ph_ev.key(); }
+            //         ) != vph_mi.end();
 
-                // if (inCone) {
-                //     // float angle = end_bary.angle();
-                //     PandoraConeEnergy = 0;
-                //     PandoraConeEnergyTP = 0;
-                //     for (PtrHit const& ph_ev : vph_ev_endsec) {
-                //         ana::Hit hit = GetHit(ph_ev);
-                //         PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
-                //         if (pt_hit && pt_hit->Length() > inTrackLengthCut) continue;
+            //         PandoraKeyholeEnergy += ph_ev->ROISummedADC();
+            //         PandoraKeyholeHits.push_back(hit);
 
-                //         float dist = GetDistance(ph_ev, sh_mu.end);
-                //         if (dist > 30) continue;
+            //         if (tp) PandoraKeyholeEnergyTP += ph_ev->ROISummedADC();
 
-                //         ana::Vec2 end_hit = hit.vec(fTick2cm) - muEndHit.vec(fTick2cm);
-                //         float cosa = end_bary.dot(end_hit) / (end_bary.norm() * end_hit.norm());
+            //         if (cosa < cos(30.F * TMath::DegToRad())) continue;
 
-                //         if (dist > 5
-                //             && cosa < cos(30.F * TMath::DegToRad())
-                //         ) continue;
+            //         PandoraConeEnergy += ph_ev->ROISummedADC();
+            //         PandoraConeHits.push_back(hit);
 
-                //         bool tp = std::find_if(
-                //             vph_mi.begin(), vph_mi.end(),
-                //             [&ph_ev](PtrHit const& h) -> bool { return h.key() == ph_ev.key(); }
-                //         ) != vph_mi.end();
-
-                //         PandoraKeyholeEnergy += ph_ev->ROISummedADC();
-                //         PandoraKeyholeHits.push_back(hit);
-
-                //         if (tp) PandoraKeyholeEnergyTP += ph_ev->ROISummedADC();
-
-                //         if (cosa < cos(30.F * TMath::DegToRad())) continue;
-
-                //         PandoraConeEnergy += ph_ev->ROISummedADC();
-                //         PandoraConeHits.push_back(hit);
-
-                //         if (tp) PandoraConeEnergyTP += ph_ev->ROISummedADC();
-                //     }
-                // }
-            }
-
-
-            // LOG(!muEndSecHitdQds.empty());
-            // if (!inKeepAll && muEndSecHitdQds.empty()) continue;
-
-            // MIPdQds = 0;
-            // if (!inBragg || std::distance(sh_mu.endsec_it(), sh_mu.vph.end()) < 2 * inBraggN) {
-            //     BraggError = true;
-            // } else {
-            //     BraggError = false;
-
-            //     VecPtrHit vph_mu_bragg(sh_mu.endsec_it(), sh_mu.vph.end() - 2*inBraggN);
-            //     VecPtrHit vph_mu_tail(sh_mu.vph.end() - 2*inBraggN, sh_mu.vph.end());
-
-            //     int n = inBraggN;
-            //     while (n--) {
-            //         float min_dist = std::numeric_limits<float>::max();
-            //         PtrHit closest_hit;
-            //         for (PtrHit const& ph_ev : vph_ev_endsec) {
-            //             // not already in muon
-            //             if (std::find_if(
-            //                 vph_mu_bragg.begin(), vph_mu_bragg.end(),
-            //                 [&ph_ev](PtrHit const& ph) { return ph.key() == ph_ev.key(); }
-            //             ) != vph_mu_bragg.end()) continue;
-            //             if (std::find_if(
-            //                 vph_mu_tail.begin(), vph_mu_tail.end(),
-            //                 [&ph_ev](PtrHit const& ph) { return ph.key() == ph_ev.key(); }
-            //             ) != vph_mu_tail.end()) continue;
-
-            //             float dist = GetDistance(ph_ev, vph_mu_tail.back());
-            //             if (dist < min_dist) {
-            //                 min_dist = dist;
-            //                 closest_hit = ph_ev;
-            //             }
-            //         }
-            //         if (closest_hit) vph_mu_tail.push_back(closest_hit);
-            //         else break;
+            //         if (tp) PandoraConeEnergyTP += ph_ev->ROISummedADC();
             //     }
-
-                // unsigned i_dQds_max;
-                // std::vector<float> bragg_dQds = GetdQds(vph_mu_tail, inRegN, &i_dQds_max);
-
-                // BraggdQds = bragg_dQds[i_dQds_max];
-                // for (unsigned i=0; i<=i_dQds_max; i++) {
-                //     vph_mu_bragg.push_back(vph_mu_tail[i]);
-                // }
-
-                // VecPtrHit::iterator it_dQ_max = std::max_element(
-                //     vph_mu_tail.begin(), vph_mu_tail.end(),
-                //     [&](PtrHit const& a, PtrHit const& b) -> bool {
-                //         return a->ROISummedADC() < b->ROISummedADC();
-                //     }
-                // );
-
-                // MIPdQds = std::accumulate(
-                //     sh_mu.endsec_it(), sh_mu.vph.end() - inBraggN, 0.F,
-                //     [&](float sum, PtrHit const& ph) -> float {
-                //         return sum + ph->ROISummedADC();
-                //     }
-                // ) / (sh_mu.vph.end() - inBraggN - sh_mu.endsec_it());
-                // BraggdQds = (*it_dQ_max)->ROISummedADC();
-                // for (VecPtrHit::iterator it=vph_mu_tail.begin(); it!=it_dQ_max+1; ++it)
-                //     vph_mu_bragg.push_back(*it);
-
-
-
-                // BraggEndHit = GetHit(vph_mu_bragg.back());
-                // for (PtrHit const& ph_mu : vph_mu_bragg)
-                //     BraggMuonHits.push_back(GetHit(ph_mu));
-
-                // BraggBaryHasLongTrack = false;
-                // for (PtrHit const& ph_ev : vph_ev_endsec) {
-                //     double dist = GetDistance(ph_ev, vph_mu_bragg.back());
-                //     if (dist > inMichelRadius) continue;
-
-                //     PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
-                //     // not from other long track
-                //     if (pt_hit
-                //         && pt_hit.key() != pt_ev.key()
-                //         && pt_hit->Length() > inMichelRadius
-                //     ) {
-                //         if (dist < inBarycenterRadius) BraggBaryHasLongTrack = true;
-                //         continue;
-                //     }
-
-                //     if (std::find_if(
-                //         vph_mu_bragg.begin(), vph_mu_bragg.end(),
-                //         [&ph_ev](PtrHit const& ph) { return ph.key() == ph_ev.key(); }
-                //     ) != vph_mu_bragg.end()) continue;
-
-                //     if (dist < inBarycenterRadius) {
-                //         BraggBaryHits.push_back(GetHit(ph_ev));
-                //     }
-
-                //     // PtrShw ps_hit = fop_hit2shw.at(ph_ev.key());
-                //     // BraggSphereHasShower = bool(ps_hit);
-
-                //     ana::Hit hit = GetHit(ph_ev);
-                //     BraggSphereEnergy += ph_ev->ROISummedADC();
-                //     BraggSphereHits.push_back(hit);
-
-                //     float da = (hit.vec(fTick2cm) - TrkEndHit.vec(fTick2cm)).angle() - TrkReg.theta(dirZ);
-                //     da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
-                //     BraggSphereHitMuonAngle.push_back(da);
-
-                //     if (std::find_if(
-                //         vph_mi.begin(), vph_mi.end(),
-                //         [&ph_ev](PtrHit const& h) -> bool { return h.key() == ph_ev.key(); }
-                //     ) != vph_mi.end())
-                //         BraggSphereEnergyTP = ph_ev->ROISummedADC();
-                // }
-
-                // LOG(BraggBaryHits.size());
-                // if (BraggBaryHits.size()) {
-                //     BraggBary = BraggBaryHits.barycenter(fTick2cm);
-                //     ana::Vec2 end_bary = BraggBary - BraggEndHit.vec(fTick2cm);
-                //     BraggBaryAngle = end_bary.angle();
-                //     float da = BraggBaryAngle - TrkReg.theta(dirZ);
-                //     da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
-                //     BraggBaryMuonAngle = da;
-                // }
-
-                // if (inCone) {
-
-                // }
-                // // Cone
-                // for (PtrHit const& ph_near : vph_near) {
-                //     if (GetDistance(ph_near, bragg.end) > 10) continue;
-                //     NearbyBaryHits.push_back(GetHit(ph_near));
-                // }
-
-                // LOG(NearbyBaryHits.size());
-                // if (NearbyBaryHits.size()) {
-                //     NearbyBary = NearbyBaryHits.barycenter(fTick2cm);
-                //     ana::Vec2 end_bary = NearbyBary - BraggEndHit.vec(fTick2cm);
-                //     NearbyBaryAngle = end_bary.angle();
-                //     float da = NearbyBaryAngle - TrkReg.theta(dirZ);
-                //     da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
-                //     NearbyBaryMuonAngle = da;
-
-                //     // float angle = end_bary.angle();
-                //     BraggConeEnergy = 0;
-                //     BraggConeEnergyTP = 0;
-                //     for (PtrHit const& ph_near : vph_near) {
-                //         float dist = GetDistance(ph_near, bragg.end);
-                //         if (dist > 30) continue;
-
-                //         ana::Hit hit = GetHit(ph_near);
-                //         ana::Vec2 end_hit = hit.vec(fTick2cm) - BraggEndHit.vec(fTick2cm);
-                //         float cosa = end_bary.dot(end_hit) / (end_bary.norm() * end_hit.norm());
-
-                //         if (dist > 5
-                //             && cosa < cos(30.F * TMath::DegToRad())
-                //         ) continue;
-
-                //         bool tp = std::find_if(
-                //             vph_mi.begin(), vph_mi.end(),
-                //             [&ph_near](PtrHit const& h) -> bool { return h.key() == ph_near.key(); }
-                //         ) != vph_mi.end();
-
-                //         BraggKeyholeEnergy += ph_near->ROISummedADC();
-                //         BraggKeyholeHits.push_back(hit);
-
-                //         if (tp) BraggKeyholeEnergyTP += ph_near->ROISummedADC();
-
-                //         if (cosa < cos(30.F * TMath::DegToRad())) continue;
-
-                //         BraggConeEnergy += ph_near->ROISummedADC();
-                //         BraggConeHits.push_back(hit);
-
-                //         if (tp) BraggConeEnergyTP += ph_near->ROISummedADC();
-                //     }
-                // }
             // }
         }
+
+
+        // LOG(!muEndSecHitdQds.empty());
+        // if (!inKeepAll && muEndSecHitdQds.empty()) continue;
+
+        // MIPdQds = 0;
+        // if (!inBragg || std::distance(sh_mu.endsec_it(), sh_mu.vph.end()) < 2 * inBraggN) {
+        //     BraggError = true;
+        // } else {
+        //     BraggError = false;
+
+        //     VecPtrHit vph_mu_bragg(sh_mu.endsec_it(), sh_mu.vph.end() - 2*inBraggN);
+        //     VecPtrHit vph_mu_tail(sh_mu.vph.end() - 2*inBraggN, sh_mu.vph.end());
+
+        //     int n = inBraggN;
+        //     while (n--) {
+        //         float min_dist = std::numeric_limits<float>::max();
+        //         PtrHit closest_hit;
+        //         for (PtrHit const& ph_ev : vph_ev_endsec) {
+        //             // not already in muon
+        //             if (std::find_if(
+        //                 vph_mu_bragg.begin(), vph_mu_bragg.end(),
+        //                 [&ph_ev](PtrHit const& ph) { return ph.key() == ph_ev.key(); }
+        //             ) != vph_mu_bragg.end()) continue;
+        //             if (std::find_if(
+        //                 vph_mu_tail.begin(), vph_mu_tail.end(),
+        //                 [&ph_ev](PtrHit const& ph) { return ph.key() == ph_ev.key(); }
+        //             ) != vph_mu_tail.end()) continue;
+
+        //             float dist = GetDistance(ph_ev, vph_mu_tail.back());
+        //             if (dist < min_dist) {
+        //                 min_dist = dist;
+        //                 closest_hit = ph_ev;
+        //             }
+        //         }
+        //         if (closest_hit) vph_mu_tail.push_back(closest_hit);
+        //         else break;
+        //     }
+
+            // unsigned i_dQds_max;
+            // std::vector<float> bragg_dQds = GetdQds(vph_mu_tail, inRegN, &i_dQds_max);
+
+            // BraggdQds = bragg_dQds[i_dQds_max];
+            // for (unsigned i=0; i<=i_dQds_max; i++) {
+            //     vph_mu_bragg.push_back(vph_mu_tail[i]);
+            // }
+
+            // VecPtrHit::iterator it_dQ_max = std::max_element(
+            //     vph_mu_tail.begin(), vph_mu_tail.end(),
+            //     [&](PtrHit const& a, PtrHit const& b) -> bool {
+            //         return a->ROISummedADC() < b->ROISummedADC();
+            //     }
+            // );
+
+            // MIPdQds = std::accumulate(
+            //     sh_mu.endsec_it(), sh_mu.vph.end() - inBraggN, 0.F,
+            //     [&](float sum, PtrHit const& ph) -> float {
+            //         return sum + ph->ROISummedADC();
+            //     }
+            // ) / (sh_mu.vph.end() - inBraggN - sh_mu.endsec_it());
+            // BraggdQds = (*it_dQ_max)->ROISummedADC();
+            // for (VecPtrHit::iterator it=vph_mu_tail.begin(); it!=it_dQ_max+1; ++it)
+            //     vph_mu_bragg.push_back(*it);
+
+
+
+            // BraggEndHit = GetHit(vph_mu_bragg.back());
+            // for (PtrHit const& ph_mu : vph_mu_bragg)
+            //     BraggMuonHits.push_back(GetHit(ph_mu));
+
+            // BraggBaryHasLongTrack = false;
+            // for (PtrHit const& ph_ev : vph_ev_endsec) {
+            //     double dist = GetDistance(ph_ev, vph_mu_bragg.back());
+            //     if (dist > inMichelRadius) continue;
+
+            //     PtrTrk pt_hit = fop_hit2trk.at(ph_ev.key());
+            //     // not from other long track
+            //     if (pt_hit
+            //         && pt_hit.key() != pt_ev.key()
+            //         && pt_hit->Length() > inMichelRadius
+            //     ) {
+            //         if (dist < inBarycenterRadius) BraggBaryHasLongTrack = true;
+            //         continue;
+            //     }
+
+            //     if (std::find_if(
+            //         vph_mu_bragg.begin(), vph_mu_bragg.end(),
+            //         [&ph_ev](PtrHit const& ph) { return ph.key() == ph_ev.key(); }
+            //     ) != vph_mu_bragg.end()) continue;
+
+            //     if (dist < inBarycenterRadius) {
+            //         BraggBaryHits.push_back(GetHit(ph_ev));
+            //     }
+
+            //     // PtrShw ps_hit = fop_hit2shw.at(ph_ev.key());
+            //     // BraggSphereHasShower = bool(ps_hit);
+
+            //     ana::Hit hit = GetHit(ph_ev);
+            //     BraggSphereEnergy += ph_ev->ROISummedADC();
+            //     BraggSphereHits.push_back(hit);
+
+            //     float da = (hit.vec(fTick2cm) - TrkEndHit.vec(fTick2cm)).angle() - TrkReg.theta(dirZ);
+            //     da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
+            //     BraggSphereHitMuonAngle.push_back(da);
+
+            //     if (std::find_if(
+            //         vph_mi.begin(), vph_mi.end(),
+            //         [&ph_ev](PtrHit const& h) -> bool { return h.key() == ph_ev.key(); }
+            //     ) != vph_mi.end())
+            //         BraggSphereEnergyTP = ph_ev->ROISummedADC();
+            // }
+
+            // LOG(BraggBaryHits.size());
+            // if (BraggBaryHits.size()) {
+            //     BraggBary = BraggBaryHits.barycenter(fTick2cm);
+            //     ana::Vec2 end_bary = BraggBary - BraggEndHit.vec(fTick2cm);
+            //     BraggBaryAngle = end_bary.angle();
+            //     float da = BraggBaryAngle - TrkReg.theta(dirZ);
+            //     da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
+            //     BraggBaryMuonAngle = da;
+            // }
+
+            // if (inCone) {
+
+            // }
+            // // Cone
+            // for (PtrHit const& ph_near : vph_near) {
+            //     if (GetDistance(ph_near, bragg.end) > 10) continue;
+            //     NearbyBaryHits.push_back(GetHit(ph_near));
+            // }
+
+            // LOG(NearbyBaryHits.size());
+            // if (NearbyBaryHits.size()) {
+            //     NearbyBary = NearbyBaryHits.barycenter(fTick2cm);
+            //     ana::Vec2 end_bary = NearbyBary - BraggEndHit.vec(fTick2cm);
+            //     NearbyBaryAngle = end_bary.angle();
+            //     float da = NearbyBaryAngle - TrkReg.theta(dirZ);
+            //     da = abs(da) > M_PI ? da - (da>0 ? 1 : -1) * 2 * M_PI : da;
+            //     NearbyBaryMuonAngle = da;
+
+            //     // float angle = end_bary.angle();
+            //     BraggConeEnergy = 0;
+            //     BraggConeEnergyTP = 0;
+            //     for (PtrHit const& ph_near : vph_near) {
+            //         float dist = GetDistance(ph_near, bragg.end);
+            //         if (dist > 30) continue;
+
+            //         ana::Hit hit = GetHit(ph_near);
+            //         ana::Vec2 end_hit = hit.vec(fTick2cm) - BraggEndHit.vec(fTick2cm);
+            //         float cosa = end_bary.dot(end_hit) / (end_bary.norm() * end_hit.norm());
+
+            //         if (dist > 5
+            //             && cosa < cos(30.F * TMath::DegToRad())
+            //         ) continue;
+
+            //         bool tp = std::find_if(
+            //             vph_mi.begin(), vph_mi.end(),
+            //             [&ph_near](PtrHit const& h) -> bool { return h.key() == ph_near.key(); }
+            //         ) != vph_mi.end();
+
+            //         BraggKeyholeEnergy += ph_near->ROISummedADC();
+            //         BraggKeyholeHits.push_back(hit);
+
+            //         if (tp) BraggKeyholeEnergyTP += ph_near->ROISummedADC();
+
+            //         if (cosa < cos(30.F * TMath::DegToRad())) continue;
+
+            //         BraggConeEnergy += ph_near->ROISummedADC();
+            //         BraggConeHits.push_back(hit);
+
+            //         if (tp) BraggConeEnergyTP += ph_near->ROISummedADC();
+            //     }
+            // }
+        // }
 
         // Truth Information
         LOG(mcp);
@@ -803,9 +827,10 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
             truEndPoint = ana::Point(mcp->EndPosition().Vect());
             truEndEnergy = (mcp->EndE() - mcp->Mass()) * 1e3; // MeV
 
-            ana::SortedHits sh_mcp = GetSortedHits_dirX(vph_mcp_mu, mcp->EndX() > mcp->Vx() ? 1 : -1);
+            ana::SortedHits sh_mcp = GetSortedHits(vph_mcp_mu, mcp->EndX() > mcp->Vx() ? 1 : -1);
             LOG(sh_mcp);
             if (sh_mcp) {
+
                 truStartHit = GetHit(sh_mcp.start());
                 truEndHit = GetHit(sh_mcp.end());
                 truReg = sh_mcp.end_reg(geoDet);
@@ -825,9 +850,9 @@ void ana::MichelAnalysis::analyze(art::Event const& e) {
 
 
                     PtrTrk pt_mi = ana::mcp2trk(mcp_mi, vpt_ev, clockData, fmp_trk2hit);
-                    miTrackLength = pt_mi ? pt_mi->Length() : -1.F;
+                    miTrackLength = pt_mi ? pt_mi->Length() : util::kBogusF;
                     // PtrShw ps_mi = ana::mcp2shw(mcp_mi, vps_ev, clockData, fmp_shw2hit);
-                    // MichelShowerLength = ps_mi ? ps_mi->Length() : -1.F;
+                    // MichelShowerLength = ps_mi ? ps_mi->Length() : util::kBogusF;
 
                     truEndAngle = sh_mcp.end_reg(geoDet).theta(mcp->EndZ() > mcp->Vz() ? 1 : -1);
                     Hits bary_hits;
@@ -896,13 +921,13 @@ void ana::MichelAnalysis::resetMuon() {
     muEndAngle = util::kBogusF;
     muCathodeCrossing = false;
     muCathodeMisaligned = false;
-    muAnodeCrossing = false;
+    // muAnodeCrossing = false;
     muHitdQds.clear();
     muSphereHits.clear();
-    muSphereEnergy = -1.F;
-    muSphereEnergyTP = -1.F;
+    muSphereEnergy = util::kBogusF;
+    muSphereEnergyTP = util::kBogusF;
     muSphereHitMuonAngle.clear();
-    // muSphereMaxShowerEnergy = -1.F;
+    // muSphereMaxShowerEnergy = util::kBogusF;
 
     muBary = ana::Vec2{0,0};
     muBaryHits.clear();
@@ -914,20 +939,20 @@ void ana::MichelAnalysis::resetMuon() {
     truEndProcess = "";
     truStartPoint = ana::Point{};
     truEndPoint = ana::Point{};
-    truEndEnergy = -1.F;
+    truEndEnergy = util::kBogusF;
     truStartHit = ana::Hit{};
     truEndHit = ana::Hit{};
     truReg = ana::LinearRegression{};
     truEndAngle = util::kBogusF;
     truHasMichel = kHasNoMichel;
 
-    miTrueEnergy = -1.F;
-    miTrackLength = -1.F;
-    // miShowerLength = -1.F;
+    miTrueEnergy = util::kBogusF;
+    miTrackLength = util::kBogusF;
+    // miShowerLength = util::kBogusF;
     miHits.clear();
     miHitEnergyFrac.clear();
     miHitMuonAngle.clear();
-    miHitEnergy = -1.F;
+    miHitEnergy = util::kBogusF;
 
     miBaryNHit = 0;
     miBary = ana::Vec2{0,0};
