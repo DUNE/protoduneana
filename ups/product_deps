@@ -345,7 +345,7 @@ product          version
 duneana          v10_12_01d00
 duneprototypes   v10_12_01d00
 cetmodules	 v3_24_01	-	only_for_build
-duneanaobj   v03_12_00
+duneanaobj   v03_11_00
 geant4reweight   v01_20_13
 end_product_list
 
