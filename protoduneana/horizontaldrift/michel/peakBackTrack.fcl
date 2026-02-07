@@ -1,0 +1,71 @@
+#include "services_dune.fcl"
+#include "protodune_tools_dune.fcl"
+
+process_name: backTrackMCParticle
+
+services:
+{
+  #Load the service that manages root files for histograms.
+  TFileService: { fileName: "tmp_hist.root" }
+  TimeTracker:       {}
+  MemoryTracker:         { }     #default is one
+  RandomNumberGenerator: {}      #ART native random number generator
+
+  @table::protodunehd_reco_services
+
+  #Added by Shu, 20241111---
+  Geometry:     @local::protodunehdv6_geo
+
+  message:      @local::standard_info
+  IFDH: {}
+}
+
+services.AuxDetGeometry.GDML: "protodunehd_v6_refactored.gdml"
+services.AuxDetGeometry.Name: "protodunehdv6"
+
+#To make sure photonBackTracker trace to the corrent branch in ART---
+services.PhotonBackTrackerService: {
+  PhotonBackTracker: {
+    G4ModuleLabels: ["PDFastSim"]
+    MinimumHitEnergyFraction: 0.0
+    Delay: 0
+  }
+}
+
+
+
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents:  1000           # Number of events to create
+}
+
+outputs:
+{
+}
+
+physics:
+{
+ analyzers:{}
+ 
+ ana:  [ pbt ]
+ 
+ stream1:  [  ]
+
+ trigger_paths: [] 
+
+ end_paths:     [  ana ] 
+}
+
+
+physics.analyzers.pbt: {
+  module_type: peakBackTrack
+  
+  OpWaveformTag: "opdec::Reco"
+  SelectChannel: 27        # Required: select one optical channel
+  SelectWfTimeStamp: -1027.31 # in unit of us; refer to print.log of event_wvf_extract
+  WindowStartTick: 230 # The region of interest in waveform ticks
+  WindowEndTick:   250
+}
