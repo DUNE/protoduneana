@@ -85,6 +85,11 @@
 #include "TFitResultPtr.h"
 #include "TFitResult.h"
 
+#include "TH1D.h"
+#include "TLine.h"
+#include "TGraph.h"
+#include "TMultiGraph.h"
+#include "TCanvas.h"
 
 namespace pduneana {
 
@@ -572,6 +577,12 @@ private:
   void BeamPFPInfo(const art::Event & evt,
                    const recob::PFParticle* particle,
                    anab::MVAReader<recob::Hit,4> * hitResults);
+// computeZFromChannel 
+  double computeZFromChannel(int channel) const;
+  void ComputeTotalDaughterADC(const art::Event & evt, const recob::PFParticle* particle, 
+                              detinfo::DetectorClocksData const& clockData,
+                              const simb::MCParticle* true_beam_particle,
+                              const sim::ParticleList & plist);
   void BeamForcedTrackInfo(const art::Event & evt,
                            const recob::PFParticle * particle);
   void CheckEff(const art::Event & evt, int rightTrackID);
@@ -672,6 +683,7 @@ private:
   std::vector< double > true_beam_daughter_startP, true_beam_daughter_startPx, true_beam_daughter_startPy, true_beam_daughter_startPz;
   std::vector< double > true_beam_daughter_endX, true_beam_daughter_endY, true_beam_daughter_endZ;
   std::vector< int >    true_beam_daughter_nHits;
+  std::vector< double >   true_beam_daughter_totalADC;
 
 
   //going from true to reco byHits
@@ -723,6 +735,7 @@ private:
   int test_branch;
   double true_beam_len;
   double reco_beam_len, reco_beam_alt_len;
+  double reco_total_daughter_ADC, true_total_daughter_ADC;
   int for_truncation_method;
   double reco_beam_alt_len_allTrack;
   double reco_beam_vertex_michel_score;
@@ -1483,7 +1496,9 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
     //of the BDT score
     BeamForcedTrackInfo(evt, particle);
     //To do: BeamForcedShowerInfo?
+    // compute the total daughter ADC
 
+    ComputeTotalDaughterADC(evt, particle, clockData, true_beam_particle, plist);
   }
 
   if (fCheckTruncation) CheckEff(evt, rightTrackID);
@@ -1661,6 +1676,8 @@ void pduneana::PDSPAnalyzer::analyze(art::Event const & evt) {
 
   }
 
+
+
   fTree->Fill();
 }
 
@@ -1689,6 +1706,8 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_beam_endZ", &reco_beam_endZ);
   fTree->Branch("true_beam_len", &true_beam_len);
   fTree->Branch("reco_beam_len", &reco_beam_len);
+  fTree->Branch("reco_total_daughter_ADC", &reco_total_daughter_ADC);
+  fTree->Branch("true_total_daughter_ADC", &true_total_daughter_ADC);
   //fTree->Branch("test_branch", &test_branch);
   fTree->Branch("reco_beam_alt_len", &reco_beam_alt_len); //TODO -- rename this
   fTree->Branch("for_truncation_method", &for_truncation_method);
@@ -2016,6 +2035,7 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("true_beam_daughter_Process", &true_beam_daughter_Process);
   fTree->Branch("true_beam_daughter_endProcess", &true_beam_daughter_endProcess);
   fTree->Branch("true_beam_daughter_nHits", &true_beam_daughter_nHits);
+  fTree->Branch("true_beam_daughter_totalADC", &true_beam_daughter_totalADC);
 
   fTree->Branch("true_beam_daughter_reco_byHits_PFP_ID", &true_beam_daughter_reco_byHits_PFP_ID);
   fTree->Branch("true_beam_daughter_reco_byHits_PFP_nHits", &true_beam_daughter_reco_byHits_PFP_nHits);
@@ -2284,6 +2304,8 @@ void pduneana::PDSPAnalyzer::reset()
 
   true_beam_len = -999.;
   reco_beam_len = -999;
+  reco_total_daughter_ADC = -999;
+  true_total_daughter_ADC = -999;
   test_branch = -1;
   reco_beam_alt_len = -999;
   for_truncation_method = -1;
@@ -2474,6 +2496,7 @@ void pduneana::PDSPAnalyzer::reset()
   true_beam_daughter_Process.clear();
   true_beam_daughter_endProcess.clear();
   true_beam_daughter_nHits.clear();
+  true_beam_daughter_totalADC.clear();
 
   true_beam_daughter_reco_byHits_PFP_ID.clear();
   true_beam_daughter_reco_byHits_PFP_nHits.clear();
@@ -2493,7 +2516,7 @@ void pduneana::PDSPAnalyzer::reset()
   true_beam_daughter_reco_byHits_allShower_startY.clear();
   true_beam_daughter_reco_byHits_allShower_startZ.clear();
   true_beam_daughter_reco_byHits_allShower_len.clear();
-
+  
   true_beam_Pi0_decay_ID.clear();
   true_beam_Pi0_decay_parID.clear();
   true_beam_Pi0_decay_startP.clear();
@@ -2820,6 +2843,195 @@ void pduneana::PDSPAnalyzer::reset()
   g4rw_piplus_traj_npi0.clear();
 }
 
+//-------------------------------------------------
+
+double pduneana::PDSPAnalyzer::computeZFromChannel(int channel) const
+{
+    // Constants (in cm)
+    constexpr double apa_length_in_cm = 230.0;
+    constexpr double wire_pitch_in_cm_collection = 0.479;
+    int apa_number = channel / 2560;
+    // second, subtract the inductions
+    int channel_number = (channel % 2560) - 1600;
+    // third, consider both sides
+    channel_number = channel_number%480;
+
+    double offset = (apa_number < 2) ? 0.0 : apa_length_in_cm;
+
+    double z_pos = channel_number * wire_pitch_in_cm_collection + offset;
+
+    return z_pos;
+}
+
+
+// Function to compute the total ADC 
+void pduneana::PDSPAnalyzer::ComputeTotalDaughterADC(
+    const art::Event & evt, const recob::PFParticle* particle,
+    detinfo::DetectorClocksData const& clockData,
+    const simb::MCParticle* true_beam_particle,
+    const sim::ParticleList & plist) 
+    {
+  reco_total_daughter_ADC = 0.;
+  // Get all the hits in the event
+  auto const& hitHandle = evt.getValidHandle<std::vector<recob::Hit> >(fHitTag);
+  const auto& hitVec = *hitHandle;
+  // Get the interaction points associated with the beam particle
+  // double reco_beam_endX, reco_beam_endY, reco_beam_endZ;
+  
+  // Helper: create a scatter plot of hit positions using ROOT, channel vs time
+  // First, create a TGraph
+  TCanvas* canvas = new TCanvas("canvas", "Fit Graph", 800, 600);
+  TGraph* allHitsGraph = new TGraph();
+
+  for (size_t i = 0; i < hitVec.size(); ++i) {
+    const recob::Hit& hit = hitVec[i];
+    if (hit.View() != 2) continue;
+
+    int channelID = hit.Channel();
+    int apa_number = channelID / 2560; // 2560 channels per APA
+    if (apa_number!=0) continue;
+
+    double z_pos = computeZFromChannel(channelID);
+    double time_peak = hit.PeakTime();
+    
+    allHitsGraph->SetPoint(allHitsGraph->GetN(), z_pos, time_peak);
+    std::cout << "Hit " << i << ": Channel = " << channelID << ", Z = " << z_pos << ", Time = " << time_peak << std::endl;
+  }
+  std::string title = "All Hits Graph";
+  allHitsGraph->SetTitle(title.c_str());
+  // allHitsGraph->SetMarkerStyle(20);
+  allHitsGraph->SetMarkerColor(kBlue);
+  allHitsGraph->SetMarkerSize(1);
+  allHitsGraph->Draw("AP");
+  int eventID = evt.id().event();
+  std::string save_name = "all_hits_graph_" + std::to_string(eventID) + ".png";
+  canvas->SaveAs(save_name.c_str());
+  delete allHitsGraph;
+  delete canvas;
+
+  // Now, loop over the pfparticles 
+  auto pfpHandle = evt.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleTag);
+  const auto& pfparticles = *pfpHandle;
+  // Create new canvas
+  TCanvas* daughterCanvas = new TCanvas("daughterCanvas", "Daughter Hits Graph", 800, 600);
+  int colorIndex = 0;
+  std::vector<TGraph*> daughterGraphs; // to keep track of individual graphs for each daughter particle
+  for (const auto& pfp : pfparticles) {
+    // add a new graph for this daughter particle
+    TGraph* daughterHitsGraph = new TGraph();
+    auto hits = pfpUtil.GetPFParticleHits(pfp, evt, fPFParticleTag);
+    // check if this pfp is a daughter of the beam particle
+
+
+
+    for (const auto& hit : hits) {
+      if (hit->View() != 2) continue;
+
+      int channelID = hit->Channel();
+      int apa_number = channelID / 2560; // 2560 channels per APA
+      if (apa_number!=0) continue;
+
+      double z_pos = computeZFromChannel(channelID);
+      double time_peak = hit->PeakTime();
+      daughterHitsGraph->SetPoint(daughterHitsGraph->GetN(), z_pos, time_peak);
+    }  
+    daughterHitsGraph->SetMarkerColor(colorIndex % 9 + 1); // Cycle through colors
+    daughterHitsGraph->SetMarkerSize(3);
+    // delete the graph after drawing to avoid memory leak
+    colorIndex++;
+    if (daughterHitsGraph->GetN() == 0) continue; // skip empty graphs
+    daughterGraphs.push_back(daughterHitsGraph);        
+  }
+  // add all daughter graphs to the multigraph
+  bool first = true;
+  for (auto& graph : daughterGraphs) {
+    // cout the number of points in the graph
+    if (first) {
+      graph->Draw("AP");
+      graph->GetXaxis()->SetLimits(0, 250);      // set X range
+      graph->GetYaxis()->SetRangeUser(0, 6500);   // set Y range
+
+      first = false;
+    } else {
+      graph->Draw("P SAME");
+    }
+  }
+  
+  std::string daughter_save_name = "all_pfp_hits_graph_" + std::to_string(eventID) + ".png";
+  daughterCanvas->SaveAs(daughter_save_name.c_str());
+  
+  for (auto& graph : daughterGraphs) {
+    delete graph;
+  }
+  delete daughterCanvas;
+
+  // get the reco daughter particles
+  TCanvas* recoDaughterCanvas = new TCanvas("recoDaughterCanvas", "Reco Daughter Hits Graph", 800, 600);
+  std::vector<TGraph*> recoDaughterGraphs; // to keep track of individual graphs for each reco daughter particle
+  for (size_t daughterID : particle->Daughters()) {
+    // const recob::PFParticle * daughterPFP = &(pfpVec->at( daughterID ));
+    auto daughterPFP = &pfparticles.at( daughterID );
+    TGraph* recoDaughterHitsGraph = new TGraph();
+    auto hits = pfpUtil.GetPFParticleHits(*daughterPFP, evt, fPFParticleTag);
+    for (const auto& hit : hits) {
+      if (hit->View() != 2) continue;
+      int channelID = hit->Channel();
+      int apa_number = channelID / 2560; // 2560 channels per APA
+      if (apa_number!=0) continue;
+      double z_pos = computeZFromChannel(channelID);
+      double time_peak = hit->PeakTime();
+      recoDaughterHitsGraph->SetPoint(recoDaughterHitsGraph->GetN(), z_pos, time_peak);
+    }
+    recoDaughterHitsGraph->SetMarkerColor(kRed);
+    recoDaughterHitsGraph->SetMarkerSize(3);
+    if (recoDaughterHitsGraph->GetN() == 0) {
+      delete recoDaughterHitsGraph;
+      continue; // skip empty graphs
+    }
+    recoDaughterGraphs.push_back(recoDaughterHitsGraph);
+  }
+
+  first = true;
+  for (auto& graph : recoDaughterGraphs) {
+    // cout the number of points in the graph
+    if (first) {
+      graph->Draw("AP");
+      graph->GetXaxis()->SetLimits(0, 250);      // set X range
+      graph->GetYaxis()->SetRangeUser(0, 6500);   // set Y range
+
+      first = false;
+    } else {
+      graph->Draw("P SAME");
+    }
+  }
+  std::string reco_daughter_save_name = "reco_daughter_hits_graph_" + std::to_string(eventID) + ".png";
+  recoDaughterCanvas->SaveAs(reco_daughter_save_name.c_str());  
+
+  for (auto& graph : recoDaughterGraphs) {
+    delete graph;
+  }
+  delete recoDaughterCanvas;
+
+  // Now, let's use the true information to get the hits associated with the true daughter particles of the beam
+  // TCanvas* trueDaughterCanvas = new TCanvas("trueDaughterCanvas", "True Daughter Hits Graph", 800, 600);
+  // std::vector<TGraph*> trueDaughterGraphs; // to keep track of individual graphs for each true daughter particle
+
+  // First, let's get the true daughter particles of the beam particle
+  //Look through the daughters
+  for( int i = 0; i < true_beam_particle->NumberDaughters(); ++i ){
+    int daughterID = true_beam_particle->Daughter(i);
+
+    if (fVerbose) std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
+    auto part = plist[ daughterID ];
+
+    auto daughter_hits = truthUtil.GetMCParticleHits( clockData, *part, evt, fHitTag );
+
+    std::cout << "True daughter " << i << " has " << daughter_hits.size() << " hits." << std::endl;
+
+  }
+}
+
+//-------------------------------------------------
 
 void pduneana::PDSPAnalyzer::BeamPFPInfo(
     const art::Event & evt, const recob::PFParticle* particle,
@@ -3854,6 +4066,18 @@ void pduneana::PDSPAnalyzer::TrueBeamInfo(
 
     true_beam_daughter_Process.push_back( part->Process() );
     true_beam_daughter_endProcess.push_back( part->EndProcess() );
+
+    // -----------------------------------------------
+    // Look at the hits associated with this daughter, and sum the ADCs
+    auto daughter_hits = truthUtil.GetMCParticleHits( clockData, *part, evt, fHitTag );
+    int total_ADC = 0;
+    for ( auto const & hit : daughter_hits ) {
+      total_ADC += hit->Integral();
+    }
+    true_beam_daughter_totalADC.push_back( total_ADC );
+
+    // -----------------------------------------------
+
 
     if (fVerbose) {
       std::cout << "Process: " << part->Process() << std::endl;

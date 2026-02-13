@@ -35,7 +35,7 @@ source:
 {
   module_type: RootInput
   maxEvents: -1
-  fileNames: ["input_file.root"]
+  # fileNames: ["input_file.root"]
 }
 
 physics:
@@ -65,7 +65,7 @@ physics:
 
 }
 
-outputs: {}
+# outputs: {}
 #physics.filters.fTruth.PDG: [211, -13, 2212]
 #physics.analyzers.pduneana.SelectEvents: ["fpath"]
 physics.analyzers.pduneana.SelectEvents: []
@@ -74,7 +74,7 @@ physics.analyzers.pduneana.CalorimetryTagNoSCE: "pandoracalonosce" ##For no-SCE 
 physics.analyzers.pduneana.Pandora2CaloSCE: "pandora2calinoxyzt"
 #physics.analyzers.pduneana.HitTag: "hitpdune"
 physics.analyzers.pduneana.Verbose: true
-physics.analyzers.pduneana.DoReweight: true 
+physics.analyzers.pduneana.DoReweight: false 
 physics.analyzers.pduneana.ParameterSet: [
   {
     Cut: "reac"
