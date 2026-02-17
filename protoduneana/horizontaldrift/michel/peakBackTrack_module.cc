@@ -126,9 +126,9 @@ recob::OpHit michelPDHD::peakBackTrack::makeFakeOpHit_(int channel,
     double const peakTimeAbsUs = peakTimeUs; // keep consistent unless you have a true absolute reference
 
     unsigned short const frame = 0;
-    double const area = 0.0;
+    double const area = 1.0;
     double const peakheight = 0.0;
-    double const pe = 0.0;
+    double const pe = 1.0;
     double const fasttototal = 0.0;
 
     return recob::OpHit(channel,
@@ -301,7 +301,6 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
     // ---- Summarize contributions per trackID using energyFrac ---------------------------------
     std::vector<sim::TrackSDP> const trackSDPs = pbt->OpHitToTrackSDPs(fakeHit);
 
-
     // energyFrac is a fraction (0..1-ish) of this OpHit "energy"/area attributed to that track.
     // It is NOT "photon count", but it is a good "importance" metric for ranking.
     std::unordered_map<int, double> fracPerTrack;
@@ -328,13 +327,13 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
               });
 
     // ---- Print summary ----
-    mf::LogInfo("peakBackTrack")
+    std::cout
         << "[OpHitToTrackSDPs] run=" << e.run()
         << " subrun=" << e.subRun()
         << " event=" << e.event()
         << " ch=" << selectChannel_
         << " nTrackSDPs=" << trackSDPs.size()
-        << " sumEnergyFrac=" << totalFrac;
+        << " sumEnergyFrac=" << totalFrac << std::endl;
 
     
     int nPrint = 0;
@@ -369,7 +368,7 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
         }
       }
 
-      mf::LogVerbatim("peakBackTrack")
+      std::cout
         << "  [Rank] trackID=" << tid
         << " PDG=" << pdg << " (" << pname << ")"
         << " mother=" << motherTid
@@ -381,7 +380,7 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
         << ")"
         << " E=" << std::fixed << std::setprecision(2)
         << energy << "MeV"
-        << " sumEnergyFrac=" << std::setprecision(4) << fsum;
+        << " sumEnergyFrac=" << std::setprecision(4) << fsum << std::endl;
 
 
       if (++nPrint >= 20) break;
