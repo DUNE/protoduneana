@@ -344,7 +344,7 @@ table_fragment_end
 product          version
 duneprototypes   v10_17_02d00
 cetmodules	 v3_24_01	-	only_for_build
-geant4reweight   v01_20_14
+geant4reweight   v01_21_02
 end_product_list
 
 
