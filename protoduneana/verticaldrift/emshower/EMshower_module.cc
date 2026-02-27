@@ -137,9 +137,10 @@ void pdvd::EMshower::analyze(art::Event const& e)
   // Get the pandora related objects
   art::ValidHandle<std::vector<recob::Slice>> sliceHandle    = e.getValidHandle<std::vector<recob::Slice>>(fSliceLabel);
   art::ValidHandle<std::vector<recob::PFParticle>> pfpHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleLabel);
-  art::ValidHandle<std::vector<recob::Track>> trackHandle    = e.getValidHandle<std::vector<recob::Track>>(fTrackLabel);
-  art::ValidHandle<std::vector<recob::Shower>> showerHandle  = e.getValidHandle<std::vector<recob::Shower>>(fShowerLabel);
-  art::ValidHandle<std::vector<recob::SpacePoint>> spHandle  = e.getValidHandle<std::vector<recob::SpacePoint>>(fSpacePointLabel);
+  // TODO: commented out below to avoid unused variable warning in c14:prof qualifier
+  //art::ValidHandle<std::vector<recob::Track>> trackHandle    = e.getValidHandle<std::vector<recob::Track>>(fTrackLabel);
+  //art::ValidHandle<std::vector<recob::Shower>> showerHandle  = e.getValidHandle<std::vector<recob::Shower>>(fShowerLabel);
+  //art::ValidHandle<std::vector<recob::SpacePoint>> spHandle  = e.getValidHandle<std::vector<recob::SpacePoint>>(fSpacePointLabel);
 
   // Associate PFPs to tracks, showers and space points
   art::FindManyP<recob::Track>  pfpTrackAssoc(                   pfpHandle, e, fTrackLabel);
