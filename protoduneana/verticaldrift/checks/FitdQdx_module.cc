@@ -343,9 +343,12 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
       }
 
       //bTrackAnode  = true;
-      bTrackCathode= false;
+      bTrackCathode     = true;
       bTopPlaneCrossing = true; // anode for TDE and cathode for BDE
       bBotPlaneCrossing = true; // anode for BDE and cathode for TDE
+
+      // Cathode crossing tracks should start/end in the top/bottom drift volume
+      if(fTrackStartX < 0 || fTrackEndX > 0)                         bTrackCathode = false;
 
       // Remove tracks that start outside the detector in the horizontal plane
       if(fTrackStartY < fYmin+fYZfid || fTrackStartY > fYmax-fYZfid) bTopPlaneCrossing = false;
@@ -443,8 +446,11 @@ void pdvdana::FitdQdx::analyze(art::Event const& e)
 
 	  if(tpc > 7) vol = 1;
 
-	  if(fTrackStartX > 0 && fTrackEndX < 0) bTrackCathode = true;
-
+	  // Get rid of tracks containing spurious hits reconstructed in the wrong volume
+	  if(bTrackCathode){
+	    if(fX > 0 && vol == 0) bTrackCathode = false;
+	    if(fX < 0 && vol == 1) bTrackCathode = false;
+	  }
 
 	  /*
 	  if(tpc < 8){ // BDE tpcs
