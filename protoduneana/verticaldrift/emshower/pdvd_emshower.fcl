@@ -1,0 +1,41 @@
+#include "services_dune.fcl"
+
+process_name: PDVPfitDqDx
+
+services:{
+    TFileService:                 { fileName: "fit_dqdx_results.root" }
+    TimeTracker:                  {}
+    RandomNumberGenerator:        {}
+    AuxDetGeometry:               @local::dunecrpcb_auxdet_geo
+    WireReadout:                  @local::dune_wire_readout
+    LArPropertiesService:         @local::dunefd_properties
+    DetectorClocksService:        @local::protodune_detectorclocks
+    DetectorPropertiesService:    @local::protodunevd_detproperties
+    SpaceCharge:                  @local::dunefd_spacecharge
+    @table::protodunevd_reco_services
+}
+
+services.DetectorPropertiesService.Efield: [0.450, 1.0, 1.0]
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+  fileNames: [ "detsim.root" ]
+}
+
+outputs: {}
+
+
+physics:
+{
+  analyzers:
+  {
+    emshower:
+    {
+        module_type: "EMshower"
+    }
+  }
+  analysis: [ emshower ]
+  end_paths: [ analysis ]
+}
