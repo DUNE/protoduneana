@@ -159,7 +159,7 @@ cet_build_plugin(PDHDDataInterfaceWIBEth3   art::tool LIBRARIES
 			dunecore::dunedaqhdf5utils3
                         HDF5::HDF5
              )
-	   
+
 
 cet_build_plugin(PDHDTriggerReader art::module LIBRARIES
                         lardataobj::RawData
@@ -317,6 +317,8 @@ cet_build_plugin(DAPHNEInterface3   art::tool LIBRARIES
 			dunecore::HDF5Utils_HDF5RawFile3Service_service
 			dunecore::dunedaqhdf5utils2
                         HDF5::HDF5
+                        lardataalg::DetectorInfo
+                        lardata::DetectorClocksService
              )
 
 #cet_make_library(PDHDReadoutUtils
