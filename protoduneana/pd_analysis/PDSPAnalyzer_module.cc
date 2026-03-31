@@ -120,9 +120,6 @@ namespace pduneana {
     return;
   }
 
-
-
-
   // Use the association between space points and hits to return a charge
   std::map<unsigned int, float> GetSpacePointChargeMap(
     std::vector<art::Ptr<recob::SpacePoint>> const& spacePoints,
@@ -1138,7 +1135,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fSaveHitIDEInfo(p.get<bool>( "SaveHitIDEInfo", false)),
   fSaveRecoBeamAllTrack(p.get<bool>("SaveRecoBeamAllTrack", false)),
   fSkipMVA( p.get<bool>( "SkipMVA" ) ),
-  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", false)),
+  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", true)),
   fTrueToReco( p.get<bool>( "TrueToReco" ) ),
   fDoReweight(p.get<bool>("DoReweight")),
   fSaveG4RWWeights(p.get<bool>("SaveG4RWWeights", true)),
@@ -2987,8 +2984,17 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   size_t index = 0;
   for ( index = 0; index < calo.size(); ++index) {
     auto this_plane = calo[index].PlaneID().Plane;
+
+    std::cout << "ANOTHER DEBUG AGAIN!!" << std::endl;
+    std::cout << "VPlaneAsCollector:" << fVPlaneAsCollector << std::endl;
+    std::cout << "Index: " << index << std::endl;
+    std::cout << "Plane: " << this_plane << std::endl;
+
     if ((this_plane == 2 && !fVPlaneAsCollector) ||
         (this_plane == 1 && fVPlaneAsCollector)) {
+      std::cout << "VPlaneAsCollector inside if:" << fVPlaneAsCollector << std::endl;
+      std::cout << "Index inside if: " << index << std::endl;
+      std::cout << "Plane inside if: " << this_plane << std::endl;
       found_calo = true;
       break; 
     }
@@ -3338,11 +3344,13 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
       }
 
       reco_beam_incidentEnergies.push_back( init_KE );
-      for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
-        //use dedx * pitch or new hit calculation?
-        if (reco_beam_calo_points[i].dEdX < 0.) continue;
-        double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
-        reco_beam_incidentEnergies.push_back( this_energy );
+      if (reco_beam_calo_points.size() >= 2) { //to avoid crash for when size is 0
+        for( size_t i = 0; i < reco_beam_calo_points.size() - 1; ++i ){ //-1 to not count the last slice
+          //use dedx * pitch or new hit calculation?
+          if (reco_beam_calo_points[i].dEdX < 0.) continue;
+          double this_energy = reco_beam_incidentEnergies.back() - ( reco_beam_calo_points[i].dEdX * reco_beam_calo_points[i].pitch );
+          reco_beam_incidentEnergies.push_back( this_energy );
+        }
       }
       if( reco_beam_incidentEnergies.size() ) reco_beam_interactingEnergy = reco_beam_incidentEnergies.back();
     //} // END OF THIN SLICE
@@ -3355,7 +3363,12 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   found_calo = false;
   index = 0;
   for (index = 0; index < calo_NoSCE.size(); ++index) {
-    if (calo_NoSCE[index].PlaneID().Plane == 2) {
+    auto this_plane = calo[index].PlaneID().Plane;
+   
+    if ((this_plane == 2 && !fVPlaneAsCollector) ||
+        (this_plane == 1 && fVPlaneAsCollector)) {
+    
+    //if (this_plane == 2) {
       found_calo = true;
       break; 
     }
@@ -3438,6 +3451,10 @@ void pduneana::PDSPAnalyzer::BeamShowerInfo(const art::Event & evt, const recob:
 
   auto allHits = evt.getValidHandle<std::vector<recob::Hit> >(fHitTag);
   auto calo = showerUtil.GetRecoShowerCalorimetry(*thisShower, evt, fShowerTag, "pandoraShowercalo");
+  
+  std::cout << "CALO_BEAM_SHOWER_DEBUG event=" << evt.id().event()
+                    << "calo size=" << calo.size() << std::endl;
+
   bool found_calo = false;
   size_t index = 0;
   for ( index = 0; index < calo.size(); ++index) {
@@ -4424,20 +4441,117 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
 
     //If it exists (might not need this check anymore), get the forced tracking from pandora
     try{
-      const recob::Track* pandora2Track = pfpUtil.GetPFParticleTrack( *daughterPFP, evt, fPFParticleTag, "pandora2Track" );
+      const recob::Track* pandora2Track = pfpUtil.GetPFParticleTrack(*daughterPFP, evt, fPFParticleTag, "pandora2Track" );
       if (fVerbose) std::cout << "pandora2 track: " << pandora2Track << std::endl;
+      if (pandora2Track) {
+        std::cout << "Event: " << evt.id()
+                  << " Daughter: " << daughterID
+		  << "Track ID" << pandora2Track->ID()
+                  << " Track FOUND" << std::endl;
+      }
+      else {
+        std::cout << "Event: " << evt.id()
+                  << " Daughter: " << daughterID
+                  << " Track MISSING" << std::endl;
+      }
 
       if( pandora2Track ){
         reco_daughter_allTrack_ID.push_back( pandora2Track->ID() );
 
         //Calorimetry info
-        auto dummy_caloSCE =
+
+	std::cout << "\n================ CALO DEBUG START ================" << std::endl;
+	std::cout << "Event: " << evt.id().event() << std::endl;
+	std::cout << "Track ID: " << pandora2Track->ID() << std::endl;
+	std::cout << "Track Label: pandora2Track" << std::endl;
+	std::cout << "Calo Label: " << fPandora2CaloSCE << std::endl;
+
+	// Check Track Collection
+	art::Handle<std::vector<recob::Track>> trackHandle;
+	evt.getByLabel("pandora2Track", trackHandle);
+
+	if(trackHandle.isValid()){
+ 	  std::cout << "pandora2Track collection VALID" << std::endl;
+          std::cout << "Total tracks in pandora2Track: "
+           	    << trackHandle->size() << std::endl;
+	}
+	
+	else{
+  	  std::cout << "pandora2Track collection INVALID" << std::endl;
+	}
+
+	// Check Calorimetry Collection
+
+	art::Handle<std::vector<anab::Calorimetry>> caloHandle;
+	evt.getByLabel(fPandora2CaloSCE, caloHandle);
+
+	if(!caloHandle.isValid()){
+  	  std::cout << "Calorimetry handle INVALID" << std::endl;
+	}
+	else{
+  	  std::cout << "Calorimetry handle VALID" << std::endl;
+  	  std::cout << "Total calo objects: "
+          	    << caloHandle->size() << std::endl;
+
+	  for(size_t i = 0; i < std::min((size_t)5, caloHandle->size()); ++i){
+    	    std::cout << "  Calo[" << i << "] Plane: "
+             	      << (*caloHandle)[i].PlaneID().Plane
+              	      << " dEdx size: "
+              	      << (*caloHandle)[i].dEdx().size()
+              	      << std::endl;
+  	  }
+	}
+
+	// Check Associations
+
+	if(trackHandle.isValid() && caloHandle.isValid()){
+
+  	  art::FindManyP<anab::Calorimetry> fmCalo(trackHandle, evt, fPandora2CaloSCE);
+
+  	  std::cout << "Checking track-calo associations..." << std::endl;
+
+  	  for(size_t i = 0; i < std::min((size_t)5, trackHandle->size()); ++i){
+    	    std::cout << " Track[" << i << "] ID="
+             	      << (*trackHandle)[i].ID()
+              	      << " has "
+              	      << fmCalo.at(i).size()
+              	      << " calo objects"
+              	      << std::endl;
+  	  }
+	}
+
+	// Check GetRecoTrackCalorimetry
+
+	auto debug_dummy_calo =
+    	    trackUtil.GetRecoTrackCalorimetry(
+        	*pandora2Track,
+       		evt,
+        	"pandora2Track",
+        	fPandora2CaloSCE);
+
+	std::cout << "GetRecoTrackCalorimetry size: "
+          	  << debug_dummy_calo.size() << std::endl;
+
+	for(size_t i=0; i<debug_dummy_calo.size(); ++i){
+  	  std::cout << " Debug Calo[" << i << "] Plane: "
+            	    << debug_dummy_calo[i].PlaneID().Plane
+            	    << " dEdx size: "
+            	    << debug_dummy_calo[i].dEdx().size()
+            	    << std::endl;
+	}
+
+	std::cout << "================ CALO DEBUG END =================\n" << std::endl;        
+	
+	auto dummy_caloSCE =
             trackUtil.GetRecoTrackCalorimetry(
                 *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE);
+
         bool found_calo = false;
         size_t index = 0;
-        for ( index = 0; index < dummy_caloSCE.size(); ++index) {
-          if (dummy_caloSCE[index].PlaneID().Plane == 2) {
+        for (index = 0; index < dummy_caloSCE.size(); ++index) {
+	  auto this_plane = dummy_caloSCE[index].PlaneID().Plane;
+          if ((this_plane == 2 && !fVPlaneAsCollector) ||
+	      (this_plane == 1 && fVPlaneAsCollector)) {
             found_calo = true;
             break; 
           }
@@ -4724,7 +4838,13 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
       }
     }
     catch( const cet::exception &e ){
-      MF_LOG_WARNING("PDSPAnalyzer") << "pandora2Track object not found, moving on" << std::endl;
+      MF_LOG_WARNING("PDSPAnalyzer") 
+	<< "pandora2Track object not found, moving on"
+	<< "\nReason:" << e.what()
+	<< " Run: " << evt.run()
+	<< " Event: " << evt.event()
+	<< " DaughterID: " << daughterID
+	<< std::endl;
     }
 
 
@@ -4791,17 +4911,106 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
 
         //if (fGetCalibratedShowerEnergy) {
           //std::cout << "Getting calibrated shower energy" << std::endl;
-          auto calo = showerUtil.GetRecoShowerCalorimetry(
-              *pandora2Shower, evt, "pandora2Shower", "pandora2cali"); // TODO -- Rename this
-          bool found_calo = false;
-          size_t index = 0;
-          for (index = 0; index < calo.size(); ++index) {
-            if (calo[index].PlaneID().Plane == 2) {
-              found_calo = true;
-              break; 
-            }
-          }
-          
+	  
+	  std::cout << "\n================ SHOWER CALO DEBUG START ================" << std::endl;
+	  std::cout << "Event: " << evt.id().event() << std::endl;
+	  std::cout << "Shower ID: " << pandora2Shower->ID() << std::endl;
+	  std::cout << "Shower Label: pandora2Shower" << std::endl;
+	  std::cout << "Calo Label: pandora2cali" << std::endl;
+
+	  // Check Shower Collection
+
+	  art::Handle<std::vector<recob::Shower>> showerHandle;
+	  evt.getByLabel("pandora2Shower", showerHandle);
+
+	  if(showerHandle.isValid()){
+  	    std::cout << "pandora2Shower collection VALID" << std::endl;
+  	    std::cout << "Total showers: "
+           	      << showerHandle->size() << std::endl;
+	  }
+	  else{
+  	    std::cout << "pandora2Shower collection INVALID" << std::endl;
+	  }
+
+	  // Check Calorimetry Collection
+
+	  art::Handle<std::vector<anab::Calorimetry>> showerCaloHandle;
+	  evt.getByLabel("pandora2cali", showerCaloHandle);
+
+	  if(!showerCaloHandle.isValid()){
+ 	    std::cout << "Shower calorimetry handle INVALID" << std::endl;
+	  }
+	  else{
+  	    std::cout << "Shower calorimetry handle VALID" << std::endl;
+  	    std::cout << "Total shower calo objects: "
+           	      << showerCaloHandle->size() << std::endl;
+
+  	    for(size_t i = 0; i < std::min((size_t)5, showerCaloHandle->size()); ++i){
+    	      std::cout << "  Shower Calo[" << i << "] Plane: "
+              		<< (*showerCaloHandle)[i].PlaneID().Plane
+              		<< " dEdx size: "
+              		<< (*showerCaloHandle)[i].dEdx().size()
+              		<< std::endl;
+ 	    }
+	  }
+
+	 // Check Associations
+
+	 if(showerHandle.isValid() && showerCaloHandle.isValid()){
+	  
+	   art::FindManyP<anab::Calorimetry> fmShowerCalo(
+      	       showerHandle,
+      	       evt,
+      	       "pandora2cali");
+
+  	   std::cout << "Checking shower-calo associations..." << std::endl;
+
+  	   for(size_t i = 0; i < std::min((size_t)5, showerHandle->size()); ++i){
+    	     std::cout << " Shower[" << i << "] ID="
+               	       << (*showerHandle)[i].ID()
+              	       << " has "
+              	       << fmShowerCalo.at(i).size()
+              	       << " calo objects"
+              	       << std::endl;
+  	   }
+	 }
+
+	 // Check GetRecoShowerCalorimetry
+
+	 auto debug_shower_calo =
+   	     showerUtil.GetRecoShowerCalorimetry(
+         	 *pandora2Shower,
+        	 evt,
+        	 "pandora2Shower",
+        	 "pandora2cali");
+
+	 std::cout << "GetRecoShowerCalorimetry size: "
+         	   << debug_shower_calo.size() << std::endl;
+
+	 for(size_t i=0; i<debug_shower_calo.size(); ++i){
+  	   std::cout << " Debug Shower Calo[" << i << "] Plane: "
+           	     << debug_shower_calo[i].PlaneID().Plane
+            	     << " dEdx size: "
+            	     << debug_shower_calo[i].dEdx().size()
+            	     << std::endl;
+	 }
+
+	 std::cout << "================ SHOWER CALO DEBUG END =================\n" << std::endl;
+       
+	 auto calo = showerUtil.GetRecoShowerCalorimetry(
+               *pandora2Shower, evt, "pandora2Shower", "pandora2cali"); // TODO -- Rename this
+
+	  bool found_calo = false;
+	  size_t index = 0;
+
+	  for (index = 0; index < calo.size(); ++index) {
+
+  	    if (calo[index].PlaneID().Plane == 2) {
+    	      found_calo = true;
+	      break;
+  	    }
+	  }
+
           if (!found_calo) {
             reco_daughter_allShower_energy.push_back(-999.);
           }
@@ -4844,8 +5053,15 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
       }
 
     }
+  
     catch( const cet::exception &e ){
-      MF_LOG_WARNING("PDSPAnalyzer") << "pandora2Shower object not found, moving on" << std::endl;
+      MF_LOG_WARNING("PDSPAnalyzer")
+	<< "pandora2Shower object not found, moving on" 
+	<< "\nReason: " << e.what()
+	<< " Run: " << evt.run()
+	<< " Event: " << evt.event()
+	<< " DaughetrID: " << daughterID
+	<< std::endl;
     }
   }
 }
