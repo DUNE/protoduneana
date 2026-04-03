@@ -8,7 +8,7 @@ cmake_minimum_required (VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
 project(duneprototypes LANGUAGES CXX)
-set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 10.20.03d01)
+set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 10.20.04d00)
 set(${PROJECT_NAME}_FW_DIR "config_data")
 
 list(APPEND CMAKE_MODULE_PATH $ENV{CANVAS_ROOT_IO_DIR}/Modules)
