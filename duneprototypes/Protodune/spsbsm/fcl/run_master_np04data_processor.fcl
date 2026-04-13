@@ -1,5 +1,6 @@
 #include "HDF5RawInput3.fcl"
 #include "PDHDTPCReader.fcl"
+#include "PDBSMSkipTicksHDTPCReader.fcl"
 #include "PDHDDataInterfaceWIBEth3.fcl"
 #include "PDHDTriggerReader3.fcl"
 #include "PDHDTimingRawDecoder.fcl"
@@ -73,7 +74,7 @@ services:
 
   PD2HDChannelMapService: 
    {
-     FileName: "PD2HDChannelMap_WIBEth_electronics_v1.txt"
+     FileName: "PD2HDChannelMap_WIBEth_visiblewires_v1.txt"
    }
 }
 
@@ -95,7 +96,8 @@ physics:
     spillflag: @local::pdhd_spillflag
 
     # Raw decoding
-    tpcrawdecoder: @local::PDHDTPCReaderDefaults
+    #tpcrawdecoder: @local::PDHDTPCReaderDefaults
+    tpcrawdecoder: @local::PDBSMSkipTicksHDTPCReaderDefaults
     triggerrawdecoder: @local::PDHDTriggerReader3Defaults 
     timingrawdecoder: @local::PDHDTimingRawDecoder
     pdhddaphne: @local::DAPHNEReaderPDHD
@@ -156,6 +158,7 @@ physics:
     gaushit,
     reco3d,
     hitpdune,
+    nhitsfilter,
     # Pandora reconstruction
     pandora, 
     pandoraWriter, 
@@ -212,6 +215,10 @@ services.SpaceCharge.EnableSimulationSCE: true
 services.SpaceCharge.EnableCalEfieldSCE: true
 services.SpaceCharge.EnableCalSpatialSCE: true
 services.SpaceCharge.EnableCorrSCE: true
+
+physics.filters.nhitsfilter.HitLimit: 100000                      
+physics.filters.nhitsfilter.ScaleThresholdForReadoutWindow: false
+physics.filters.nhitsfilter.Verbose: true
 
 physics.producers.pandora.HitFinderModuleLabel:             "hitpdune"
 physics.producers.pandoraWriter.HitFinderModuleLabel:       "hitpdune"

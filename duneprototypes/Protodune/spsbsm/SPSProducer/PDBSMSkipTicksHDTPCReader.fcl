@@ -1,0 +1,18 @@
+# defaults for the PDHDTPCReader module
+
+#include "PDHDDataInterfaceWIB3Tool.fcl"
+
+BEGIN_PROLOG
+
+PDBSMSkipTicksHDTPCReaderDefaults:
+{
+  module_type: "PDBSMSkipTicksHDTPCReader"
+  InputLabel:  "daq"
+  OutputInstance: "daq"
+  APAList:     [ 1, 2, 3, 4 ]
+  DecoderToolParams: @local::PDHDDataInterfaceWIB3Defaults 
+  OutputStatusTree: true
+  SkipFirstNTPCTicks: 0
+}
+
+END_PROLOG
