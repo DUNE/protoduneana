@@ -16,6 +16,7 @@ art_make( LIB_LIBRARIES
             DICT_LIBRARIES
                         lardataobj::Simulation
                         nusimdata::SimulationBase
+                        larcorealg::Geometry
 
 )
 
