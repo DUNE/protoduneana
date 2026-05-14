@@ -17,7 +17,7 @@ cmake_minimum_required (VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
 project(protoduneana LANGUAGES CXX)
-set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 10.20.06d01)
+set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 10.20.07d00)
 
 # cetbuildtools contains our cmake modules
 
@@ -47,6 +47,7 @@ find_package( duneprototypes REQUIRED EXPORT )
 find_package( dunecalib REQUIRED EXPORT )
 find_package( nuevdb REQUIRED EXPORT )
 find_package( duneopdet REQUIRED EXPORT )
+find_package( dunereco REQUIRED EXPORT )
 find_package( dunesim REQUIRED EXPORT )
 find_package( larcoreobj REQUIRED EXPORT )
 find_package( larcore  REQUIRED EXPORT )
