@@ -25,7 +25,6 @@ cet_build_plugin(
 if(FALSE)
 cet_build_plugin(
 			Purity art::module LIBRARIES
-			dunesim::DetSim
                         lardataobj::RecoBase
                         larreco::Calorimetry
                         larcorealg::Geometry
@@ -53,7 +52,6 @@ cet_build_plugin(
 endif()
 cet_build_plugin(
 			DEdxdp art::module LIBRARIES
-			dunesim::DetSim
                         lardataobj::RecoBase
                         larreco::Calorimetry
                         larcorealg::Geometry
