@@ -120,6 +120,7 @@ public:
   void beginJob() override;
   void endJob() override;
 
+
   float degTOrad = 3.14159/180.; // rad / deg
   float fEltofC  = 1./1.60E-4;      // e- / fC
   float fADCtoEl = 5E-3;         // ADC x tick / e-
@@ -325,6 +326,7 @@ private:
 
 
   //function needed
+  void ClearData();
   float GetFirstMCTruthEnergy(  art::Event const& e , std::string fG4Label , int LogLevel , art::ServiceHandle<cheat::BackTrackerService> bt_serv );
 
   void print(std::vector<float> v);
@@ -500,6 +502,7 @@ pdvdana::SingleHit::SingleHit(fhicl::ParameterSet const& p)
   if (fMinSizeCluster == 0) fMinSizeCluster = fRadiusInt;
 }
 
+
 void pdvdana::SingleHit::analyze(art::Event const& e)
 {
   //Set event ID
@@ -533,143 +536,26 @@ void pdvdana::SingleHit::analyze(art::Event const& e)
   }
  
   //retrieve hit list
-  //art::InputTag hittag(fHitLabel);
-  //auto const HitList = e.getValidHandle<vector<recob::Hit>>(fHitLabel);
-
   art::Handle< std::vector< recob::Hit >> HitListHandle;
   e.getByLabel(fHitLabel, HitListHandle);
 
-
-  //std::vector<art::Ptr<recob::Hit> > HitList;
-  //if (HitListHandle){ art::fill_ptr_vector(HitList, HitListHandle); fNHits = HitList.size();}
+  // Protection against missing hits products
   if(!HitListHandle)
   {
     if( LogLevel > 2) std::cout << " NO HIT IN EVENT " << fEventID << std::endl;
-
-    fChannel        = -999;
-    fPlane          = -999;
-    fHitWidth       = -999;
-    fNearOrFarToTheBeam = -999;
-	  
-    fEnergy         = -999;
-    fPeakTime       = -999;
-    fSigmaPeakTime  = -999;
-    fRMS            = -999;
-    fAmplitude      = -999;
-    fSigmaAmplitude = -999;
-    fGoodnessOfFit  = -999;
-    fIntegral       = -999;
-    fSigmaIntegral  = -999;
-   
-    fHitNumber   = -999;
-    fCoincidence = -999;
-    lWireInd1.clear();
-    lWireInd2.clear();
-    lChannelInd1.clear();
-    lChannelInd1.push_back(-999);
-    lChannelInd2.clear();
-    lChannelInd2.push_back(-999);
-    lEnergyInd1.clear();
-    lEnergyInd1.push_back(-999);
-    lEnergyInd2.clear();
-    lEnergyInd2.push_back(-999);
-    lPeakTimeInd1.clear();
-    lPeakTimeInd1.push_back(-999);
-    lPeakTimeInd2.clear();
-    lPeakTimeInd2.push_back(-999);
-    lPeakAmpInd1.clear();
-    lPeakAmpInd1.push_back(-999);
-    lPeakAmpInd2.clear();
-    lPeakAmpInd2.push_back(-999);
-    lYInd1.clear();
-    lYInd1.push_back(-999);
-    lZInd1.clear();
-    lZInd1.push_back(-999);
-    lYInd2.clear();
-    lYInd2.push_back(-999);
-    lZInd2.clear();
-    lZInd2.push_back(-999);
-    lChIntersectInd1.clear();
-    lChIntersectInd1.push_back(-999);
-    lChIntersectInd2.clear();
-    lChIntersectInd2.push_back(-999);
-    lYPoint.clear();
-    lYPoint.push_back(-999);
-    lZPoint.clear();
-    lZPoint.push_back(-999);
-    lEInd1Point.clear();
-    lEInd1Point.push_back(-999);
-    lEInd2Point.clear();
-    lEInd2Point.push_back(-999);
-    lChInd1Point.clear();
-    lChInd1Point.push_back(-999);
-    lChInd2Point.clear();
-    lChInd2Point.push_back(-999);
-    lEIntersectInd1.clear();
-    lEIntersectInd1.push_back(-999);
-    lEIntersectInd2.clear();
-    lEIntersectInd2.push_back(-999);
-    vMCPart_pdgCode.clear();
-    vMCPart_pdgCode.push_back(-999);
-    vMCPart_mother.clear();
-    vMCPart_mother.push_back(-999);
-    vMCPart_weight.clear();
-    vMCPart_weight.push_back(-999);
-    vGenerator_tag.clear();
-    vGenerator_tag.push_back("nothing");
-    vMCPart_Endx.clear();
-    vMCPart_Endx.push_back(-9999);
-    vMCPart_Endy.clear();
-    vMCPart_Endy.push_back(-9999);
-    vMCPart_Endz.clear();
-    vMCPart_Endz.push_back(-9999);
-    vMCPart_Startx.clear();
-    vMCPart_Startx.push_back(-9999);
-    vMCPart_Starty.clear();
-    vMCPart_Starty.push_back(-9999);
-    vMCPart_Startz.clear();
-    vMCPart_Startz.push_back(-9999);
-
-    if (bHitTree) tHitTree->Fill();
-
-    NCluster = 0;
-    vZCluster.push_back(-999);
-    vYCluster.push_back(-999);
-    vEColCluster.push_back(-999);
-    vEInd1Cluster.push_back(-999);
-    vEInd2Cluster.push_back(-999);
-    vPTCluster.push_back(-999);
-
-    vNoFCluster.push_back(-999);
-    vNPointCluster.push_back(-999);
-    vNColCluster.push_back(-999);
-    vNInd1Cluster.push_back(-999);
-    vNInd2Cluster.push_back(-999);
-
-    vMCPDGCluster.push_back( -999 );
-    vMCMOMpdgCluster.push_back( -999 );
-    vMCWeightCluster.push_back( -999 );
-    vMCGenTagCluster.push_back( "nothing" );
-    vMCXCluster.push_back(-9999);
-    vMCYCluster.push_back(-9999);
-    vMCZCluster.push_back(-9999);
-    vMCECluster.push_back( -999 );
-    vMCElecCluster.push_back( -999 );
-
-    vVetoTrackStartX.push_back(-9999.0);
-    vVetoTrackStartY.push_back(-9999.0);
-    vVetoTrackStartZ.push_back(-9999.0);
-    vVetoTrackEndX.push_back(-9999.0);
-    vVetoTrackEndY.push_back(-9999.0);
-    vVetoTrackEndZ.push_back(-9999.0);
-
-    tClusterTree->Fill();
-
+    ClearData();
     return;
   } 
 
   std::vector<recob::Hit> const& HitList(*HitListHandle);
   fNHits = HitList.size();
+
+  // Protection against empty list of hits
+  if(fNHits == 0){
+    if( LogLevel > 2) std::cout << " NO HIT IN EVENT " << fEventID << std::endl;
+    ClearData();
+    return;
+  }
 
   if( !lSingleIndex.empty()   ) lSingleIndex.clear();
   if( !lIsolatedIndex.empty() ) lIsolatedIndex.clear();
@@ -1538,6 +1424,127 @@ void pdvdana::SingleHit::beginJob()
 void pdvdana::SingleHit::endJob()
 {
   // Implementation of optional member function here.
+}
+
+void pdvdana::SingleHit::ClearData(){
+    fChannel        = -999;
+    fPlane          = -999;
+    fHitWidth       = -999;
+    fNearOrFarToTheBeam = -999;
+	  
+    fEnergy         = -999;
+    fPeakTime       = -999;
+    fSigmaPeakTime  = -999;
+    fRMS            = -999;
+    fAmplitude      = -999;
+    fSigmaAmplitude = -999;
+    fGoodnessOfFit  = -999;
+    fIntegral       = -999;
+    fSigmaIntegral  = -999;
+   
+    fHitNumber   = -999;
+    fCoincidence = -999;
+    lWireInd1.clear();
+    lWireInd2.clear();
+    lChannelInd1.clear();
+    lChannelInd1.push_back(-999);
+    lChannelInd2.clear();
+    lChannelInd2.push_back(-999);
+    lEnergyInd1.clear();
+    lEnergyInd1.push_back(-999);
+    lEnergyInd2.clear();
+    lEnergyInd2.push_back(-999);
+    lPeakTimeInd1.clear();
+    lPeakTimeInd1.push_back(-999);
+    lPeakTimeInd2.clear();
+    lPeakTimeInd2.push_back(-999);
+    lPeakAmpInd1.clear();
+    lPeakAmpInd1.push_back(-999);
+    lPeakAmpInd2.clear();
+    lPeakAmpInd2.push_back(-999);
+    lYInd1.clear();
+    lYInd1.push_back(-999);
+    lZInd1.clear();
+    lZInd1.push_back(-999);
+    lYInd2.clear();
+    lYInd2.push_back(-999);
+    lZInd2.clear();
+    lZInd2.push_back(-999);
+    lChIntersectInd1.clear();
+    lChIntersectInd1.push_back(-999);
+    lChIntersectInd2.clear();
+    lChIntersectInd2.push_back(-999);
+    lYPoint.clear();
+    lYPoint.push_back(-999);
+    lZPoint.clear();
+    lZPoint.push_back(-999);
+    lEInd1Point.clear();
+    lEInd1Point.push_back(-999);
+    lEInd2Point.clear();
+    lEInd2Point.push_back(-999);
+    lChInd1Point.clear();
+    lChInd1Point.push_back(-999);
+    lChInd2Point.clear();
+    lChInd2Point.push_back(-999);
+    lEIntersectInd1.clear();
+    lEIntersectInd1.push_back(-999);
+    lEIntersectInd2.clear();
+    lEIntersectInd2.push_back(-999);
+    vMCPart_pdgCode.clear();
+    vMCPart_pdgCode.push_back(-999);
+    vMCPart_mother.clear();
+    vMCPart_mother.push_back(-999);
+    vMCPart_weight.clear();
+    vMCPart_weight.push_back(-999);
+    vGenerator_tag.clear();
+    vGenerator_tag.push_back("nothing");
+    vMCPart_Endx.clear();
+    vMCPart_Endx.push_back(-9999);
+    vMCPart_Endy.clear();
+    vMCPart_Endy.push_back(-9999);
+    vMCPart_Endz.clear();
+    vMCPart_Endz.push_back(-9999);
+    vMCPart_Startx.clear();
+    vMCPart_Startx.push_back(-9999);
+    vMCPart_Starty.clear();
+    vMCPart_Starty.push_back(-9999);
+    vMCPart_Startz.clear();
+    vMCPart_Startz.push_back(-9999);
+
+    if (bHitTree) tHitTree->Fill();
+
+    NCluster = 0;
+    vZCluster.push_back(-999);
+    vYCluster.push_back(-999);
+    vEColCluster.push_back(-999);
+    vEInd1Cluster.push_back(-999);
+    vEInd2Cluster.push_back(-999);
+    vPTCluster.push_back(-999);
+
+    vNoFCluster.push_back(-999);
+    vNPointCluster.push_back(-999);
+    vNColCluster.push_back(-999);
+    vNInd1Cluster.push_back(-999);
+    vNInd2Cluster.push_back(-999);
+
+    vMCPDGCluster.push_back( -999 );
+    vMCMOMpdgCluster.push_back( -999 );
+    vMCWeightCluster.push_back( -999 );
+    vMCGenTagCluster.push_back( "nothing" );
+    vMCXCluster.push_back(-9999);
+    vMCYCluster.push_back(-9999);
+    vMCZCluster.push_back(-9999);
+    vMCECluster.push_back( -999 );
+    vMCElecCluster.push_back( -999 );
+
+    vVetoTrackStartX.push_back(-9999.0);
+    vVetoTrackStartY.push_back(-9999.0);
+    vVetoTrackStartZ.push_back(-9999.0);
+    vVetoTrackEndX.push_back(-9999.0);
+    vVetoTrackEndY.push_back(-9999.0);
+    vVetoTrackEndZ.push_back(-9999.0);
+
+    tClusterTree->Fill();
 }
 
 float pdvdana::SingleHit::GetFirstMCTruthEnergy(  art::Event const& e , std::string fG4Label , int LogLevel , art::ServiceHandle<cheat::BackTrackerService> bt_serv )
