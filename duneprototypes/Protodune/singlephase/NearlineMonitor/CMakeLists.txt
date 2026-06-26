@@ -108,7 +108,6 @@ cet_build_plugin(PlotOpticalDetails art::module
               lardataobj::RecoBase
               lardataalg::DetectorInfo
               lardata::headers
-              duneopdet::OpticalDetector
               art::Framework_Core
               art::Framework_Principal
               art_root_io::tfile_support

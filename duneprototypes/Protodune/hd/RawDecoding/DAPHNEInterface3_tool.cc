@@ -7,6 +7,9 @@
 #include "detdataformats/daphne/DAPHNEFrame.hpp"
 #include "detdataformats/daphne/DAPHNEStreamFrame.hpp"
 
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardataalg/DetectorInfo/DetectorClocks.h"
+
 #include "daqdataformats/v4_4_0/Fragment.hpp"
 #include "daqdataformats/v4_4_0/SourceID.hpp"
 
@@ -29,6 +32,8 @@ class DAPHNEInterface3 : public DAPHNEInterfaceBase {
   static const size_t FragmentHeaderSize = sizeof(FragmentHeader);
   static const size_t FrameSize = sizeof(DAPHNEFrame);
   static const size_t StreamFrameSize = sizeof(DAPHNEStreamFrame);
+
+    const detinfo::DetectorClocksData* fClocksData;
 
   template <class T>
   size_t GetNFrames(size_t frag_size, size_t frag_header_size) {
@@ -87,6 +92,7 @@ class DAPHNEInterface3 : public DAPHNEInterfaceBase {
       DAPHNEStreamFrame * frame,
       std::unordered_map<unsigned int, std::vector<raw::OpDetWaveform>> & wf_map,
       utils::DAPHNETree * daphne_tree) {
+
     art::ServiceHandle<dune::DAPHNEChannelMapService> channel_map;
     auto b_link = frame->daq_header.link_id;
     auto b_slot = frame->daq_header.slot_id;
@@ -120,7 +126,8 @@ class DAPHNEInterface3 : public DAPHNEInterfaceBase {
       auto & waveform = daphne::utils::MakeWaveform(
             offline_channel,
             frame->s_adcs_per_channel,
-            frame->get_timestamp(),
+            (frame->get_timestamp() & 0xffffffffff) // mask out most significant bits. Live with only 40 least significant bits ~ 1,099,511,627,776 ticks = ~4.9 h
+            *fClocksData->OpticalClock().TickPeriod(), // making sure the timestamp is in microseconds; assumed it's in ticks in DAQ
             wf_map,
             true);
 
@@ -150,6 +157,7 @@ class DAPHNEInterface3 : public DAPHNEInterfaceBase {
       utils::DAPHNETree * daphne_tree) {
 
     art::ServiceHandle<dune::DAPHNEChannelMapService> channel_map;
+
     int b_channel_0 = frame->get_channel();
     int b_link = frame->daq_header.link_id;
     int b_slot = frame->daq_header.slot_id;
@@ -174,7 +182,8 @@ class DAPHNEInterface3 : public DAPHNEInterfaceBase {
     auto & waveform = daphne::utils::MakeWaveform(
         offline_channel,
         static_cast<size_t>(frame->s_num_adcs),
-        frame->get_timestamp(),
+        (frame->get_timestamp() & 0xffffffffff) // mask out most significant bits. Live with only 40 least significant bits ~ 1,099,511,627,776 ticks = ~4.9 h
+        *fClocksData->OpticalClock().TickPeriod(), // making sure the timestamp is in microseconds; assumed it's in ticks in DAQ
         wf_map);
     for (size_t j = 0; j < static_cast<size_t>(frame->s_num_adcs); ++j) {
       waveform.push_back(frame->get_adc(j));
@@ -217,6 +226,10 @@ class DAPHNEInterface3 : public DAPHNEInterfaceBase {
       std::vector<std::string> subdet_label,
       std::unordered_map<unsigned int, WaveformVector> & wf_map,
       utils::DAPHNETree * daphne_tree) override {
+
+      // this will live through out the event being processed
+    const auto clocksData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+    fClocksData = &clocksData;
 
     //Get the HDF5 file to be opened
     auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo2>(inputlabel);
