@@ -9,6 +9,7 @@
 #include "PDHDSPSSpillFilter.fcl"
 #include "PDHDSPSSpillFlagProducer.fcl"
 #include "PDHDTriggerTypeFilter.fcl"
+#include "PDHDChannelSaturationFilter.fcl"
 
 #include "opticaldetectormodules_dune.fcl"
 #include "Deconvolution.fcl"
@@ -88,6 +89,7 @@ physics:
     triggertypefilter: @local::pdhdtriggertypefilter
     nhitsfilter: @local::pdhd_nhitsfilter
     fembfilter: @local::pdhdfembfilter
+    saturationfilter: @local::pdhdchannelsaturationfilter
   }
 
   producers:
@@ -96,7 +98,7 @@ physics:
     spillflag: @local::pdhd_spillflag
 
     # Raw decoding
-    #tpcrawdecoder: @local::PDHDTPCReaderDefaults
+    tpcrawdecoder: @local::PDHDTPCReaderDefaults
     tpcrawdecoder: @local::PDBSMSkipTicksHDTPCReaderDefaults
     triggerrawdecoder: @local::PDHDTriggerReader3Defaults 
     timingrawdecoder: @local::PDHDTimingRawDecoder
@@ -154,11 +156,12 @@ physics:
     # Signal processing
     fembfilter,
     wclsdatahd,
+    saturationfilter, # Removes saturated events that can't be reco'd 
     # Hit finding
     gaushit,
     reco3d,
     hitpdune,
-    nhitsfilter,
+    # nhitsfilter, # Use saturationfilter to remove challenging events
     # Pandora reconstruction
     pandora, 
     pandoraWriter, 
