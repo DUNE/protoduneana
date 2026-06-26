@@ -1,6 +1,5 @@
 #include "HDF5RawInput3.fcl"
 #include "PDHDTPCReader.fcl"
-#include "PDBSMSkipTicksHDTPCReader.fcl"
 #include "PDHDDataInterfaceWIBEth3.fcl"
 #include "PDHDTriggerReader3.fcl"
 #include "PDHDTimingRawDecoder.fcl"
@@ -99,7 +98,6 @@ physics:
 
     # Raw decoding
     tpcrawdecoder: @local::PDHDTPCReaderDefaults
-    tpcrawdecoder: @local::PDBSMSkipTicksHDTPCReaderDefaults
     triggerrawdecoder: @local::PDHDTriggerReader3Defaults 
     timingrawdecoder: @local::PDHDTimingRawDecoder
     pdhddaphne: @local::DAPHNEReaderPDHD
