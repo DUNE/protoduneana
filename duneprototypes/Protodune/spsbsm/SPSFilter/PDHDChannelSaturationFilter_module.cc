@@ -59,12 +59,12 @@ bool PDHDChannelSaturationFilter::filter(art::Event & evt) {
   int n_saturated_channels = 0;
   
   for (const auto &rd : rawdigits) {
-    unsigned int plane = wireReadout.ChannelToWire(rd.Channel()).front().Plane;
+    const unsigned int plane = wireReadout.ChannelToWire(rd.Channel()).front().Plane;
     if (plane < 2) continue;
     
     int n_negative_ticks_in_a_row = 0;
     for (int j = 0; j < nticks; j++) {
-      float current_adc = rd.ADC(j) - rd.GetPedestal();
+      const float current_adc = rd.ADC(j) - rd.GetPedestal();
       
       if (current_adc < 0) {
         n_negative_ticks_in_a_row++;
