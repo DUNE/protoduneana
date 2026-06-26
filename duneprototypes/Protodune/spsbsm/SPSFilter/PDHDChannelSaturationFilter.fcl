@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+pdhdchannelsaturationfilter: {
+  LogLevel: 0
+  module_type: "PDHDChannelSaturationFilter"
+  RawDigitLabel: "tpcrawdecoder:daq"
+  ThresholdTicksForSaturatedChannel: 150
+  ThresholdChannelsForRejection: 150
+}
+
+END_PROLOG
