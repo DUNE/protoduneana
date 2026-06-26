@@ -25,6 +25,7 @@ physics: {
         checks: {
             module_type:    "MichelAnalysis"
             Products:       [
+                # process, label, instance, type
                 ["SingleGen",  "cosmicgenerator", "",             "simb::MCTruth"],
                 ["G4Stage1",   "largeant",        "",             "simb::MCParticle"],
                 ["G4Stage1",   "largeant",        "IonAndScint",  "sim::SimEnergyDeposit"],

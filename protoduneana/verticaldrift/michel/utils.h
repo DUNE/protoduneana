@@ -27,6 +27,7 @@
 #include "canvas/Persistency/Common/FindOneP.h"
 
 #include "lardataobj/RecoBase/TrackHitMeta.h"
+#include "lardataobj/RecoBase/Wire.h"
 
 #include <TTree.h>
 #include <TBranch.h>
@@ -34,10 +35,9 @@
 #include <cstdio>
 #include <algorithm>
 
-
-#define LOG(x)         (fLog ? printf("\tLOG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)
-#define ASSERT(x) if (!(fLog ? printf("\tAST " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)) continue; 
-#define DEBUG(x)  if  ((fLog ? printf("\tDBG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?1:2, x?"true":"false") : 0, x)) exit(EXIT_FAILURE);
+#define LOG(x)         (inLog ? printf("\tLOG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)
+#define ASSERT(x) if (!(inLog ? printf("\tAST " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?2:1, x?"true":"false") : 0, x)) continue; 
+#define DEBUG(x)  if  ((inLog ? printf("\tDBG " #x ": " "\033[1;9%dm" "%s" "\033[0m\n", x?1:2, x?"true":"false") : 0, x)) exit(EXIT_FAILURE);
 
 using PtrHit    = art::Ptr<recob::Hit>;
 using VecPtrHit = std::vector<art::Ptr<recob::Hit>>;
@@ -50,7 +50,7 @@ namespace ana {
     /*
     PDVD: (beam direction along Z, inside side1) (vertical: X up)
     ┌─────────┬─────────┬─────────┬─────────┐  X
-    │ side1   │ side1   │ side1   │ side1   │  🡩
+    │ side1   │ side1   │ side1   │ side1   │  ^
     │ sec0    │ sec1    │ sec2    │ sec3    │  │  TOP
     │ tpc8,10 │ tpc9,11 │ tpc12,14│ tpc13,15│  │
     │         │         │         │         │  │
@@ -64,7 +64,7 @@ namespace ana {
 
     PDHD: (beam direction along Z, inside side0) (vertical: Y up)
     ┌─────────┬─────────┐ Y
-    │ side0   │ side1   │ 🡩
+    │ side0   │ side1   │ ^
     │ sec0    │ sec1    │ │
     │ tpc1,5  │ tpc2,6  │ │
     │         │         │ │
@@ -73,13 +73,18 @@ namespace ana {
        BOT       TOP
     */
 
-    enum EnumDet { kPDVD, kPDHD };
-    enum EnumSide: int { kTop=1, kBot=0, kInvalidSide=-1 };
+    enum Det_t: int { kPDVD, kPDHD, kPDSP };
+    std::vector<std::string> const det_name = { "PDVD", "PDHD", "PDSP" };
+    enum Side_t: int { kBot=0, kTop=1, kInvalidSide=-1 };
+    using Sec_t = int;
+    static constexpr Sec_t kInvalidSec = -1;
+
     std::vector<unsigned> const n_sec = {
         8, // PDVD
-        2  // PDHD
+        2, // PDHD
+        2  // PDSP
     };
-    std::vector<std::map<unsigned, int>> const tpc2sec = {
+    std::vector<std::map<geo::TPCID::TPCID_t, Sec_t>> const tpc2sec = {
         { // PDVD
             {0, 4}, {2, 4},
             {1, 5}, {3, 5},
@@ -89,16 +94,22 @@ namespace ana {
             {9, 1}, {11, 1},
             {12, 2}, {14, 2},
             {13, 3}, {15, 3},
-            { geo::TPCID::InvalidID, -1 }
+            { geo::TPCID::InvalidID, kInvalidSec }
         }, { // PDHD
-            {4, -1}, {0, -1},
+            {4, kInvalidSec}, {0, kInvalidSec},
             {5, 0}, {1, 0},
             {6, 1}, {2, 1},
-            {7, -1}, {3, -1},
-            { geo::TPCID::InvalidID, -1 }
+            {7, kInvalidSec}, {3, kInvalidSec},
+            { geo::TPCID::InvalidID, kInvalidSec }
+        }, { // PDSP
+            {8, kInvalidSide}, {4, kInvalidSec}, {0, kInvalidSec},
+            {9, 0},  {5, 0}, {1, 0},
+            {10, 0}, {6, 1}, {2, 1},
+            {11, kInvalidSide}, {7, kInvalidSec}, {3, kInvalidSec},
+            { geo::TPCID::InvalidID, kInvalidSec }
         }
     };
-    std::vector<std::map<int, std::pair<unsigned, unsigned>>> const sec2tpc = {
+    std::vector<std::map<Sec_t, std::vector<geo::TPCID::TPCID_t>>> const sec2tpcs = {
         { // PDVD
             {0, {8, 10} },
             {1, {9, 11} },
@@ -108,43 +119,58 @@ namespace ana {
             {5, {1, 3} },
             {6, {4, 6} },
             {7, {5, 7} },
-            {-1, { geo::TPCID::InvalidID, geo::TPCID::InvalidID } }
+            {kInvalidSec, { geo::TPCID::InvalidID } }
         }, { // PDHD
             {0, {1, 5} },
             {1, {2, 6} },
-            {-1, { geo::TPCID::InvalidID, geo::TPCID::InvalidID } }
+            {kInvalidSec, { geo::TPCID::InvalidID } }
+        }, { // PDSP
+            {0, {1, 5, 9} },
+            {1, {2, 6, 10} },
+            {kInvalidSec, { geo::TPCID::InvalidID } }
         }
     };
-    std::vector<std::map<unsigned, int>> const tpc2side = {
+    std::vector<std::map<geo::TPCID::TPCID_t, Side_t>> const tpc2side = {
         { // PDVD
-            { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 },
-            { 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 },
-            { 8, 1 }, { 9, 1 }, {10, 1 }, {11, 1 },
-            {12, 1 }, {13, 1 }, {14, 1 }, {15, 1 },
-            { geo::TPCID::InvalidID, -1 }
+            {10, kTop }, {11, kTop }, {14, kTop }, {15, kTop },
+            { 8, kTop }, { 9, kTop }, {12, kTop }, {13, kTop },
+            { 2, kBot }, { 3, kBot }, { 6, kBot }, { 7, kBot },
+            { 0, kBot }, { 1, kBot }, { 4, kBot }, { 5, kBot },
+            { geo::TPCID::InvalidID, kInvalidSide }
         }, { // PDHD
-            { 0, -1 }, { 1, 0 }, { 2, 1 }, { 3, -1 },
-            { 4, -1 }, { 5, 0 }, { 6, 1 }, { 7, -1 },
-            { geo::TPCID::InvalidID, -1 }
+            { 0, kInvalidSide }, { 1, kBot }, { 2, kTop }, { 3, kInvalidSide },
+            { 4, kInvalidSide }, { 5, kBot }, { 6, kTop }, { 7, kInvalidSide },
+            { geo::TPCID::InvalidID, kInvalidSide }
+        }, { // PDSP
+            { 0, kInvalidSide }, { 1, kBot }, { 2, kTop }, { 3, kInvalidSide },
+            { 4, kInvalidSide }, { 5, kBot }, { 6, kTop }, { 7, kInvalidSide },
+            { 8, kInvalidSide }, { 9, kBot }, { 10, kTop }, { 11, kInvalidSide },
+            { geo::TPCID::InvalidID, kInvalidSide }
         }
     };
-    std::vector<std::map<int, std::vector<int>>> const side2secs = {
+    std::vector<std::map<Side_t, std::vector<Sec_t>>> const side2secs = {
         { // PDVD
-            { 0, {4, 5, 6, 7} }, { 1, {0, 1, 2, 3} },
-            { -1, {} }
+            { kBot, {4, 5, 6, 7} }, { kTop, {0, 1, 2, 3} },
+            { kInvalidSide, {} }
         }, { // PDHD
-            { 0, {0} }, { 1, {1} },
-            { -1, {} }
+            { kBot, {0} }, { kTop, {1} },
+            { kInvalidSide, {} }
+        }, { // PDSP
+            { kBot, {0} }, { kTop, {1} },
+            { kInvalidSide, {} }
         }
     };
-    std::vector<std::map<int, int>> const sec2side = {
+    std::vector<std::map<Sec_t, Side_t>> const sec2side = {
         { // PDVD
-            {0, 1}, {1, 1}, {2, 1}, {3, 1},
-            {4, 0}, {5, 0}, {6, 0}, {7, 0},
-            { -1, -1 }
+            {0, kTop}, {1, kTop}, {2, kTop}, {3, kTop},
+            {4, kBot}, {5, kBot}, {6, kBot}, {7, kBot},
+            {kInvalidSec, kInvalidSide }
         }, { // PDHD
-            {0, 0}, {1, 1},
-            { -1, -1 }
+            {0, kBot}, {1, kTop},
+            { kInvalidSec, kInvalidSide }
+        }, { // PDSP 
+            {0, kBot}, {1, kTop},
+            { kInvalidSec, kInvalidSide }
         }
     };
 
@@ -180,9 +206,17 @@ namespace ana {
         double theta(int dirx) const {
             return atan2(dirx*cov, dirx*(lp-vary));
         }
+        void clear() {
+            n=0;
+            mx=0; my=0; mx2=0; my2=0; mxy=0;
+            varx=0; vary=0; cov=0;
+            m=0; p=0; r2=0;
+            lp=0; corr=0;
+        }
         void SetBranches(TTree* t, const char* pre="") {
-            t->Branch(Form("%sRegM", pre), &m);
-            t->Branch(Form("%sRegP", pre), &p);
+            t->Branch(Form("%sRegN", pre),  &n);
+            t->Branch(Form("%sRegM", pre),  &m);
+            t->Branch(Form("%sRegP", pre),  &p);
             t->Branch(Form("%sRegR2", pre), &r2);
         }
     };
@@ -232,8 +266,11 @@ namespace ana {
     // axis of equation ay*Y - az*Z = 0
     struct Axis {
         double ay, az;
-        double space(geo::WireGeo wiregeo) {
-            return ay * wiregeo.GetCenter().Y() + az * wiregeo.GetCenter().Z();
+        double space(geo::WireGeo wiregeo) const {
+            return space(wiregeo.GetCenter().Y(), wiregeo.GetCenter().Z());
+        }
+        double space(float y, float z) const {
+            return ay * y + az * z;
         }
     };
 
@@ -251,6 +288,7 @@ namespace ana {
         }
     };
     struct Hit {
+        // int view;
         unsigned tpc;
         int section;
         float space;
@@ -258,14 +296,15 @@ namespace ana {
         float tick;
         float adc;
         Hit() : 
+            // view(geo::kUnknown),
             tpc(geo::TPCID::InvalidID), 
-            section(-1), 
+            section(kInvalidSec), 
             space(util::kBogusF), 
             channel(raw::InvalidChannelID), 
             tick(util::kBogusF), 
             adc(util::kBogusF) {}
-        Hit(unsigned T, int S, float s, unsigned c, float t, float a) :
-            tpc(T), section(S), space(s), channel(c), tick(t), adc(a) {}
+        Hit(/*int v,*/ unsigned T, int S, float s, unsigned c, float t, float a) :
+            /*view(v),*/ tpc(T), section(S), space(s), channel(c), tick(t), adc(a) {}
 
         Vec2 vec(float tick2cm=1) const { return Vec2{space, tick * tick2cm}; }
         // double operator-(Hit const& h) const {
@@ -273,9 +312,10 @@ namespace ana {
         //     return sqrt(pow(space - h.space, 2) + pow(tick - h.tick, 2));
         // }
         friend std::ostream& operator<<(std::ostream& os, const Hit& hit) {
-            return os << "tpc:" << hit.tpc << " space:" << hit.space << " ch:" << hit.channel << " tick:" << hit.tick << " ADC:" << hit.adc;
+            return os << /*"view:" << hit.view <<*/ "tpc:" << hit.tpc << " space:" << hit.space << " ch:" << hit.channel << " tick:" << hit.tick << " ADC:" << hit.adc;
         }
         void SetBranches(TTree* t, const char* pre="") {
+            // t->Branch(Form("%sHitView", pre), &view);
             t->Branch(Form("%sHitTPC", pre), &tpc);
             t->Branch(Form("%sHitSection", pre), &section);
             t->Branch(Form("%sHitSpace", pre), &space);
@@ -286,15 +326,17 @@ namespace ana {
     };
     struct Hits {
         unsigned N;
+        // std::vector<int> view;
         std::vector<unsigned> tpc;
         std::vector<int> section;
         std::vector<float> space;
         std::vector<unsigned> channel;
         std::vector<float> tick;
         std::vector<float> adc;
-        Hits() : N(0), tpc(), section(), space(), channel(), tick(), adc() {}
+        Hits() : N(0), /*view(),*/ tpc(), section(), space(), channel(), tick(), adc() {}
         void push_back(Hit const& hit) {
             N++;
+            // view.push_back(hit.view);
             tpc.push_back(hit.tpc);
             section.push_back(hit.section);
             space.push_back(hit.space);
@@ -304,6 +346,7 @@ namespace ana {
         }
         void clear() {
             N = 0;
+            // view.clear();
             tpc.clear();
             section.clear();
             space.clear();
@@ -313,11 +356,7 @@ namespace ana {
         }
         unsigned size() const { return N; }
         bool empty() const { return !N; }
-        float energy() const {
-            float e = 0;
-            for (float a : adc) e+=a;
-            return e;
-        }
+        float energy() const { return std::accumulate(adc.begin(), adc.end(), 0.F); }
         Vec2 barycenter(float tick2cm=1) const {
             float bs=0, bt=0;
             unsigned bn=0;
@@ -376,7 +415,7 @@ namespace ana {
         Point operator-=(Point const& p) { x -= p.x; y -= p.y; z -= p.z; return *this; }
         Point operator*(float f) const { return Point{f*x, f*y, f*z}; }
 
-        operator bool() const { return !(x==0 && y==0 && z==0); }
+        operator bool() const { return !(x==util::kBogusF && y==util::kBogusF && z==util::kBogusF); }
 
         friend std::ostream& operator<<(std::ostream& os, const Point& p) {
             return os << "(" << p.x << ", " << p.y << ", " << p.z << ")";
@@ -502,7 +541,7 @@ namespace ana {
     ) {
         if (!mcp) return VecPtrHit{};
         VecPtrHit vph_mcp;
-        for (PtrHit ph_ev : vph_ev)
+        for (PtrHit ph_ev : vph_ev) {
             for (sim::TrackIDE ide : (use_eve
                 ? bt_serv->HitToEveTrackIDEs(clockData, ph_ev)
                 : bt_serv->HitToTrackIDEs(clockData, ph_ev)
@@ -512,6 +551,7 @@ namespace ana {
                     if (energyFracs) energyFracs->push_back(ide.energyFrac);
                 }
             }
+        }
         return vph_mcp;
     }
 
@@ -566,59 +606,65 @@ namespace ana {
     }
 
 
+    // class SH {
+    //     VecPtrHit vph = {};
+    // public:
+    //     operator bool() const {}
+    //     VecPtrHit const& hits() const {}
+    //     std::vector<Sec_t> const sections() const {}
+    //     std::vector<Side_t> const sides() const {}
+    //     PtrHit const start() const {}
+    //     PtrHit const end() const {}
 
+    //     bool isCathodeCrossing() const { return sides().size() >= 2; }
+    //     std::map<Side_t, VecPtrHit::iterator> crossingHits() const {}
+    //     bool isSectionCrossing() const { return sections().size() >= 2; }
+    //     std::map<Sec_t, VecPtrHit::iterator> sectionLimitsHits() const {}
+    // };
 
     // Analysis Module Subclass
     struct SortedHits {
         // std::vector<VecPtrHit> vph_sec; // sorted hits per section
-        VecPtrHit vph; // sorted hits
-        std::vector<int> secs; // sorted sections
-        std::vector<LinearRegression> regs; // regressions per side
+        VecPtrHit vph = {}; // sorted hits
+        std::vector<Sec_t> secs = {}; // sorted sections
+        std::vector<LinearRegression> regs = std::vector<LinearRegression>(2, LinearRegression()); // regressions per side
 
-        std::vector<size_t> secs_first;
-        size_t side_first;
+        std::vector<size_t> secs_index = {};
+        size_t side_index = 0;
 
         operator bool() const { return !vph.empty(); }
         PtrHit start() const { return vph.front(); }
         PtrHit end() const { return vph.back(); }
-        bool is_cc() const { return side_first != 0; }
-        PtrHit cc_first() const { return is_cc() ? vph[side_first - 1] : PtrHit(); }
-        PtrHit cc_second() const { return is_cc() ? vph[side_first] : PtrHit(); }
-        bool is_sc() const { return !secs_first.empty(); }
+        bool is_cc() const { return side_index != 0; }
+        PtrHit cc_first() const { return is_cc() ? vph[side_index - 1] : PtrHit(); }
+        PtrHit cc_second() const { return is_cc() ? vph[side_index] : PtrHit(); }
+        bool is_sc() const { return !secs_index.empty(); }
         VecPtrHit scs() const {
             VecPtrHit res(0);
-            for (size_t i : secs_first) {
-                if (i != 0 and i != side_first) {
+            for (size_t i : secs_index) {
+                if (i != side_index) {
                     res.push_back(vph[i-1]);
                     res.push_back(vph[i]);
                 }
             }
             return res;
         }
-        int end_sec() const { return secs.back(); }
-        LinearRegression end_reg(int det) const {
+        Sec_t end_sec() const { return secs.back(); }
+        LinearRegression end_reg(Det_t det) const {
             return regs[ana::sec2side.at(det).at(end_sec())];
         }
-        VecPtrHit::iterator after_cathode_it() { return vph.begin() + side_first; }
-        VecPtrHit::iterator endsec_it() { return vph.begin() + secs_first.back(); }
-
-        SortedHits() : vph(0), secs(0), regs(2), secs_first(0), side_first(0) {}
-
+        VecPtrHit::iterator after_cathode_it() { return vph.begin() + side_index; }
+        VecPtrHit::iterator endsec_it() { return vph.begin() + secs_index.back(); }
 
         void reverse() {
             std::reverse(vph.begin(), vph.end());
             std::reverse(secs.begin(), secs.end());
-            if (!secs_first.empty()) {
-                if (secs_first.front() == 0) {
-                    secs_first.erase(secs_first.begin());
-                    secs_first.push_back(vph.size());
-                }
-                for (size_t& i : secs_first) {
+            if (!secs_index.empty()) {
+                for (size_t& i : secs_index)
                     i = vph.size() - i;
-                }
-                std::reverse(secs_first.begin(), secs_first.end());
+                std::reverse(secs_index.begin(), secs_index.end());
             }
-            side_first = side_first==0 ? 0 : vph.size()-side_first;
+            side_index = side_index==0 ? 0 : vph.size()-side_index;
         }
 
         // PtrHit start, end;
@@ -629,8 +675,8 @@ namespace ana {
         // operator bool() const { return !vph.empty(); }
         // bool is_cc() const { return cc.first && cc.second; }
         // bool is_sc() const { return !sc.empty(); }
-        // int end_sec() const { return secs.back(); }
-        // LinearRegression end_reg(int det) const {
+        // Sec_t end_sec() const { return secs.back(); }
+        // LinearRegression end_reg(Det_t det) const {
         //     return regs[ana::sec2side.at(det).at(end_sec())];
         // }
 
@@ -640,9 +686,10 @@ namespace ana {
         // VecPtrHit::iterator endsec_it() { return vph.begin() + endsec_index; }
     };
 
-    class MichelAnalyzer {
+
+    class MichelModule {
     public:
-        MichelAnalyzer(fhicl::ParameterSet const& p);
+        MichelModule(fhicl::ParameterSet const& p);
 
         // Utilities
         art::ServiceHandle<art::TFileService> asFile;
@@ -656,13 +703,13 @@ namespace ana {
         // error: taking address of rvalue [-fpermissive]
         // const detinfo::DetectorClocksData* clockData;
 
-        int geoDet;
-        enum EnumDet { kPDVD, kPDHD };
+        Det_t geoDet;
         float fTick2cm;
 
         art::InputTag   tag_mcp, tag_sed, tag_wir,
                         tag_hit, tag_clu, tag_trk,
-                        tag_shw, tag_spt, tag_pfp;
+                        tag_shw, tag_spt, tag_pfp,
+                        tag_cal;
 
         // VecPtrHit vph_ev;
         // VecPtrTrk vpt_ev;
@@ -675,13 +722,28 @@ namespace ana {
         // art::FindManyP<recob::Hit> *fmp_shw2hit;
         // art::FindOneP<recob::Shower> *fop_hit2shw;
 
+        std::vector<geo::TPCID::TPCID_t> GetTPCs(Sec_t sec) const { return sec2tpcs.at(geoDet).at(sec); }
+        Sec_t GetSec(geo::TPCID::TPCID_t tpc) const { return tpc2sec.at(geoDet).at(tpc); }
+        Sec_t GetSec(PtrHit const& ph) const { return GetSec(ph->WireID().TPC); }
+        std::vector<Sec_t> GetSecs(Side_t side) const { return side2secs.at(geoDet).at(side); }
+        Side_t GetSide(Sec_t sec) const { return sec2side.at(geoDet).at(sec); }
+        Side_t GetSide(geo::TPCID::TPCID_t tpc) const { return tpc2side.at(geoDet).at(tpc); }
+        Side_t GetSide(PtrHit const& ph) const { return GetSide(ph->WireID().TPC); }
+        Side_t GetSide(ana::Hit const& h) const { return GetSide(h.tpc); }
+
         bool IsUpright(recob::Track const& T);
         std::string GetParticleName(int pdg);
         Axis GetAxis(geo::PlaneID) const;
         double GetSpace(geo::WireID) const;
+        double GetSpace(PtrHit const&) const;
         Hit GetHit(PtrHit const&) const;
         double GetDistance(PtrHit const&, PtrHit const&, bool) const;
         double GetDistance(ana::Hit const&, ana::Hit const&, bool) const;
+        double GetDistance(PtrHit const&, Side_t, float, float, float, bool) const;
+        float GetCathodeX(PtrHit const&, PtrHit const&, PtrHit const&, float) const;
+        float GetCathodeX(ana::Hit const&, PtrHit const&, PtrHit const&, float) const;
+        float GetAnodeX(PtrHit const&, PtrHit const&, float xmin, float xmax) const;
+        float GetAnodeX(ana::Hit const&, PtrHit const&, float xmin, float xmax) const;
         simb::MCParticle const* GetMichelMCP(simb::MCParticle const*) const;
         std::vector<float> GetdQds(
             VecPtrHit const& vph,
@@ -700,20 +762,10 @@ namespace ana {
             int dirX = -1, // decreasing X
             geo::View_t view = geo::kW
         ) const;
-        // SortedHits GetSortedHits_dirX(
-        //     VecPtrHit const& vph_unsorted,
-        //     int dirX = -1, // decreasing X
-        //     geo::View_t view = geo::kW
-        // ) const;
-        // SortedHits GetSortedHits_PDHD(
-        //     VecPtrHit const& vph_unsorted,
-        //     int dirX,
-        //     geo::View_t view = geo::kW
-        // ) const;
     };
 }
 
-ana::MichelAnalyzer::MichelAnalyzer(fhicl::ParameterSet const& p) :
+ana::MichelModule::MichelModule(fhicl::ParameterSet const& p) :
     asFile()
 {
     asGeo = &*art::ServiceHandle<geo::Geometry>{};
@@ -739,14 +791,17 @@ ana::MichelAnalyzer::MichelAnalyzer(fhicl::ParameterSet const& p) :
         else if (type == "recob::Shower")           tag_shw = tag;
         else if (type == "recob::SpacePoint")       tag_spt = tag;
         else if (type == "recob::PFParticle")       tag_pfp = tag;
+        else if (type == "anab::Calorimetry")       tag_cal = tag;
     }
 
     if (asGeo->DetectorName().find("vd") != std::string::npos)
         geoDet = kPDVD;
     else if (asGeo->DetectorName().find("hd") != std::string::npos)
         geoDet = kPDHD;
+    else if (asGeo->DetectorName() == "protodunev7")
+        geoDet = kPDSP;
     else {
-        std::cout << "\033[1;91m" "unknown geometry: "
+        std::cout << "MiAna: " "\033[1;91m" "unknown geometry: "
             << asGeo->DetectorName() << "\033[0m" << std::endl;
         exit(1);
     }
@@ -757,14 +812,14 @@ ana::MichelAnalyzer::MichelAnalyzer(fhicl::ParameterSet const& p) :
     fTick2cm = detinfo::sampling_rate(clockData) * 1e-3 * detProp.DriftVelocity();
 }    
 
-bool ana::MichelAnalyzer::IsUpright(recob::Track const& T) {
+bool ana::MichelModule::IsUpright(recob::Track const& T) {
     if (geoDet == kPDVD)
         return T.Start().X() > T.End().X();
-    if (geoDet == kPDHD)
+    if (geoDet == kPDHD || geoDet == kPDSP)
         return T.Start().Y() > T.End().Y();
     return false;
 }
-std::string ana::MichelAnalyzer::GetParticleName(int pdg) {
+std::string ana::MichelModule::GetParticleName(int pdg) {
     std::vector<std::string> static periodic_table = { "",
         "H",                                                                                                  "He", 
         "Li", "Be",                                                             "B",  "C",  "N",  "O",  "F",  "Ne",
@@ -802,21 +857,25 @@ std::string ana::MichelAnalyzer::GetParticleName(int pdg) {
     return Form("%d", pdg);
 }
 
-ana::Axis ana::MichelAnalyzer::GetAxis(geo::PlaneID pid) const {
+
+ana::Axis ana::MichelModule::GetAxis(geo::PlaneID pid) const {
     geo::WireGeo w0 = asWire->Wire(geo::WireID{pid, 0});
     geo::WireGeo w1 = asWire->Wire(geo::WireID{pid, 1});
     int dy = w1.GetCenter().Y() > w0.GetCenter().Y() ? 1 : -1;
     int dz = w1.GetCenter().Z() > w0.GetCenter().Z() ? 1 : -1;
     return { dy * w0.CosThetaZ(), dz * w0.SinThetaZ() };
 }
-double ana::MichelAnalyzer::GetSpace(geo::WireID wid) const {
+double ana::MichelModule::GetSpace(geo::WireID wid) const {
     return GetAxis(wid).space(asWire->Wire(wid));
 }
-ana::Hit ana::MichelAnalyzer::GetHit(PtrHit const& ph) const {
+double ana::MichelModule::GetSpace(PtrHit const& ph) const {
+    return GetSpace(ph->WireID());
+}
+ana::Hit ana::MichelModule::GetHit(PtrHit const& ph) const {
     geo::WireID wid = ph->WireID();
     return {
         wid.TPC,
-        ana::tpc2sec.at(geoDet).at(wid.TPC),
+        GetSec(wid.TPC),
         float(GetSpace(wid)),
         ph->Channel(),
         ph->PeakTime(),
@@ -825,21 +884,61 @@ ana::Hit ana::MichelAnalyzer::GetHit(PtrHit const& ph) const {
 }
 
 // 2D projected distance in cm
-double ana::MichelAnalyzer::GetDistance(PtrHit const& ph1, PtrHit const& ph2, bool allow_different_side=false) const {
+double ana::MichelModule::GetDistance(PtrHit const& ph1, PtrHit const& ph2, bool allow_different_side=false) const {
+    if (ph1->View() != geo::kW || ph2->View() != geo::kW)
+        return std::numeric_limits<double>::max(); 
     return GetDistance(GetHit(ph1), GetHit(ph2), allow_different_side);
 }
-double ana::MichelAnalyzer::GetDistance(ana::Hit const& h1, ana::Hit const& h2, bool allow_different_side=false) const {
-    int side1 = ana::sec2side.at(geoDet).at(h1.section);
-    int side2 = ana::sec2side.at(geoDet).at(h2.section);
-    if (!allow_different_side && (side1 != side2))
+double ana::MichelModule::GetDistance(ana::Hit const& h1, ana::Hit const& h2, bool allow_different_side=false) const {
+    if (!allow_different_side && GetSide((Sec_t)h1.section) != GetSide((Sec_t)h2.section))
         return std::numeric_limits<double>::max();
     return sqrt(pow(h2.space - h1.space, 2) + pow((h2.tick - h1.tick) * fTick2cm, 2));
 }
+double ana::MichelModule::GetDistance(PtrHit const& ph, Side_t side, float y, float z, float t, bool allow_different_side=false) const {
+    if (!allow_different_side && GetSide(ph->WireID().TPC) != side)
+        return std::numeric_limits<double>::max();
+    float ph_space = GetSpace(ph->WireID());
+    float space = GetAxis(ph->WireID()).space(y, z);
+    return sqrt(pow(ph_space - space, 2) + pow((ph->PeakTime() - t) * fTick2cm, 2));
+}
+float ana::MichelModule::GetCathodeX(PtrHit const& ph, PtrHit const& cc_bot, PtrHit const& cc_top, float cathode_gap) const {
+    return GetSide(ph->WireID().TPC) == kBot
+        ? -(cathode_gap/2) - (cc_bot->PeakTime() - ph->PeakTime()) * fTick2cm
+        : +(cathode_gap/2) + (cc_top->PeakTime() - ph->PeakTime()) * fTick2cm;
+}
+float ana::MichelModule::GetCathodeX(ana::Hit const& hit, PtrHit const& cc_bot, PtrHit const& cc_top, float cathode_gap) const {
+    return GetSide((geo::TPCID::TPCID_t)hit.tpc) == kBot
+        ? -(cathode_gap/2) - (cc_bot->PeakTime() - hit.tick) * fTick2cm
+        : +(cathode_gap/2) + (cc_top->PeakTime() - hit.tick) * fTick2cm;
+}
+float ana::MichelModule::GetAnodeX(PtrHit const& ph, PtrHit const& start_hit, float xmin, float xmax) const {
+    Side_t side = GetSide(ph);
+    return side == GetSide(start_hit)
+        ? ( side == kTop
+            ? xmax - (ph->PeakTime() - start_hit->PeakTime()) * fTick2cm
+            : xmin + (ph->PeakTime() - start_hit->PeakTime()) * fTick2cm
+        )
+        : util::kBogusF;
+}
+float ana::MichelModule::GetAnodeX(ana::Hit const& hit, PtrHit const& start_hit, float xmin, float xmax) const {
+    Side_t side = GetSide((geo::TPCID::TPCID_t)hit.tpc);
+    return side == GetSide(start_hit)
+        ? ( side == kTop
+            ? xmax - (hit.tick - start_hit->PeakTime()) * fTick2cm
+            : xmin + (hit.tick - start_hit->PeakTime()) * fTick2cm
+        )
+        : util::kBogusF;
+}
 
-simb::MCParticle const* ana::MichelAnalyzer::GetMichelMCP(
+simb::MCParticle const* ana::MichelModule::GetMichelMCP(
     simb::MCParticle const* muon
 ) const {
     if (!muon) return nullptr;
+    if (abs(muon->PdgCode()) != 13) return nullptr;
+    if (muon->EndProcess() != "Decay" 
+     && muon->EndProcess() != "muMinusCaptureAtRest" 
+     && muon->EndProcess() != "muPlusCaptureAtRest"
+    ) return nullptr;
     if (muon->NumberDaughters() < 3) return nullptr;
 
     simb::MCParticle const* michel = nullptr;
@@ -869,160 +968,81 @@ simb::MCParticle const* ana::MichelAnalyzer::GetMichelMCP(
 //
 // cause of failure:
 // - no section with at least 4 (ana::LinearRegression::nmin) hits 
-// ana::SortedHits ana::MichelAnalyzer::GetSortedHits(
-//     VecPtrHit const& vph_unsorted,
-//     int dirz,
-//     geo::View_t view
-// ) const {
-//     ana::SortedHits sh;
-//     // sh.vph_sec.resize(ana::n_sec[geoDet]);
-//     std::vector<VecPtrHit> vph_sec(ana::n_sec[geoDet]);
-//     std::vector<float> sec_mz(ana::n_sec[geoDet], 0);
-//     for (PtrHit const& ph : vph_unsorted) {
-//         if (ph->View() != view) continue;
-//         int side = ana::tpc2side.at(geoDet).at(ph->WireID().TPC);
-//         if (side == kInvalidSide) continue; // skip hits on the other side of the anodes
-//         double z = GetSpace(ph->WireID());
-//         double t = ph->PeakTime() * fTick2cm;
-//         sh.regs[side].add(z, t);
-//         int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
-//         vph_sec[sec].push_back(ph);
-//         sec_mz[sec] += z;
-//     }
-//     sh.regs[kBot].compute();
-//     sh.regs[kTop].compute();
-
-//     // sec order according to the direction in Z
-//     for (unsigned sec=0; sec<ana::n_sec[geoDet]; sec++) {
-//         if (vph_sec[sec].size() < ana::LinearRegression::nmin) {
-//             vph_sec[sec].clear();
-//             sec_mz[sec] = 0;
-//         } else {
-//             sec_mz[sec] /= vph_sec[sec].size();
-//             sh.secs.push_back(sec);
-//         }
-//     }
-//     if (sh.secs.empty()) return ana::SortedHits{};
-
-//     std::sort(
-//         sh.secs.begin(), sh.secs.end(),
-//         [&sec_mz, dirz](int sec1, int sec2) {
-//             return (sec_mz[sec2] - sec_mz[sec1]) * dirz > 0;
-//         }
-//     );
-
-//     for (unsigned i=0; i<sh.secs.size(); i++) {
-//         int sec = sh.secs[i];
-//         ana::LinearRegression const& reg = sh.regs[ana::sec2side.at(geoDet).at(sec)];
-//         std::sort(
-//             vph_sec[sec].begin(), vph_sec[sec].end(),
-//             [&](PtrHit const& ph1, PtrHit const& ph2) {
-//                 double s1 = reg.projection(GetSpace(ph1->WireID()), ph1->PeakTime() * fTick2cm);
-//                 double s2 = reg.projection(GetSpace(ph2->WireID()), ph2->PeakTime() * fTick2cm);
-//                 return (s2 - s1) * dirz > 0;
-//             }
-//         );
-
-//         if (sec==sh.secs.front())
-//             sh.start = vph_sec[sec].front();
-//         else {
-//             if (ana::sec2side.at(geoDet).at(sec) != ana::sec2side.at(geoDet).at(sh.secs[i-1])) {
-//                 sh.cc.second = vph_sec[sec].front(); 
-//             } else
-//                 sh.sc.push_back(vph_sec[sec].front());
-//         } 
-//         if (sec==sh.secs.back())
-//             sh.end = vph_sec[sec].back();
-//         else {
-//             if (ana::sec2side.at(geoDet).at(sec) != ana::sec2side.at(geoDet).at(sh.secs[i+1])) {
-//                 sh.cc.first = vph_sec[sec].back(); 
-//             } else
-//                 sh.sc.push_back(vph_sec[sec].back());
-//         }
-//     }
-
-//     sh.bot_index = 0;
-//     for (int sec : sh.secs) {
-//         if (ana::sec2side.at(geoDet).at(sec) == kTop) 
-//             sh.bot_index += vph_sec[sec].size();
-//         if (sec == sh.secs.back())
-//             sh.endsec_index = sh.vph.size();
-
-//         for (PtrHit const& ph : vph_sec[sec])
-//             sh.vph.push_back(ph);
-//     }
-
-//     return sh;
-// }
-
-// ana::SortedHits ana::MichelAnalyzer::GetSortedHits_dirX(
-//     VecPtrHit const& vph_unsorted,
-//     int dirX, 
-//     geo::View_t view
-ana::SortedHits ana::MichelAnalyzer::GetSortedHits(
+ana::SortedHits ana::MichelModule::GetSortedHits(
     VecPtrHit const& vph_unsorted,
     int dirX,
     geo::View_t view
 ) const {
     ana::SortedHits sh;
-    // sh.vph_sec.resize(ana::n_sec[geoDet]);
     std::vector<VecPtrHit> vph_sec(ana::n_sec[geoDet]);
     std::vector<float> sec_mt(ana::n_sec[geoDet], 0);
     for (PtrHit const& ph : vph_unsorted) {
         if (ph->View() != view) continue;
-        int side = ana::tpc2side.at(geoDet).at(ph->WireID().TPC);
-        if (side == kInvalidSide) continue; // skip hits on the other side of the anodes in PDHD
-        double z = GetSpace(ph->WireID());
+        geo::WireID wid = ph->WireID();
+        Side_t side = GetSide(wid.TPC);
+        // skip hits on the other side of the anodes in PDHD
+        if (side == kInvalidSide) continue; 
+        double z = GetSpace(wid);
         double t = ph->PeakTime() * fTick2cm;
         sh.regs[side].add(z, t);
-        int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
+        Sec_t sec = GetSec(wid.TPC);
         vph_sec[sec].push_back(ph);
         sec_mt[sec] += t;
     }
     sh.regs[kBot].compute();
     sh.regs[kTop].compute();
 
+    Side_t first_side = dirX>0 ? kBot : kTop;
     for (unsigned sec=0; sec<ana::n_sec[geoDet]; sec++) {
         if (vph_sec[sec].size() < ana::LinearRegression::nmin) {
-            vph_sec[sec].clear();
             sec_mt[sec] = 0;
+            vph_sec[sec].clear();
         } else {
-            sh.secs.push_back(sec);
             sec_mt[sec] /= vph_sec[sec].size();
+            // keep secs sorted by side
+            // first side at the begining, last side at the end
+            if (GetSide(sec) == first_side)
+                sh.secs.insert(sh.secs.begin(), sec);
+            else
+                sh.secs.push_back(sec);
         }
     }
     if (sh.secs.empty()) return ana::SortedHits{};
-    
-    // first section in the bot volume
-    std::vector<int>::iterator bot_it = std::find_if(
-        sh.secs.begin(), sh.secs.end(),
-        [&](int sec) { return ana::sec2side.at(geoDet).at(sec) == 0; }
-    );
 
-    std::sort(
-        sh.secs.begin(), bot_it,
-        [&sec_mt, &dirX](int sec1, int sec2) {
+    // sorting sections per side (not necessary in PDHD)
+    if (geoDet == kPDVD) {
+        // first section in the last side
+        std::vector<Sec_t>::iterator cc_it = std::find_if(
+            sh.secs.begin(), sh.secs.end(),
+            [&](Sec_t sec) { return GetSide(sec) != first_side; }
+        );
+        std::function<bool(Sec_t, Sec_t)> top_sort = 
+        [&sec_mt, &dirX](Sec_t sec1, Sec_t sec2) {
             // in top volume, increasing X <-> decreasing tick
             return dirX * (sec_mt[sec1]-sec_mt[sec2]) > 0;
-        }
-    );
-    std::sort(
-        bot_it, sh.secs.end(),
-        [&sec_mt, &dirX](int sec1, int sec2) {
+        };
+        std::function<bool(Sec_t, Sec_t)> bot_sort = 
+        [&sec_mt, &dirX](Sec_t sec1, Sec_t sec2) {
             // in bot volume, increasing X <-> increasing tick
             return dirX * (sec_mt[sec1]-sec_mt[sec2]) < 0;
-        }
-    );
+        };
+        std::sort(sh.secs.begin(), cc_it, first_side == kBot ? bot_sort : top_sort);
+        std::sort(cc_it, sh.secs.end(),   first_side == kTop ? bot_sort : top_sort);
+    }
+    // else if (geoDet == kPDHD) {
+    // if (sh.secs.size() == 2 || dirX < 0)
+    //     std::swap(sh.secs[0], sh.secs[1]);
+    // }
 
     for (unsigned i=0; i<sh.secs.size(); i++) {
-        int sec = sh.secs[i];
-        int side = ana::sec2side.at(geoDet).at(sec);
+        Sec_t sec = sh.secs[i];
+        Side_t side = GetSide(sec);
         ana::LinearRegression const& reg = sh.regs[side];
 
-        // top volume (side==kTop): increasing X <-> decreasing tick <-> decreasing s for m>0
-        // bot volume (side==kBot): increasing X <-> increasing tick <-> increasing s for m>0
+        // top side: increasing X <-> decreasing tick <-> decreasing s for m>0
+        // bot side: increasing X <-> increasing tick <-> increasing s for m>0
         int sign = dirX * (side == kBot ? kTop : -1) * (reg.m > 0 ? 1 : -1);
-
+        
         VecPtrHit& vph = vph_sec[sec];
         std::sort(
             vph.begin(), vph.end(),
@@ -1032,151 +1052,26 @@ ana::SortedHits ana::MichelAnalyzer::GetSortedHits(
                 return (s2 - s1) * sign > 0;
             }
         );
-
-        // if (sec==sh.secs.front())
-        //     sh.start = vph.front();
-        // else {
-        //     int prev_side = ana::sec2side.at(geoDet).at(sh.secs[i-1]);
-        //     if (prev_side != side) {
-        //         sh.cc.second = vph.front(); 
-        //     } else
-        //         sh.sc.push_back(vph.front());
-        // } 
-        // if (sec==sh.secs.back())
-        //     sh.end = vph.back();
-        // else {
-        //     int next_side = ana::sec2side.at(geoDet).at(sh.secs[i+1]);
-        //     if (side != next_side) {
-        //         sh.cc.first = vph.back(); 
-        //     } else
-        //         sh.sc.push_back(vph.back());
-        // }
     }
 
     sh.vph.clear();
-    int prev_side=kInvalidSide;
-    for (int sec : sh.secs) {
-        sh.secs_first.push_back(sh.vph.size());
+    Side_t prev_side = kInvalidSide;
+    for (Sec_t sec : sh.secs) {
+        if (!sh.vph.empty())
+            sh.secs_index.push_back(sh.vph.size());
 
-        int side = ana::sec2side.at(geoDet).at(sec);
+        Side_t side = GetSide(sec);
         if (prev_side != kInvalidSide && side != prev_side)
-            sh.side_first = sh.vph.size();
+            sh.side_index = sh.vph.size();
         prev_side = side;
 
         for (PtrHit const& ph : vph_sec[sec])
             sh.vph.push_back(ph);
     }
-
-    // sh.bot_index = 0;
-    // sh.vph.clear();
-    // for (int sec : sh.secs) {
-    //     int side = ana::sec2side.at(geoDet).at(sec);
-    //     if (side == 1) 
-    //         sh.bot_index += vph_sec[sec].size();
-    //     if (sec == sh.secs.back())
-    //         sh.endsec_index = sh.vph.size();
-
-    //     for (PtrHit const& ph : vph_sec[sec])
-    //         sh.vph.push_back(ph);
-    // }
-
     return sh;
 }
 
-// ana::SortedHits ana::MichelAnalyzer::GetSortedHits_PDHD(
-//     VecPtrHit const& vph_unsorted,
-//     int dirX,
-//     geo::View_t view
-// ) const {
-//     ana::SortedHits sh;
-//     // sh.vph_sec.resize(ana::n_sec[geoDet]);
-//     std::vector<VecPtrHit> vph_sec(ana::n_sec[geoDet]);
-//     std::vector<float> sec_mt(ana::n_sec[geoDet], 0);
-//     for (PtrHit const& ph : vph_unsorted) {
-//         if (ph->View() != view) continue;
-//         int side = ana::tpc2side.at(geoDet).at(ph->WireID().TPC);
-//         if (side == -1) continue; // skip hits on the other side of the anodes
-//         double z = GetSpace(ph->WireID());
-//         double t = ph->PeakTime() * fTick2cm;
-//         sh.regs[side].add(z, t);
-//         int sec = ana::tpc2sec.at(geoDet).at(ph->WireID().TPC);
-//         vph_sec[sec].push_back(ph);
-//         sec_mt[sec] += t;
-//     }
-//     sh.regs[0].compute();
-//     sh.regs[1].compute();
-
-//     for (unsigned sec=0; sec<ana::n_sec[geoDet]; sec++) {
-//         if (vph_sec[sec].size() < ana::LinearRegression::nmin) {
-//             vph_sec[sec].clear();
-//             sec_mt[sec] = 0;
-//         } else {
-//             sh.secs.push_back(sec);
-//             sec_mt[sec] /= vph_sec[sec].size();
-//         }
-//     }
-//     if (sh.secs.empty()) return ana::SortedHits{};
-
-//     // if the track crosses the cathode, there are hits in both sections
-//     // sort them according to the provided X direction
-//     if (sh.secs.size() == 2 || dirX < 0) {
-//         std::swap(sh.secs[0], sh.secs[1]);
-//     }
-
-//     for (unsigned i=0; i<sh.secs.size(); i++) {
-//         int sec = sh.secs[i];
-//         int side = ana::sec2side.at(geoDet).at(sec);
-//         ana::LinearRegression const& reg = sh.regs[side];
-
-//         // dirX > 0: left to right <-> increasing tick <-> increasing s for m>0
-//         // dirX < 0: right to left <-> decreasing tick <-> decreasing s for m>0
-//         int sign = (dirX > 0 ? 1 : -1) * (reg.m > 0 ? 1 : -1);
-
-//         VecPtrHit& vph = vph_sec[sec];
-//         std::sort(
-//             vph.begin(), vph.end(),
-//             [&](PtrHit const& ph1, PtrHit const& ph2) {
-//                 double s1 = reg.projection(GetSpace(ph1->WireID()), ph1->PeakTime() * fTick2cm);
-//                 double s2 = reg.projection(GetSpace(ph2->WireID()), ph2->PeakTime() * fTick2cm);
-//                 return (s2 - s1) * sign > 0;
-//             }
-//         );
-
-//         if (sec==sh.secs.front())
-//             sh.start = vph.front();
-//         else {
-//             int prev_side = ana::sec2side.at(geoDet).at(sh.secs[i-1]);
-//             if (prev_side == 1 && side == 0) {
-//                 sh.cc.second = vph.front(); 
-//             } else
-//                 sh.sc.push_back(vph.front());
-//         } 
-//         if (sec==sh.secs.back())
-//             sh.end = vph.back();
-//         else {
-//             int next_side = ana::sec2side.at(geoDet).at(sh.secs[i+1]);
-//             if (side == 1 && next_side == 0) {
-//                 sh.cc.first = vph.back(); 
-//             } else
-//                 sh.sc.push_back(vph.back());
-//         }
-//     }
-
-//     sh.bot_index = 0; // MEANINGLESS IN PDHD
-//     sh.vph.clear();
-//     for (int sec : sh.secs) {
-//         int side = ana::sec2side.at(geoDet).at(sec);
-//         if (sec == sh.secs.back())
-//             sh.endsec_index = sh.vph.size();
-
-//         for (PtrHit const& ph : vph_sec[sec])
-//             sh.vph.push_back(ph);
-//     }
-
-//     return sh;
-// }
-
-std::vector<float> ana::MichelAnalyzer::GetdQds(
+std::vector<float> ana::MichelModule::GetdQds(
     VecPtrHit const& vph,
     unsigned smoothing_length,
     unsigned *i_max
@@ -1225,7 +1120,7 @@ std::vector<float> ana::MichelAnalyzer::GetdQds(
     return v_dQds;
 }
 
-std::vector<float> ana::MichelAnalyzer::GetdQds(
+std::vector<float> ana::MichelModule::GetdQds(
     VecPtrHit::const_iterator first,
     VecPtrHit::const_iterator last,
     unsigned smoothing_length,
