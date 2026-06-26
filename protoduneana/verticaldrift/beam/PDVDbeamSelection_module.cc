@@ -28,6 +28,7 @@
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardata/ArtDataHelper/MVAReader.h"
 
+#include "dunecore/DuneObj/ProtoDUNEBeamSpill.h"
 #include "dunecore/DuneObj/ProtoDUNEBeamEvent.h"
 #include "protoduneana/Utilities/ProtoDUNEPFParticleUtils.h"
 #include "protoduneana/Utilities/ProtoDUNETrackUtils.h"
@@ -58,6 +59,10 @@ public:
   void beginJob() override;
   void endJob() override;
 
+  double MomentumCosTheta(double,double,double);
+  float  GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent>);
+  double GetPosition(std::string, int);
+
 private:
 
   protoana::ProtoDUNETrackUtils trackUtil;
@@ -75,13 +80,47 @@ private:
   bool        fUseMVA;
   bool        fExcludeMuons;
 
+  //////////
+  // Needed for beam momentum reconstructed
+  // based on BeamEvent_module
+
+  float L1;
+  float L2;
+  float L3;
+
+  std::vector< std::string > fDevices;
+
+  float fBProf1Shift;
+  float fBProf2Shift;
+  float fBProf3Shift;
+
+  std::string firstBPROF1;
+  std::string secondBPROF1;
+  std::string BPROF2;
+  std::string BPROF3;
+
+  float fBeamBend;
+
+  double fFiberDimension;
+
+  std::map<std::string, std::string > fDeviceTypes;
+
+  //Hardware Parameters for magnetic field stuff
+  double mag_P1 = 5.82044830e-3;
+  // unused double mag_P2 = 0.;
+  double mag_P3 = -4.68880000e-6;
+  double mag_P4 = 324.573967;
+
+  ///////////
+
   TTree* fTree;
 
   unsigned int fEventID;
   float fBeamTof;
   short fBeamCKov0;
   short fBeamCKov1;
-
+  float fBeamMomentum;
+  float fMagnetCurrent;
 
   int fNPFParticles;
   int fNPrimaryChildren;
@@ -167,15 +206,167 @@ pdvd::PDVDbeamSelection::PDVDbeamSelection(fhicl::ParameterSet const& p)
   fShowerLabel(    p.get<std::string>("ShowerLabel")),
   fPIDLabel(       p.get<std::string>("PIDLabel")),
   fUseMVA(         p.get<bool>("UseMVA")),
-  fExcludeMuons(   p.get<bool>("ExcludeMuons"))
+  fExcludeMuons(   p.get<bool>("ExcludeMuons")),
+  L1(p.get<double>("L1")), 
+  L2(p.get<double>("L2")), 
+  L3(p.get<double>("L3")),
+  fDevices(p.get<std::vector<std::string>>("Devices")), 
+  fBProf1Shift(p.get<double>("BProf1Shift")), 
+  fBProf2Shift(p.get<double>("BProf2Shift")), 
+  fBProf3Shift(p.get<double>("BProf3Shift")),
+  firstBPROF1(p.get<std::string>("FirstBPROF1")),
+  secondBPROF1(p.get<std::string>("SecondBPROF1")),
+  BPROF2(p.get<std::string>("BPROF2")),
+  BPROF3(p.get<std::string>("BPROF3")),
+  fBeamBend(p.get<double>("BeamBend")),
+  fFiberDimension(p.get<double>("FiberDimension", 1.))
 {
-  // Call appropriate consumes<>() for any products to be retrieved by this module.
+
+  std::vector< std::pair<std::string, std::string> >  tempTypes = p.get<std::vector< std::pair<std::string, std::string> >>("DeviceTypes");
+  fDeviceTypes  = std::map<std::string, std::string>(tempTypes.begin(), tempTypes.end() );
+
+}
+
+double pdvd::PDVDbeamSelection::MomentumCosTheta(double X1, double X2, double X3){
+  double a =  (X2*L3 - X3*L2)*cos(fBeamBend)/(L3-L2);
+ 
+  double numTerm = (a - X1)*( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ) + L1*( L3 - L2 );
+
+  double denomTerm1, denomTerm2, denom;
+  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
+  denomTerm2 = sqrt( TMath::Power( ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ),2)
+                   + TMath::Power( ( (L3 - L2) ),2) );
+  denom = denomTerm1 * denomTerm2;
+
+  double cosTheta = numTerm/denom;  
+  return cosTheta;
+}
+
+double pdvd::PDVDbeamSelection::GetPosition(std::string deviceName, int fiberIdx){
+  if(fiberIdx > 192){ return -1.;}
+  double size = fFiberDimension; //[deviceName];
+  
+  //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
+  double pos = size*(96 - fiberIdx) - size/2.;
+  return pos;
+}
+
+float pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent> beaminfo){
+
+  float momentum_full = 0.0;
+
+  double LB = mag_P1*fabs(fMagnetCurrent);
+  double deltaI = fabs(fMagnetCurrent) - mag_P4;
+  if(deltaI>0) LB+= mag_P3*deltaI*deltaI;
+
+  //Get the active fibers from the upstream tracking XBPF
+  std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 
+  std::string secondBPROF1Type   = fDeviceTypes[secondBPROF1]; 
+  std::vector<short> BPROF1Fibers;
+  std::string BPROF1Name;
+
+  if (firstBPROF1Type == "horiz" && secondBPROF1Type == "vert"){
+    for(size_t iF = 0; iF < 192; ++iF){
+      if(beaminfo->GetFBM(firstBPROF1).fibers[iF]) BPROF1Fibers.push_back(iF); 
+    }
+    BPROF1Name = firstBPROF1;
+  }
+  else if(secondBPROF1Type == "horiz" && firstBPROF1Type == "vert"){
+    for(size_t iF = 0; iF < 192; ++iF){
+	if(beaminfo->GetFBM(secondBPROF1).fibers[iF]) BPROF1Fibers.push_back(iF);
+    }
+    BPROF1Name = secondBPROF1;
+  }
+  else{
+    return 0.0;
+  }
+
+  //////////////////////////////////////////////
+
+  if( (BPROF1Fibers.size() < 1) ){
+    return 0.0;
+  }
+  //We have the active Fibers, now go through them.
+  //Skip the second of any adjacents 
+  
+  //BPROF2////
+  //
+  
+  std::vector<short> BPROF2Fibers;
+  for(size_t iF = 0; iF < 192; ++iF){
+    if(beaminfo->GetFBM(BPROF2).fibers[iF]) BPROF2Fibers.push_back(iF);
+  }
+
+  if( (BPROF2Fibers.size() < 1) ){
+    return 0.0;
+  }
+  
+  ////////////
+
+  //BPROF3////
+  //
+
+  std::vector<short> BPROF3Fibers;
+  for(size_t iF = 0; iF < 192; ++iF){
+    if(beaminfo->GetFBM(BPROF3).fibers[iF]) BPROF3Fibers.push_back(iF);
+  }
+
+  if( (BPROF3Fibers.size() < 1) ){
+    return 0.0;
+  }
+
+  for(size_t i1 = 0; i1 < BPROF1Fibers.size(); ++i1){
+    double x1,x2,x3;
+
+    x1 = -1.*GetPosition(BPROF1Name, BPROF1Fibers[i1])/1.E3;
+    if (i1 < BPROF1Fibers.size() - 1){
+      if (BPROF1Fibers[i1] == (BPROF1Fibers[i1 + 1] - 1)){
+        //Add .5 mm
+        x1 += .0005;
+      }
+    }
+
+    for(size_t i2 = 0; i2 < BPROF2Fibers.size(); ++i2){
+      x2 = -1.*GetPosition(BPROF2, BPROF2Fibers[i2])/1.E3;
+      if (i2 < BPROF2Fibers.size() - 1){
+        if (BPROF2Fibers[i2] == (BPROF2Fibers[i2 + 1] - 1)){
+          //Add .5 mm
+          x2 += .0005;
+        }
+      }
+
+      for(size_t i3 = 0; i3 < BPROF3Fibers.size(); ++i3){
+        
+        x3 = -1.*GetPosition(BPROF3, BPROF3Fibers[i3])/1.E3;
+        if (i3 < BPROF3Fibers.size() - 1){
+          if (BPROF3Fibers[i3] == (BPROF3Fibers[i3 + 1] - 1)){
+            //Add .5 mm
+            x3 += .0005;
+          }
+        }
+
+        //Calibrate the positions
+        //-1.*( FiberPos ) -> -1.*( FiberPos + ShiftDist )
+        // = -1.*FiberPos - ShiftDist
+        x1 = x1 - fBProf1Shift*1.e-3; 
+        x2 = x2 - fBProf2Shift*1.e-3; 
+        x3 = x3 - fBProf3Shift*1.e-3; 
+
+        double cosTheta_full = MomentumCosTheta(x1,x2,x3);        
+        momentum_full = 299792458*LB/(1.E9 * acos(cosTheta_full));
+
+        return momentum_full;
+      }
+    }
+  }
+  return 0.0;
 }
 
 void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
 {
   fEventID = e.id().event();
   fBeamTof = 0.0;
+  fBeamMomentum = 0.0;
 
   // Get the beam instrumentation related objects
   art::ValidHandle<std::vector<beam::ProtoDUNEBeamEvent>> beamHandle = e.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventLabel);
@@ -202,6 +393,15 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
   fBeamCKov1 = beaminfo[0]->GetCKov1Status();
   if(fLogLevel>0) std::cout << "Beam event CKovs are " << fBeamCKov0 << " / " << fBeamCKov1 << std::endl;
 
+  fMagnetCurrent = beaminfo[0]->GetMagnetCurrent();
+
+  // beam inst. reconstructed momentum
+  // see original implementation 
+  // here: https://github.com/DUNE/duneprototypes/blob/develop/duneprototypes/Protodune/singlephase/BeamReco/BeamEvent_module.cc#L2490
+  fBeamMomentum = GetRecoBeamMomentum(beaminfo[0]);
+
+  if(fLogLevel>0) std::cout << "Beam event momentum is " << fBeamMomentum << std::endl;
+
   // Get the pandora related objects
   art::Handle<std::vector<recob::Slice>> sliceHandle;
   e.getByLabel(fSliceLabel, sliceHandle);
@@ -213,7 +413,7 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
 
   if(!pfpHandle.isValid())   return;
 
-  // Associate PFPs to tracks, showers, pids and space points
+  // Associate PFPs to tracks, showers and space points
   art::FindManyP<recob::Track>      pfpTrackAssoc(               pfpHandle, e, fTrackLabel);
   art::FindManyP<recob::Shower>     pfpShowerAssoc(              pfpHandle, e, fShowerLabel);
   art::FindManyP<anab::ParticleID>  pfpPIDAssoc(                 pfpHandle, e, fPIDLabel);
@@ -307,7 +507,7 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
       // only look at IsBeamParticle check for now
       // if(!isPrimary)                                           continue;
 
-      // Sort out beam vs non-beam PFPs from Pandora Test Beam BDT
+      // Sort out beam vs non-beam PFPs
       if(!pfpUtil.IsBeamParticle(*slicePFP, e, fPFParticleLabel)) continue;
 
       //////////////////////
@@ -378,11 +578,15 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
 
       if(prim_tracks.size() == 1){
 	art::Ptr<recob::Track> track = prim_tracks.at(0);
+	// distinguish track/shower in tuples
+	// fChildBeamTrackFlag = 1);
+
         // Retrieve PFP PID from chi2 particle ID module	
 	// see https://github.com/LArSoft/lardata/blob/develop/lardata/ArtDataHelper/Dumpers/DumpParticleIDs_module.cc#L110
 	std::vector<anab::ParticleID> pids = trackUtil.GetRecoTrackPID(*track, e, fTrackLabel, fPIDLabel);
 
 	// Loop over algorithms - should be one (Chi2)
+	// for (const anab::sParticleIDAlgScores pid : pids) {
 	for (const auto &pid : pids) {
 	  auto scores = pid.ParticleIDAlgScores();
 	  
@@ -532,8 +736,6 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
 	
         if(showers.size() == 1){
 	  art::Ptr<recob::Shower> shower = showers.at(0);
-          // distinguish track/shower in tuples
-	  // fChildBeamTrackFlag.push_back(0);
           // store vertex infomation 
 	  fChildBeamShowerVertexX.push_back(shower->ShowerStart().X());
 	  fChildBeamShowerVertexY.push_back(shower->ShowerStart().Y());
@@ -571,6 +773,7 @@ void pdvd::PDVDbeamSelection::beginJob()
   fTree->Branch("BeamTOF",                  &fBeamTof);
   fTree->Branch("BeamCKov0",                &fBeamCKov0);
   fTree->Branch("BeamCKov1",                &fBeamCKov1);
+  fTree->Branch("BeamMomentum",             &fBeamMomentum);
   // pandora PFPs - primary 
   fTree->Branch("PrimaryKey",               &fPrimaryKey);
   fTree->Branch("PrimaryPdg",               &fPrimaryPdg);
