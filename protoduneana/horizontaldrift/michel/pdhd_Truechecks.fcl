@@ -1,0 +1,50 @@
+#include "services_dune.fcl"
+#include "services_vdcoldbox.fcl" 
+#include "tools_dune.fcl"	
+
+process_name: RunTruechecks
+
+services: {
+    TFileService: { fileName: "pdhd_Truechecks_hist.root" }
+    TimeTracker: {}
+    RandomNumberGenerator: {}
+    WireReadout:                @local::dune_wire_readout
+#    DetectorPropertiesService:  @local::protodunevd_detproperties
+    DetectorPropertiesService:  @local::protodunehd_detproperties
+    FileCatalogMetadata:        @local::art_file_catalog_mc
+#                                @table::protodunevd_reco_services
+                                @table::protodunehd_reco_services
+    LArPropertiesService:       @local::dunefd_properties
+    Geometry:                   @local::protodunehdv6_geo
+}
+
+services.AuxDetGeometry.GDML: "protodunehd_v6_refactored.gdml"
+services.AuxDetGeometry.Name: "protodunehdv6"
+
+
+source: {
+    module_type: RootInput
+    maxEvents: -1
+}
+
+physics: {
+    analyzers: {
+        checks: {
+            module_type:    "Truechecks"
+            Products:       [
+                ["SingleGen",  "generator",     "",       "simb::MCTruth"],
+                ["G4Stage1",   "largeant",      "",       "simb::MCParticle"],
+                ["G4Stage1",   "largeant",      "LArG4DetectorServicevolTPCActive", "sim::SimEnergyDeposit"],
+                ["Reco",       "wclsdatavd",    "gauss",  "recob::Wire"],
+                ["Reco",       "hitpdune",      "",       "recob::Hit"],
+                ["Reco",       "pandora",       "",       "recob::Cluster"],
+                ["Reco",       "pandoraTrack",  "",       "recob::Track"],
+                ["Reco",       "pandora",       "",       "recob::SpacePoint"]
+            ]
+
+            LogLevel: 10
+        }
+    }
+    ana: [ checks ]
+    end_paths: [ ana ]
+}
