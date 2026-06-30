@@ -8,6 +8,7 @@
 #include "PDHDSPSSpillFilter.fcl"
 #include "PDHDSPSSpillFlagProducer.fcl"
 #include "PDHDTriggerTypeFilter.fcl"
+#include "PDHDChannelSaturationFilter.fcl"
 
 #include "opticaldetectormodules_dune.fcl"
 #include "Deconvolution.fcl"
@@ -73,7 +74,7 @@ services:
 
   PD2HDChannelMapService: 
    {
-     FileName: "PD2HDChannelMap_WIBEth_electronics_v1.txt"
+     FileName: "PD2HDChannelMap_WIBEth_visiblewires_v1.txt"
    }
 }
 
@@ -87,6 +88,7 @@ physics:
     triggertypefilter: @local::pdhdtriggertypefilter
     nhitsfilter: @local::pdhd_nhitsfilter
     fembfilter: @local::pdhdfembfilter
+    saturationfilter: @local::pdhdchannelsaturationfilter
   }
 
   producers:
@@ -152,10 +154,12 @@ physics:
     # Signal processing
     fembfilter,
     wclsdatahd,
+    saturationfilter, # Removes saturated events that can't be reco'd 
     # Hit finding
     gaushit,
     reco3d,
     hitpdune,
+    # nhitsfilter, # Use saturationfilter to remove challenging events
     # Pandora reconstruction
     pandora, 
     pandoraWriter, 
@@ -212,6 +216,10 @@ services.SpaceCharge.EnableSimulationSCE: true
 services.SpaceCharge.EnableCalEfieldSCE: true
 services.SpaceCharge.EnableCalSpatialSCE: true
 services.SpaceCharge.EnableCorrSCE: true
+
+physics.filters.nhitsfilter.HitLimit: 100000                      
+physics.filters.nhitsfilter.ScaleThresholdForReadoutWindow: false
+physics.filters.nhitsfilter.Verbose: true
 
 physics.producers.pandora.HitFinderModuleLabel:             "hitpdune"
 physics.producers.pandoraWriter.HitFinderModuleLabel:       "hitpdune"
