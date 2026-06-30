@@ -232,9 +232,9 @@ fwdir	product_dir	config_data
 
 product                 version
 cetmodules	        v3_27_04	-	only_for_build
-duneopdet               v10_21_00d00
-dunecalib               v10_21_00d00
-dunesim                 v10_21_00d00
+duneopdet               v10_21_01d00
+dunecalib               v10_21_01d00
+dunesim                 v10_21_01d00
 end_product_list
 
 ####################################
