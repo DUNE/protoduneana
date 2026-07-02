@@ -1126,7 +1126,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fSaveHitIDEInfo(p.get<bool>( "SaveHitIDEInfo", false)),
   fSaveRecoBeamAllTrack(p.get<bool>("SaveRecoBeamAllTrack", false)),
   fSkipMVA( p.get<bool>( "SkipMVA" ) ),
-  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", true)),
+  fVPlaneAsCollector(p.get<bool>( "VPlaneAsCollector" )),
   fTrueToReco( p.get<bool>( "TrueToReco" ) ),
   fDoReweight(p.get<bool>("DoReweight")),
   fSaveG4RWWeights(p.get<bool>("SaveG4RWWeights", true)),
@@ -1144,6 +1144,8 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fNeighbourRadii (p.get<std::vector<float>>("NeighbourRadii")),
   fChargeRadii (p.get<std::vector<float>>("ChargeRadii"))
   ,fNoBeamInst(p.get<bool>("NoBeamInst", false)) {
+
+  std::cout << "VPlaneAsCollector: " << fVPlaneAsCollector << std::endl;  
 
   dEdX_template_file = OpenFile(dEdX_template_name);
   templates[ 211 ]  = (TProfile*)dEdX_template_file->Get( "dedx_range_pi"  );
@@ -2864,8 +2866,8 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   //Ajib's michel identifier
   if (!fSkipMVA) {
     std::pair<double, int> vertex_michel_score =
-        trackUtil.GetVertexMichelScore(*thisTrack, evt, fTrackerTag, fHitTag/*,
-                                       0., -500., 500., 0., 500., 0.*/);
+        trackUtil.GetVertexMichelScore(*thisTrack, evt, fTrackerTag, fHitTag,
+                                       0., -999., 999., -999., 999., -275.);
     reco_beam_vertex_nHits = vertex_michel_score.second;
     reco_beam_vertex_michel_score = vertex_michel_score.first;
     
