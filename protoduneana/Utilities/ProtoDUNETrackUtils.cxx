@@ -681,7 +681,9 @@ std::pair<double, int> protoana::ProtoDUNETrackUtils::GetVertexMichelScore(
   std::vector<size_t> index_from_traj_view2;
 
   for (auto it = hits_from_traj.begin(); it != hits_from_traj.end(); ++it) {
-    if (it->second->View() != 2) continue;
+    auto plane = it->second->View();
+    auto tpc = it->second->WireID().TPC;
+    if ((tpc == 1 && plane != 1) || (tpc == 5 && plane != 2)) continue;
     hits_from_traj_view2.push_back(it->second); 
     index_from_traj_view2.push_back(it->first);
   }
@@ -750,7 +752,9 @@ std::pair<double, int> protoana::ProtoDUNETrackUtils::GetVertexMichelScore(
     int plane = theHit->View();
     if ((abs(wire - vertex_wire) > 15) ||
         (abs(peak_time - vertex_peak_time) > 100.) ||
-        (tpc != vertex_tpc) || (plane != 2)) {
+        (tpc != vertex_tpc) ||
+        (vertex_tpc == 1 && plane != 1) || 
+        (vertex_tpc == 5 && plane != 2)) {
       continue;
     }
 
