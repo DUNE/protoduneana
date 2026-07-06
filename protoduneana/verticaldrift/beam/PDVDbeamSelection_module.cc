@@ -84,9 +84,14 @@ private:
   // Needed for beam momentum reconstructed
   // based on BeamEvent_module
 
-  float L1;
-  float L2;
-  float L3;
+  double L1;
+  double L2;
+  double L3;
+
+  //Hardware Parameters for magnetic field stuff
+  double mag_P1;
+  double mag_P3;
+  double mag_P4;
 
   std::vector< std::string > fDevices;
 
@@ -105,11 +110,6 @@ private:
 
   std::map<std::string, std::string > fDeviceTypes;
 
-  //Hardware Parameters for magnetic field stuff
-  double mag_P1 = 5.82044830e-3;
-  // unused double mag_P2 = 0.;
-  double mag_P3 = -4.68880000e-6;
-  double mag_P4 = 324.573967;
 
   ///////////
 
@@ -119,7 +119,7 @@ private:
   float fBeamTof;
   short fBeamCKov0;
   short fBeamCKov1;
-  float fBeamMomentum;
+  double fBeamMomentum;
   float fMagnetCurrent;
 
   int fNPFParticles;
@@ -210,6 +210,9 @@ pdvd::PDVDbeamSelection::PDVDbeamSelection(fhicl::ParameterSet const& p)
   L1(p.get<double>("L1")), 
   L2(p.get<double>("L2")), 
   L3(p.get<double>("L3")),
+  mag_P1(p.get<double>("mag_P1")), 
+  mag_P3(p.get<double>("mag_P3")), 
+  mag_P4(p.get<double>("mag_P4")),
   fDevices(p.get<std::vector<std::string>>("Devices")), 
   fBProf1Shift(p.get<double>("BProf1Shift")), 
   fBProf2Shift(p.get<double>("BProf2Shift")), 
@@ -253,7 +256,7 @@ double pdvd::PDVDbeamSelection::GetPosition(std::string deviceName, int fiberIdx
 
 float pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent> beaminfo){
 
-  float momentum_full = 0.0;
+  double momentum_full = 0.0;
 
   double LB = mag_P1*fabs(fMagnetCurrent);
   double deltaI = fabs(fMagnetCurrent) - mag_P4;
@@ -267,13 +270,13 @@ float pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamE
 
   if (firstBPROF1Type == "horiz" && secondBPROF1Type == "vert"){
     for(size_t iF = 0; iF < 192; ++iF){
-      if(beaminfo->GetFBM(firstBPROF1).fibers[iF]) BPROF1Fibers.push_back(iF); 
+      if(beaminfo->GetFBM(firstBPROF1).fibers[iF] && !beaminfo->GetFBM(firstBPROF1).glitch_mask[iF]) BPROF1Fibers.push_back(iF); 
     }
     BPROF1Name = firstBPROF1;
   }
   else if(secondBPROF1Type == "horiz" && firstBPROF1Type == "vert"){
     for(size_t iF = 0; iF < 192; ++iF){
-	if(beaminfo->GetFBM(secondBPROF1).fibers[iF]) BPROF1Fibers.push_back(iF);
+	if(beaminfo->GetFBM(secondBPROF1).fibers[iF] && !beaminfo->GetFBM(secondBPROF1).glitch_mask[iF]) BPROF1Fibers.push_back(iF);
     }
     BPROF1Name = secondBPROF1;
   }
@@ -294,7 +297,7 @@ float pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamE
   
   std::vector<short> BPROF2Fibers;
   for(size_t iF = 0; iF < 192; ++iF){
-    if(beaminfo->GetFBM(BPROF2).fibers[iF]) BPROF2Fibers.push_back(iF);
+    if(beaminfo->GetFBM(BPROF2).fibers[iF] && !beaminfo->GetFBM(BPROF2).glitch_mask[iF]) BPROF2Fibers.push_back(iF);
   }
 
   if( (BPROF2Fibers.size() < 1) ){
@@ -308,7 +311,7 @@ float pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamE
 
   std::vector<short> BPROF3Fibers;
   for(size_t iF = 0; iF < 192; ++iF){
-    if(beaminfo->GetFBM(BPROF3).fibers[iF]) BPROF3Fibers.push_back(iF);
+    if(beaminfo->GetFBM(BPROF3).fibers[iF] && !beaminfo->GetFBM(BPROF3).glitch_mask[iF]) BPROF3Fibers.push_back(iF);
   }
 
   if( (BPROF3Fibers.size() < 1) ){
