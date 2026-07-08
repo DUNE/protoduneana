@@ -1,4 +1,5 @@
 include_directories($ENV{NLOHMANN_JSON_INC})
+include_directories("${nlohmann_json_DIR}/../../../include")
 
 install_fhicl()
 install_headers()
@@ -15,4 +16,6 @@ art_make(SERVICE_LIBRARIES
                            messagefacility::MF_MessageLogger
                            ROOT::Core
  	                   duneprototypes::Protodune_hd_ChannelMap
+         LIB_LIBRARIES
+                           nlohmann_json::nlohmann_json
 )

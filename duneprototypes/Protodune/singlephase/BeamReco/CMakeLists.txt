@@ -43,9 +43,11 @@ find_library(IFDH ifdh)
 cet_make_exec(
   test_ifbeam
   SOURCE test_ifbeam.c++
-  LIBRARIES 
-    IFBEAM
-    IFDH
+  LIBRARIES
+    ifdh::ifdh 
+    ifdh_art::IFBeam_service 
+    #IFBEAM
+    #IFDH
     #wda
     #curl
 )
@@ -57,7 +59,14 @@ target_include_directories(
     $ENV{IFDHC_INC}
     "$ENV{LIBWDA_FQ_DIR}/include"
     "$ENV{IFBEAM_FQ_DIR}/include"
-)    
+)
+    
+target_link_libraries(
+   test_ifbeam
+   PRIVATE
+   ifdh::ifdh
+   ifbeam::ifbeam
+)
 
 
 install_headers()
