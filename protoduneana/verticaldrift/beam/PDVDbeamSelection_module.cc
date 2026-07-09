@@ -277,8 +277,10 @@ std::vector<double> pdvd::PDVDbeamSelection::GetPositions(art::Ptr<beam::ProtoDU
   for(size_t dev=0;dev<fDevicesPos.size();dev++){
     for(size_t iF = 0; iF < 192; ++iF){
       std::string BPFName = fDevices[fDevicesPos[dev]];
-      if(beaminfo->GetFBM(BPFName).fibers[iF] && !beaminfo->GetFBM(BPFName).glitch_mask[iF]) 
-	positions[dev] = -1.*GetPosition(BPFName, iF)/1.E3;
+      if(beaminfo->GetFBM(BPFName).fibers[iF] && !beaminfo->GetFBM(BPFName).glitch_mask[iF]){
+	positions[dev] = -1.*GetPosition(BPFName, iF);
+	break;
+      }
     }
   }
 
@@ -307,7 +309,7 @@ double pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeam
   }
   else if(secondBPROF1Type == "horiz" && firstBPROF1Type == "vert"){
     for(size_t iF = 0; iF < 192; ++iF){
-	if(beaminfo->GetFBM(secondBPROF1).fibers[iF] && !beaminfo->GetFBM(secondBPROF1).glitch_mask[iF]) BPROF1Fibers.push_back(iF);
+      if(beaminfo->GetFBM(secondBPROF1).fibers[iF] && !beaminfo->GetFBM(secondBPROF1).glitch_mask[iF]) BPROF1Fibers.push_back(iF);
     }
     BPROF1Name = secondBPROF1;
   }
