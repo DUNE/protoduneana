@@ -60,7 +60,8 @@ public:
   void endJob() override;
 
   double MomentumCosTheta(double,double,double);
-  float  GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent>);
+  double GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent>);
+  std::vector<double> GetPositions(art::Ptr<beam::ProtoDUNEBeamEvent>);
   double GetPosition(std::string, int);
 
 private:
@@ -94,6 +95,7 @@ private:
   double mag_P4;
 
   std::vector< std::string > fDevices;
+  std::vector< int > fDevicesPos;
 
   float fBProf1Shift;
   float fBProf2Shift;
@@ -122,6 +124,8 @@ private:
   double fBeamMomentum;
   float fMagnetCurrent;
 
+  std::vector<double> fBeamPositions;
+
   int fNPFParticles;
   int fNPrimaryChildren;
   int fPrimaryPdg;
@@ -144,6 +148,12 @@ private:
   float fPrimBeamTrackDirX;
   float fPrimBeamTrackDirY;
   float fPrimBeamTrackDirZ;
+  float fPrimBeamTrackStartX;
+  float fPrimBeamTrackStartY;
+  float fPrimBeamTrackStartZ;
+  float fPrimBeamTrackEndX;
+  float fPrimBeamTrackEndY;
+  float fPrimBeamTrackEndZ;
   float fPrimBeamTrackLength;
 
   float fPrimBeamShowerVertexX;
@@ -174,6 +184,12 @@ private:
   std::vector<float> fChildBeamTrackDirX;
   std::vector<float> fChildBeamTrackDirY;
   std::vector<float> fChildBeamTrackDirZ;
+  std::vector<float> fChildBeamTrackStartX;
+  std::vector<float> fChildBeamTrackStartY;
+  std::vector<float> fChildBeamTrackStartZ;
+  std::vector<float> fChildBeamTrackEndX;
+  std::vector<float> fChildBeamTrackEndY;
+  std::vector<float> fChildBeamTrackEndZ;
   std::vector<float> fChildBeamTrackLength;
 
   std::vector<float> fChildBeamShowerVertexX;
@@ -214,6 +230,7 @@ pdvd::PDVDbeamSelection::PDVDbeamSelection(fhicl::ParameterSet const& p)
   mag_P3(p.get<double>("mag_P3")), 
   mag_P4(p.get<double>("mag_P4")),
   fDevices(p.get<std::vector<std::string>>("Devices")), 
+  fDevicesPos(p.get<std::vector<int>>("DevicesPos")),
   fBProf1Shift(p.get<double>("BProf1Shift")), 
   fBProf2Shift(p.get<double>("BProf2Shift")), 
   fBProf3Shift(p.get<double>("BProf3Shift")),
@@ -254,7 +271,21 @@ double pdvd::PDVDbeamSelection::GetPosition(std::string deviceName, int fiberIdx
   return pos;
 }
 
-float pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent> beaminfo){
+std::vector<double> pdvd::PDVDbeamSelection::GetPositions(art::Ptr<beam::ProtoDUNEBeamEvent> beaminfo){
+  std::vector<double> positions = {0.0,0.0,0.0,0.0};
+
+  for(size_t dev=0;dev<fDevicesPos.size();dev++){
+    for(size_t iF = 0; iF < 192; ++iF){
+      std::string BPFName = fDevices[fDevicesPos[dev]];
+      if(beaminfo->GetFBM(BPFName).fibers[iF] && !beaminfo->GetFBM(BPFName).glitch_mask[iF]) 
+	positions[dev] = -1.*GetPosition(BPFName, iF)/1.E3;
+    }
+  }
+
+  return positions;
+}
+
+double pdvd::PDVDbeamSelection::GetRecoBeamMomentum(art::Ptr<beam::ProtoDUNEBeamEvent> beaminfo){
 
   double momentum_full = 0.0;
 
@@ -401,9 +432,10 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
   // beam inst. reconstructed momentum
   // see original implementation 
   // here: https://github.com/DUNE/duneprototypes/blob/develop/duneprototypes/Protodune/singlephase/BeamReco/BeamEvent_module.cc#L2490
-  fBeamMomentum = GetRecoBeamMomentum(beaminfo[0]);
+  fBeamMomentum  = GetRecoBeamMomentum(beaminfo[0]);
+  fBeamPositions = GetPositions(beaminfo[0]);
 
-  if(fLogLevel>0) std::cout << "Beam event momentum is " << fBeamMomentum << std::endl;
+  if(fLogLevel>0) std::cout << "Beam event momentum is " << fBeamMomentum << " - positions : " << fBeamPositions[0] << " " << fBeamPositions[1] << " " << fBeamPositions[2] << " " << fBeamPositions[3] << std::endl;
 
   // Get the pandora related objects
   art::Handle<std::vector<recob::Slice>> sliceHandle;
@@ -455,6 +487,12 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
       fPrimBeamTrackDirX      = -999;
       fPrimBeamTrackDirY      = -999;
       fPrimBeamTrackDirZ      = -999;
+      fPrimBeamTrackStartX    = -999;
+      fPrimBeamTrackStartY    = -999;
+      fPrimBeamTrackStartZ    = -999;
+      fPrimBeamTrackEndX      = -999;
+      fPrimBeamTrackEndY      = -999;
+      fPrimBeamTrackEndZ      = -999;
       fPrimBeamTrackLength    = -999;
 
       fPrimBeamShowerVertexX       = -999;
@@ -489,6 +527,12 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
       fChildBeamTrackDirX.clear();
       fChildBeamTrackDirY.clear();
       fChildBeamTrackDirZ.clear();
+      fChildBeamTrackStartX.clear();
+      fChildBeamTrackStartY.clear();
+      fChildBeamTrackStartZ.clear();
+      fChildBeamTrackEndX.clear();
+      fChildBeamTrackEndY.clear();
+      fChildBeamTrackEndZ.clear();
       fChildBeamTrackLength.clear();
       
       fChildBeamShowerVertexX.clear();
@@ -607,6 +651,14 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
 	fPrimBeamTrackDirX = track->StartDirection().X();
 	fPrimBeamTrackDirY = track->StartDirection().Y();
 	fPrimBeamTrackDirZ = track->StartDirection().Z();
+	// store start infomation 
+	fPrimBeamTrackStartX = track->Start().X();
+	fPrimBeamTrackStartY = track->Start().Y();
+	fPrimBeamTrackStartZ = track->Start().Z();
+	// store end infomation 
+	fPrimBeamTrackEndX = track->End().X();
+	fPrimBeamTrackEndY = track->End().Y();
+	fPrimBeamTrackEndZ = track->End().Z();
 	// store length infomation 
 	fPrimBeamTrackLength = track->Length();
       } // end of track condition - UseAllParticle flag set to true to record tracks and shower
@@ -733,6 +785,14 @@ void pdvd::PDVDbeamSelection::analyze(art::Event const& e)
 	  fChildBeamTrackDirX.push_back(track->StartDirection().X());
 	  fChildBeamTrackDirY.push_back(track->StartDirection().Y());
 	  fChildBeamTrackDirZ.push_back(track->StartDirection().Z());
+	  // store start infomation 
+	  fChildBeamTrackStartX.push_back(track->Start().X());
+	  fChildBeamTrackStartY.push_back(track->Start().Y());
+	  fChildBeamTrackStartZ.push_back(track->Start().Z());
+	  // store vertex infomation 
+	  fChildBeamTrackEndX.push_back(track->End().X());
+	  fChildBeamTrackEndY.push_back(track->End().Y());
+	  fChildBeamTrackEndZ.push_back(track->End().Z());
           // store length infomation 
           fChildBeamTrackLength.push_back(track->Length());
 	} // end of track condition - UseAllParticle flag set to true to record tracks and shower
@@ -777,6 +837,7 @@ void pdvd::PDVDbeamSelection::beginJob()
   fTree->Branch("BeamCKov0",                &fBeamCKov0);
   fTree->Branch("BeamCKov1",                &fBeamCKov1);
   fTree->Branch("BeamMomentum",             &fBeamMomentum);
+  fTree->Branch("BeamPositions",            &fBeamPositions);
   // pandora PFPs - primary 
   fTree->Branch("PrimaryKey",               &fPrimaryKey);
   fTree->Branch("PrimaryPdg",               &fPrimaryPdg);
@@ -793,6 +854,12 @@ void pdvd::PDVDbeamSelection::beginJob()
   fTree->Branch("PrimBeamPFPTrackDirX",     &fPrimBeamTrackDirX);
   fTree->Branch("PrimBeamPFPTrackDirY",     &fPrimBeamTrackDirY);
   fTree->Branch("PrimBeamPFPTrackDirZ",     &fPrimBeamTrackDirZ);
+  fTree->Branch("PrimBeamPFPTrackStartX",   &fPrimBeamTrackStartX);
+  fTree->Branch("PrimBeamPFPTrackStartY",   &fPrimBeamTrackStartY);
+  fTree->Branch("PrimBeamPFPTrackStartZ",   &fPrimBeamTrackStartZ);
+  fTree->Branch("PrimBeamPFPTrackEndX",     &fPrimBeamTrackEndX);
+  fTree->Branch("PrimBeamPFPTrackEndY",     &fPrimBeamTrackEndY);
+  fTree->Branch("PrimBeamPFPTrackEndZ",     &fPrimBeamTrackEndZ);
   fTree->Branch("PrimBeamPFPTrackLength",   &fPrimBeamTrackLength);
   fTree->Branch("PrimBeamPFPShowerVertexX", &fPrimBeamShowerVertexX);
   fTree->Branch("PrimBeamPFPShowerVertexY", &fPrimBeamShowerVertexY);
@@ -821,6 +888,12 @@ void pdvd::PDVDbeamSelection::beginJob()
   fTree->Branch("ChildBeamPFPTrackDirX",    &fChildBeamTrackDirX);
   fTree->Branch("ChildBeamPFPTrackDirY",    &fChildBeamTrackDirY);
   fTree->Branch("ChildBeamPFPTrackDirZ",    &fChildBeamTrackDirZ);
+  fTree->Branch("ChildBeamPFPTrackStartX",  &fChildBeamTrackStartX);
+  fTree->Branch("ChildBeamPFPTrackStartY",  &fChildBeamTrackStartY);
+  fTree->Branch("ChildBeamPFPTrackStartZ",  &fChildBeamTrackStartZ);
+  fTree->Branch("ChildBeamPFPTrackEndX",    &fChildBeamTrackEndX);
+  fTree->Branch("ChildBeamPFPTrackEndY",    &fChildBeamTrackEndY);
+  fTree->Branch("ChildBeamPFPTrackEndZ",    &fChildBeamTrackEndZ);
   fTree->Branch("ChildBeamPFPTrackLength",  &fChildBeamTrackLength);
   fTree->Branch("ChildBeamPFPShowerVertexX",&fChildBeamShowerVertexX);
   fTree->Branch("ChildBeamPFPShowerVertexY",&fChildBeamShowerVertexY);

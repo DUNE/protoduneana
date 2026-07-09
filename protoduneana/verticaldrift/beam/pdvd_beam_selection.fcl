@@ -81,6 +81,7 @@ physics:
           ["XBPF021670","horiz"],
           ["XBPF021671","vert"]
         ]
+        DevicesPos: [0,1,4,5] # indicies of Beam profiles devices used for position reconstruction
     }
   }
   analysis: [ beam_selection ]
