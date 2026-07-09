@@ -1,6 +1,6 @@
 
 include_directories("${dunedetdataformats_DIR}/../../../include")
-cet_build_plugin( BeamEvent art::module LIBRARIES 
+cet_build_plugin( BeamEvent art::module LIBRARIES
                         dunecore::ArtSupport
                         ifbeam::ifbeam
                         ifdh_art::IFBeam_service
@@ -14,14 +14,14 @@ cet_build_plugin( BeamEvent art::module LIBRARIES
                         lardata::ArtDataHelper
                         lardata::Utilities
                         lardataalg::UtilitiesHeaders
-                        larsim::Simulation 
+                        larsim::Simulation
                         lardataobj::Simulation
                         dunecore::DuneObj
                         #dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         larsim::MCCheater_PhotonBackTrackerService_service
                         larsim::MCCheater_BackTrackerService_service
                         larsim::MCCheater_ParticleInventoryService_service
-                        nug4::ParticleNavigation 
+                        nug4::ParticleNavigation
                         nusimdata::SimulationBase
                         art::Framework_Core
                         art::Framework_Principal
@@ -44,8 +44,8 @@ cet_make_exec(
   test_ifbeam
   SOURCE test_ifbeam.c++
   LIBRARIES
-    ifdh::ifdh 
-    ifdh_art::IFBeam_service 
+    ifdh::ifdh
+    ifdh_art::IFBeam_service
     #IFBEAM
     #IFDH
     #wda
@@ -54,13 +54,13 @@ cet_make_exec(
 
 target_include_directories(
   test_ifbeam
-  PUBLIC 
+  PUBLIC
     $ENV{IFDH_ART_INC}
     $ENV{IFDHC_INC}
     "$ENV{LIBWDA_FQ_DIR}/include"
     "$ENV{IFBEAM_FQ_DIR}/include"
 )
-    
+
 target_link_libraries(
    test_ifbeam
    PRIVATE
