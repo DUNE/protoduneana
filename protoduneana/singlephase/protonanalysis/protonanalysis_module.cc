@@ -305,7 +305,7 @@ namespace dune{
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
     std::cout<<detProp.Temperature()<<endl;
     std::cout<<"drift velocity "<<detProp.DriftVelocity(0.50,87.0)<<std::endl;
-    double efield=detProp.Efield();
+    double efield=detProp.PerPlaneEfield();
     double ycord=300;
     double zcord=350;
     for(int i=0;i<120;i++){

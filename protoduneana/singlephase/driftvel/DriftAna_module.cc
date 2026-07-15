@@ -76,9 +76,9 @@ DriftAna::DriftAna(fhicl::ParameterSet const& p)
 void DriftAna::analyze(art::Event const& e)
 {
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
-  double driftv = detProp.DriftVelocity(detProp.Efield(),
+  double driftv = detProp.DriftVelocity(detProp.PerPlaneEfield(),
                                         detProp.Temperature());
-  double efield = detProp.Efield();
+  double efield = detProp.PerPlaneEfield();
   std::cout<<"E field = "<<efield<<" Nominal drift velocity = "<<driftv<<std::endl;
 
   const int n = 100;

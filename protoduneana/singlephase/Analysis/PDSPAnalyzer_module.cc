@@ -3213,7 +3213,7 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     std::cout << "Getting reco beam calo" << std::endl;
     for (size_t i = 0; i < calo_dQdX.size(); ++i){
       // Electric Field in the drift region in KV/cm
-      double E_field_nominal = detProp.Efield();
+      double E_field_nominal = detProp.PerPlaneEfield();
 
       geo::Vector_t E_field_offsets
           = (sce->EnableCalEfieldSCE() ?
@@ -4475,7 +4475,7 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
             reco_daughter_allTrack_calo_X.back().push_back(theXYZPoints[j].X());
             reco_daughter_allTrack_calo_Y.back().push_back(theXYZPoints[j].Y());
             reco_daughter_allTrack_calo_Z.back().push_back(theXYZPoints[j].Z());
-            double E_field_nominal = detProp.Efield();   // Electric Field in the drift region in KV/cm
+            double E_field_nominal = detProp.PerPlaneEfield();   // Electric Field in the drift region in KV/cm
             geo::Vector_t E_field_offsets
                 = (sce->EnableCalEfieldSCE() ?
                    sce->GetCalEfieldOffsets(

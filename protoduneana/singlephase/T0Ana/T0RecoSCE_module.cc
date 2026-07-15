@@ -267,7 +267,7 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 
         // Use 'detp' to find 'efield' and 'temp'
         auto const detp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
-        double efield = detp.Efield();
+        double efield = detp.PerPlaneEfield();
         std::cout << "Nominal electric field is: " << efield*1000 << " V/cm" << std::endl;
 
         double temp   = detp.Temperature();

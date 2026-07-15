@@ -16,7 +16,7 @@ services:
 
 }
 
-services.DetectorPropertiesService.Efield:	[0.166, 4.0, 0.0]
+services.DetectorPropertiesService.PerPlaneEfield:	[0.166, 4.0, 0.0]
 
 source:
 {

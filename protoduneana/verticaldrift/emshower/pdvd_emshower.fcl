@@ -15,7 +15,7 @@ services:{
     @table::protodunevd_reco_services
 }
 
-services.DetectorPropertiesService.Efield: [0.450, 1.0, 1.0]
+services.DetectorPropertiesService.PerPlaneEfield: [0.450, 1.0, 1.0]
 
 source:
 {
