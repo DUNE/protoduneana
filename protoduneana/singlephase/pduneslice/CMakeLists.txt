@@ -1,4 +1,5 @@
 include_directories(${HEP_HPC_INCLUDE_DIRS})
+add_compile_options("-Wno-error=array-bounds")
 art_make(BASENAME_ONLY
   TOOL_LIBRARIES
   art::Framework_Core
