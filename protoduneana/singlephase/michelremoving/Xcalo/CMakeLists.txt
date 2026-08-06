@@ -5,7 +5,7 @@ cet_make_exec( NAME make_x_correction
                ROOT::Core ROOT::Tree ROOT::Hist
                CaloTools              
                )
-cet_make_exec( make_x_correctionAlt
+cet_make_exec(NAME make_x_correctionAlt
               SOURCE protoDUNE_X_calibAlt.C
               LIBRARIES
               ROOT::Core

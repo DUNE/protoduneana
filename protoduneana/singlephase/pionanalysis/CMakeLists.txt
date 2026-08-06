@@ -29,7 +29,7 @@ art_make(BASENAME_ONLY
   geant4reweight::ReweightBaseLib
   )
 
-cet_remove_compiler_flags(CXX -pedantic)
+cet_add_compiler_flags(CXX -Wno-pedantic)
 
 install_headers()
 install_fhicl()
