@@ -96,7 +96,8 @@ physics.filters.fTruth.IsVerbose: true
 physics.analyzers.pduneana.SelectEvents: ["fpath"]
 physics.analyzers.pduneana.CalorimetryTagSCE: "pandoracalo"
 physics.analyzers.pduneana.CalorimetryTagNoSCE: "pandoracalonosce" ##For no-SCE sample
-physics.analyzers.pduneana.Pandora2CaloSCE: "pandora2calo"
+physics.analyzers.pduneana.Pandora2CaloSCE: "pandora2GnocchiCalonosce"     #Replaced from pandora2calo/pandora2calonosce
+#physics.analyzers.pduneana.Pandora2CaloNoSCE: "pandora2GnocchiCalonosce"  #Replaced from pandora2calonosce
 physics.analyzers.pduneana.Verbose: false 
 physics.analyzers.pduneana.DoReweight: false
 
@@ -116,6 +117,7 @@ physics.analyzers.pduneana.HitTag: hitpdune
 physics.analyzers.pduneana.EmptyEventFinder.SpacePointLabel: reco3d
 physics.analyzers.pduneana.SpacePointModuleLabel: reco3d
 physics.analyzers.pduneana.SkipMVA: false
+physics.analyzers.pduneana.VPlaneAsCollector: true
 
 physics.analyzers.pduneana.CalibrationParsSCE: @local::CalorimetryParameters_SPProd4_MC_SCE #_eLT
 physics.analyzers.pduneana.CalibrationParsNoSCE: @local::CalorimetryParameters_SPProd4_MC_SCE #_eLT

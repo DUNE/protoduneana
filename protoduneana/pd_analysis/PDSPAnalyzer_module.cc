@@ -479,17 +479,34 @@ namespace pduneana {
     return output;
   }
 
+  //CNN results only from collection plane as CNN output is more reliable there
+  std::vector<art::Ptr<recob::Hit>> GetCollectionHits(
+      protoana::ProtoDUNEPFParticleUtils & pfpUtil,
+      const recob::PFParticle & part, const art::Event & evt,
+      const std::string & fPFParticleTag) {
 
-  //Another CNN output util
-  cnnOutput2D GetCNNOutputFromPFParticleFromPlane( const recob::PFParticle & part, const art::Event & evt, const anab::MVAReader<recob::Hit,4> & CNN_results,  protoana::ProtoDUNEPFParticleUtils & pfpUtil, std::string fPFParticleTag, size_t planeID ){
+    std::vector<art::Ptr<recob::Hit>> result;
+
+    for (auto & h : pfpUtil.GetPFParticleHitsFromPlane_Ptrs(part, evt, fPFParticleTag, 1))
+      if ((int)h->WireID().TPC == 1) result.push_back(h);
+
+    for (auto & h : pfpUtil.GetPFParticleHitsFromPlane_Ptrs(part, evt, fPFParticleTag, 2))
+      if ((int)h->WireID().TPC == 5) result.push_back(h);
+
+    return result;
+  }
+
+  //CNN results only from collection plane as CNN output is more reliable there
+  cnnOutput2D GetCNNOutputFromHitsbyPlane(
+      const std::vector<art::Ptr<recob::Hit>> & daughterPFP_hits ,
+      const anab::MVAReader<recob::Hit,4> & CNN_results){
 
     cnnOutput2D output;
-    const std::vector< art::Ptr< recob::Hit > > daughterPFP_hits = pfpUtil.GetPFParticleHitsFromPlane_Ptrs( part, evt, fPFParticleTag, planeID );
 
     double tot_charge = 0.;
-    for (size_t h = 0; h < daughterPFP_hits.size(); ++h) {
-      std::array<float,4> cnn_out = CNN_results.getOutput( daughterPFP_hits[h] );
-      double hitcharge = daughterPFP_hits[h]->Integral();
+    for (auto & h : daughterPFP_hits) {
+      std::array<float,4> cnn_out = CNN_results.getOutput(h);
+      double hitcharge = h ->Integral();
       double track_score = cnn_out[ CNN_results.getIndex("track") ];
       double em_score = cnn_out[ CNN_results.getIndex("em") ];
       double michel_score = cnn_out[ CNN_results.getIndex("michel") ];
@@ -711,6 +728,8 @@ private:
   //EDIT: STANDARDIZE
   double reco_beam_startX, reco_beam_startY, reco_beam_startZ;
   double reco_beam_endX, reco_beam_endY, reco_beam_endZ;
+  double reco_beam_michel_vertex_X, reco_beam_michel_vertex_Y, reco_beam_michel_vertex_Z;
+  double reco_beam_michel_end_X, reco_beam_michel_end_Y, reco_beam_michel_end_Z;
   int test_branch;
   double true_beam_len;
   double reco_beam_len, reco_beam_alt_len;
@@ -761,7 +780,9 @@ private:
 
   int reco_beam_type;
   double reco_beam_Chi2_proton, reco_beam_Chi2_muon;
+  double reco_beam_Chi2_proton_NoSCE, reco_beam_Chi2_muon_NoSCE;
   int    reco_beam_Chi2_ndof;
+  int    reco_beam_Chi2_ndof_NoSCE;
 
   ////////////////////////
 
@@ -1037,6 +1058,7 @@ private:
   //FCL pars
   std::string fCalorimetryTagSCE;
   std::string fPandora2CaloSCE;
+  //std::string fPandora2CaloNoSCE;
   std::string fCalorimetryTagNoSCE;
   std::string fTrackerTag;
   std::string fHitTag;
@@ -1109,6 +1131,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
   fCalorimetryTagSCE(p.get<std::string>("CalorimetryTagSCE")),
   fPandora2CaloSCE(p.get<std::string>("Pandora2CaloSCE")),
+  //fPandora2CaloNoSCE(p.get<std::string>("Pandora2CaloNoSCE")),
   fCalorimetryTagNoSCE(p.get<std::string>("CalorimetryTagNoSCE")),
   fTrackerTag(p.get<std::string>("TrackerTag")),
   fHitTag(p.get<std::string>("HitTag")),
@@ -1677,6 +1700,12 @@ void pduneana::PDSPAnalyzer::beginJob() {
   fTree->Branch("reco_beam_endX", &reco_beam_endX);
   fTree->Branch("reco_beam_endY", &reco_beam_endY);
   fTree->Branch("reco_beam_endZ", &reco_beam_endZ);
+  fTree->Branch("reco_beam_michel_vertex_X", &reco_beam_michel_vertex_X);
+  fTree->Branch("reco_beam_michel_vertex_Y", &reco_beam_michel_vertex_Y);
+  fTree->Branch("reco_beam_michel_vertex_Z", &reco_beam_michel_vertex_Z);
+  fTree->Branch("reco_beam_michel_end_X", &reco_beam_michel_end_X);
+  fTree->Branch("reco_beam_michel_end_Y", &reco_beam_michel_end_Y);
+  fTree->Branch("reco_beam_michel_end_Z", &reco_beam_michel_end_Z);
   fTree->Branch("true_beam_len", &true_beam_len);
   fTree->Branch("reco_beam_len", &reco_beam_len);
   //fTree->Branch("test_branch", &test_branch);
@@ -1844,11 +1873,11 @@ void pduneana::PDSPAnalyzer::beginJob() {
 
   fTree->Branch("reco_daughter_allTrack_ID", &reco_daughter_allTrack_ID);
   fTree->Branch("reco_daughter_allTrack_dQdX_SCE", &reco_daughter_allTrack_dQdX_SCE);
-  fTree->Branch("reco_daughter_allTrack_dQdX_SCE", &reco_daughter_allTrack_dQdX_SCE);
+  //fTree->Branch("reco_daughter_allTrack_dQdX_SCE", &reco_daughter_allTrack_dQdX_SCE);
   fTree->Branch("reco_daughter_allTrack_EField_SCE", &reco_daughter_allTrack_EField_SCE);
   fTree->Branch("reco_daughter_allTrack_dEdX_SCE", &reco_daughter_allTrack_dEdX_SCE);
   fTree->Branch("reco_daughter_allTrack_resRange_SCE", &reco_daughter_allTrack_resRange_SCE);
-  fTree->Branch("reco_daughter_allTrack_dEdX_SCE", &reco_daughter_allTrack_dEdX_SCE);
+  //fTree->Branch("reco_daughter_allTrack_dEdX_SCE", &reco_daughter_allTrack_dEdX_SCE);
 
   fTree->Branch("reco_daughter_allTrack_Chi2_proton", &reco_daughter_allTrack_Chi2_proton);
   fTree->Branch("reco_daughter_allTrack_Chi2_pion", &reco_daughter_allTrack_Chi2_pion);
@@ -2109,7 +2138,10 @@ void pduneana::PDSPAnalyzer::beginJob() {
 
   fTree->Branch("reco_beam_Chi2_proton", &reco_beam_Chi2_proton);
   fTree->Branch("reco_beam_Chi2_muon", &reco_beam_Chi2_muon);
+  fTree->Branch("reco_beam_Chi2_proton_NoSCE", &reco_beam_Chi2_proton_NoSCE);
+  fTree->Branch("reco_beam_Chi2_muon_NoSCE", &reco_beam_Chi2_muon_NoSCE);
   fTree->Branch("reco_beam_Chi2_ndof", &reco_beam_Chi2_ndof);
+  fTree->Branch("reco_beam_Chi2_ndof_NoSCE", &reco_beam_Chi2_ndof_NoSCE);
 
 
   fTree->Branch("reco_daughter_allTrack_momByRange_proton", &reco_daughter_allTrack_momByRange_proton);
@@ -2258,6 +2290,12 @@ double pduneana::PDSPAnalyzer::lateralDist(TVector3 &n, TVector3 &x0, TVector3 &
 void pduneana::PDSPAnalyzer::reset()
 {
   reco_reconstructable_beam_event = false;
+  reco_beam_michel_vertex_X = -999;
+  reco_beam_michel_vertex_Y = -999;
+  reco_beam_michel_vertex_Z = -999;
+  reco_beam_michel_end_X = -999;
+  reco_beam_michel_end_Y = -999;
+  reco_beam_michel_end_Z = -999;
   reco_beam_startX = -999;
   reco_beam_startY = -999;
   reco_beam_startZ = -999;
@@ -2413,7 +2451,8 @@ void pduneana::PDSPAnalyzer::reset()
   //reco_daughter_true_byE_isPrimary = false;
   reco_beam_Chi2_proton = -999.;
   reco_beam_Chi2_muon = -999.;
-
+  reco_beam_Chi2_proton_NoSCE = -999.;
+  reco_beam_Chi2_muon_NoSCE = -999.;
 
   beam_inst_P = -999.;
   beam_inst_C0 = -999;
@@ -2831,7 +2870,8 @@ void pduneana::PDSPAnalyzer::BeamPFPInfo(
     reco_beam_PFP_emScore_weight_by_charge = cnn.em_weight_by_charge;
     reco_beam_PFP_michelScore_weight_by_charge = cnn.michel_weight_by_charge;
 
-    cnnOutput2D cnn_collection = GetCNNOutputFromPFParticleFromPlane( *particle, evt, *hitResults, pfpUtil, fPFParticleTag, 2 );
+    auto hits_by_tpc = GetCollectionHits(pfpUtil, *particle, evt, fPFParticleTag);
+    cnnOutput2D cnn_collection = GetCNNOutputFromHitsbyPlane(hits_by_tpc, *hitResults);
     reco_beam_PFP_trackScore_collection = (cnn_collection.nHits > 0 ?
                                            cnn_collection.track / cnn_collection.nHits : -999.);
     reco_beam_PFP_emScore_collection = (cnn_collection.nHits > 0 ?
@@ -2863,6 +2903,14 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
         evt, clockData);
   auto allHits = evt.getValidHandle<std::vector<recob::Hit> >(fHitTag);
 
+  std::cout << "GetVertexMichelScore params for Beam tracks: "
+          << " min_x: " << -999. 
+          << " max_x: " << 999.
+          << " min_y: " << -999.
+          << " max_y: " << 999.
+          << " min_z: " << -275.
+          << std::endl;
+
   //Ajib's michel identifier
   if (!fSkipMVA) {
     std::pair<double, int> vertex_michel_score =
@@ -2872,9 +2920,24 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     reco_beam_vertex_michel_score = vertex_michel_score.first;
     
     std::pair<double, double> vertex_michel_score_weight_by_charge =
-        trackUtil.GetVertexMichelScore_weight_by_charge(*thisTrack, evt, fTrackerTag, fHitTag);
+        trackUtil.GetVertexMichelScore_weight_by_charge(*thisTrack, evt, fTrackerTag, fHitTag,
+                                                        0., -999., 999., -999., 999., -275.);
     reco_beam_vertex_michel_score_weight_by_charge = (vertex_michel_score_weight_by_charge.second != 0 ? vertex_michel_score_weight_by_charge.first/vertex_michel_score_weight_by_charge.second : -999.);
   }
+ 
+  // Adding Beam track vertex andf end points to the output tree
+  auto start = thisTrack->Vertex();
+  auto end = thisTrack->End();
+
+  std::cout << "Track vertex: " << start.X() << " " << start.Y() << " " << start.Z() << std::endl;
+  std::cout << "Track end: " << end.X() << " " << end.Y() << " " << end.Z() << std::endl;
+
+  reco_beam_michel_vertex_X = start.X();
+  reco_beam_michel_vertex_Y = start.Y();
+  reco_beam_michel_vertex_Z = start.Z();
+  reco_beam_michel_end_X = end.X();
+  reco_beam_michel_end_Y = end.Y();
+  reco_beam_michel_end_Z = end.Z();
 
   if (fVerbose) std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
   reco_beam_type = 13;
@@ -2968,6 +3031,24 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
   //To do: remove
   //reco_beam_vertex_slice = slicesToHits.rbegin()->first;
 
+
+  // --- temporary diagnostic: compare pandoracalo vs pandoraGnocchiCalo ---
+  auto calo_std = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, "pandoracalo");
+  auto calo_gnocchi = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, "pandoraGnocchiCalo");
+  for (auto& c : calo_std) {
+    if (c.PlaneID().Plane != 2) continue;
+    std::cout << "pandoracalo: dEdX[0..4] = ";
+    for (size_t i = 0; i < std::min((size_t)5, c.dEdx().size()); ++i) std::cout << c.dEdx()[i] << " ";
+    std::cout << " | Range = " << c.Range() << std::endl;
+  }
+  for (auto& c : calo_gnocchi) {
+    if (c.PlaneID().Plane != 2) continue;
+    std::cout << "gnocchiCalo: dEdX[0..4] = ";
+    for (size_t i = 0; i < std::min((size_t)5, c.dEdx().size()); ++i) std::cout << c.dEdx()[i] << " ";
+    std::cout << " | Range = " << c.Range() << std::endl;
+  }
+  // --- end diagnostic ---
+
   //Primary Track Calorimetry
   //SCE-corrected
   auto calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag,
@@ -2997,8 +3078,15 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     auto calo_range = calo[index].ResidualRange();
     auto TpIndices = calo[index].TpIndices();
 
+
+    //CALO DEBUGGING
+
     std::cout << calo_dQdX.size() << std::endl;
     std::cout << calo[index].PlaneID().Plane << std::endl;
+    std::cout << calo[index].PlaneID().TPC << std::endl;
+    std::cout << calo[index].PlaneID().isValid << std::endl;
+    //std::cout << calo[index].size() << std::endl;
+    std::cout << calo[index].PlaneID().Cryostat << std::endl;
 
     auto theXYZPoints = calo[index].XYZ();
     std::vector< size_t > calo_hit_indices;
@@ -3389,7 +3477,22 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
     }
     ////////////////////////////////////////////
 
+    //Get the chi2-based PID for the SCE-corrected beam track
+    std::pair<double, int> pid_chi2_ndof = trackUtil.Chi2PID(
+        reco_beam_dEdX_NoSCE, reco_beam_resRange_NoSCE, templates[2212]);
+    reco_beam_Chi2_proton_NoSCE = pid_chi2_ndof.first;
+    reco_beam_Chi2_ndof_NoSCE = pid_chi2_ndof.second;
+
+    pid_chi2_ndof = trackUtil.Chi2PID(
+        reco_beam_dEdX_NoSCE, reco_beam_resRange_NoSCE, templates[13]);
+    reco_beam_Chi2_muon_NoSCE = pid_chi2_ndof.first;
+
+    if (fVerbose)
+      std::cout << "Calo check: " << reco_beam_dEdX_NoSCE.size() << " " <<
+                   reco_beam_TrkPitch_NoSCE.size() << std::endl;
+
     std::vector< calo_point > reco_beam_calo_points;
+
       for( size_t i = 0; i < reco_beam_dEdX_NoSCE.size(); ++i ){
         reco_beam_calo_points.push_back(
           calo_point(reco_beam_calo_wire_NoSCE[i], 0.,
@@ -4239,13 +4342,11 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
     if (fVerbose) std::cout << "Got " << daughterPFP_hits.size() << " hits from daughter " << daughterID << std::endl;
 
     reco_daughter_PFP_nHits.push_back( daughterPFP_hits.size() );
-    size_t nHits_coll = 0;
-    for (size_t i = 0; i < daughterPFP_hits.size(); ++i) {
-      if (daughterPFP_hits[i]->View() == 2) {
-        ++nHits_coll;
-      }
-    }
-    reco_daughter_PFP_nHits_collection.push_back(nHits_coll);
+    
+    auto hits_by_tpc = GetCollectionHits(pfpUtil, *daughterPFP, evt, fPFParticleTag);
+
+    //auto daughter_nHits_coll = GetCollectionHits(pfpUtil, *daughterPFP, evt, fPFParticleTag);
+    reco_daughter_PFP_nHits_collection.push_back(hits_by_tpc.size());
 
     //Get CNN output for the daughter particle
     if (!fSkipMVA) {
@@ -4264,8 +4365,8 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
       reco_daughter_PFP_emScore.push_back(em_score);
       reco_daughter_PFP_michelScore.push_back(michel_score);
 
-      cnnOutput2D cnn_collection = GetCNNOutputFromPFParticleFromPlane(
-          *daughterPFP, evt, *hitResults, pfpUtil, fPFParticleTag, 2);
+      
+      cnnOutput2D cnn_collection = GetCNNOutputFromHitsbyPlane(hits_by_tpc, *hitResults);
       double track_score_collection = (cnn_collection.nHits > 0 ?
                             (cnn_collection.track / cnn_collection.nHits) :
                             -999.);
@@ -4421,21 +4522,55 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
       reco_daughter_pandora_type.push_back(-1);
     }
 
-
     //If it exists (might not need this check anymore), get the forced tracking from pandora
     try{
       const recob::Track* pandora2Track = pfpUtil.GetPFParticleTrack( *daughterPFP, evt, fPFParticleTag, "pandora2Track" );
-      if (fVerbose) std::cout << "pandora2 track: " << pandora2Track << std::endl;
+      if (fVerbose) std::cout << "pandora track: " << pandora2Track << std::endl;
 
-      if( pandora2Track ){
-        reco_daughter_allTrack_ID.push_back( pandora2Track->ID() );
+      if( pandora2Track ) {
+        //reco_daughter_allTrack_ID.push_back( pandora2Track->ID() );
 
         //Calorimetry info
+        // Check 1: does the calo product for this module label even exist in this file?
+        auto caloHandle = evt.getHandle<std::vector<anab::Calorimetry>>(fPandora2CaloSCE);
+        std::cout << "Calo product '" << fPandora2CaloSCE << "' valid: " << caloHandle.isValid()
+                  << ", size: " << (caloHandle.isValid() ? caloHandle->size() : 0) << std::endl;
+
+        // Check 2: is track.ID() within range of the track vector's actual size?
+        auto pandora2TrackHandle = evt.getValidHandle<std::vector<recob::Track>>("pandora2Track");
+        std::cout << "pandora2Track vector size: " << pandora2TrackHandle->size()
+                  << ", this track ID: " << pandora2Track->ID() << std::endl;
+        
+        // Check 3: is the association between track and calo valid?
+
+        auto assnsHandle = evt.getHandle<art::Assns<recob::Track, anab::Calorimetry>>(fPandora2CaloSCE);
+        std::cout << "Assns<Track,Calorimetry> '" << fPandora2CaloSCE << "' valid: " << assnsHandle.isValid()
+                  << ", size: " << (assnsHandle.isValid() ? assnsHandle->size() : 0) << std::endl;
+        
+        // Check 4: list all associations of type Assns<Track, Calorimetry> in the event
+
+        auto allAssns = evt.getMany<art::Assns<recob::Track, anab::Calorimetry>>(art::ProcessNameSelector("*"));
+        for (auto const& h : allAssns) {
+          std::cout << "Assns<Track,Calorimetry> found under label: "
+                    << h.provenance()->moduleLabel()
+                    << ", instance: " << h.provenance()->productInstanceName()
+                    << ", size: " << h->size() << std::endl;
+        }
+        
         auto dummy_caloSCE =
             trackUtil.GetRecoTrackCalorimetry(
                 *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE);
         bool found_calo = false;
         size_t index = 0;
+        
+        // Sanity checks
+        std::cout << "Found " << dummy_caloSCE.size() << " calo objects for track " << pandora2Track->ID() << std::endl;
+        std::cout << "fVPlaneAsCollector = " << fVPlaneAsCollector << std::endl;
+        std::cout << "PlaneID of calo objects: ";
+        for (const auto& calo : dummy_caloSCE) {
+          std::cout << calo.PlaneID().Plane << " ";
+        }
+        std::cout << std::endl;
 
         for ( index = 0; index < dummy_caloSCE.size(); ++index) {
           auto this_plane = dummy_caloSCE[index].PlaneID().Plane;
@@ -4627,51 +4762,9 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
               -999);
         }
         //////////////////////////////////////
-
-        //Spatial + direction stuff from Pandora
-        reco_daughter_allTrack_Theta.push_back(  pandora2Track->Theta() );
-        reco_daughter_allTrack_Phi.push_back(  pandora2Track->Phi() );
-
-        reco_daughter_allTrack_startDirX.push_back(pandora2Track->StartDirection().X());
-        reco_daughter_allTrack_startDirY.push_back(pandora2Track->StartDirection().Y());
-        reco_daughter_allTrack_startDirZ.push_back(pandora2Track->StartDirection().Z());
-
-        reco_daughter_allTrack_len.push_back(    pandora2Track->Length() );
-        reco_daughter_allTrack_startX.push_back( pandora2Track->Trajectory().Start().X() );
-        reco_daughter_allTrack_startY.push_back( pandora2Track->Trajectory().Start().Y() );
-        reco_daughter_allTrack_startZ.push_back( pandora2Track->Trajectory().Start().Z() );
-        reco_daughter_allTrack_endX.push_back(   pandora2Track->Trajectory().End().X() );
-        reco_daughter_allTrack_endY.push_back(   pandora2Track->Trajectory().End().Y() );
-        reco_daughter_allTrack_endZ.push_back(   pandora2Track->Trajectory().End().Z() );
-
-        //Using new michel tagging from Ajib
-        if (!fSkipMVA) {
-          std::pair<double, int> vertex_results =
-              trackUtil.GetVertexMichelScore(
-                  *pandora2Track, evt, "pandora2Track", fHitTag,
-                  0., -500., 500., 0., 500., 0., false,
-                  reco_beam_endX, reco_beam_endY, reco_beam_endZ);
-
-          reco_daughter_allTrack_vertex_michel_score.push_back(
-              vertex_results.first);
-          reco_daughter_allTrack_vertex_nHits.push_back(
-              vertex_results.second);
-        }
-        else {
-          reco_daughter_allTrack_vertex_michel_score.push_back(
-              -999.);
-          reco_daughter_allTrack_vertex_nHits.push_back(
-              -999);
-        }
-
-        if (fVerbose) std::cout << "pandora2Length " << pandora2Track->Length() << std::endl;
-        //Another momentum by range calculation, but using the SCE-uncorrected info
-        reco_daughter_allTrack_momByRange_proton.push_back( track_p_calc.GetTrackMomentum( pandora2Track->Length(), 2212 ) );
-        reco_daughter_allTrack_momByRange_muon.push_back(   track_p_calc.GetTrackMomentum( pandora2Track->Length(), 13  ) );
-
       }
-      else{  //Defaults
-        reco_daughter_allTrack_ID.push_back( -999 );
+      else {  //Defaults
+         //reco_daughter_allTrack_ID.push_back( -999 );
         reco_daughter_allTrack_resRange_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_dEdX_SCE.push_back( std::vector<double>() );
         reco_daughter_allTrack_dQdX_SCE.push_back( std::vector<double>() );
@@ -4703,38 +4796,95 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
         reco_daughter_allTrack_Chi2_ndof_plane0.push_back( -999 );
         reco_daughter_allTrack_Chi2_proton_plane1.push_back( -999. );
         reco_daughter_allTrack_Chi2_ndof_plane1.push_back( -999 );
-        //////////////////////////////////
-
-        reco_daughter_allTrack_Theta.push_back(-999. );
-        reco_daughter_allTrack_Phi.push_back(-999.);
-        reco_daughter_allTrack_len.push_back( -999. );
-        reco_daughter_allTrack_alt_len.push_back(-999.);
-        reco_daughter_allTrack_startX.push_back( -999. );
-        reco_daughter_allTrack_startY.push_back( -999. );
-        reco_daughter_allTrack_startZ.push_back( -999. );
-        reco_daughter_allTrack_endX.push_back(   -999. );
-        reco_daughter_allTrack_endY.push_back(   -999. );
-        reco_daughter_allTrack_endZ.push_back(   -999. );
-
-        reco_daughter_allTrack_startDirX.push_back(-999.); 
-        reco_daughter_allTrack_startDirY.push_back(-999.); 
-        reco_daughter_allTrack_startDirZ.push_back(-999.); 
-        reco_daughter_allTrack_momByRange_proton.push_back(-999.);
-        reco_daughter_allTrack_momByRange_muon.push_back(-999.);
-
         reco_daughter_allTrack_momByRange_alt_proton.push_back(-999.);
         reco_daughter_allTrack_momByRange_alt_muon.push_back(-999.);
-
-        reco_daughter_allTrack_vertex_michel_score.push_back(-999.);
-        reco_daughter_allTrack_vertex_nHits.push_back(-999);
-
+        reco_daughter_allTrack_alt_len.push_back(-999.);
       }
     }
+
     catch( const cet::exception &e ){
       MF_LOG_WARNING("PDSPAnalyzer") << "pandora2Track object not found, moving on" << std::endl;
     }
 
+    // Separate only pandora2Track dependent variables from calo-track association for which I am using pandoraTrack
+    // This is because the calo-track association module is not currently in the MC dataset for all-track module (pandora2Track )
 
+    const recob::Track* pandora2Track = pfpUtil.GetPFParticleTrack(
+        *daughterPFP, evt, fPFParticleTag, "pandora2Track");
+    
+    if (pandora2Track) {
+      reco_daughter_allTrack_ID.push_back( pandora2Track->ID() );
+      //Spatial + direction stuff from Pandora
+      reco_daughter_allTrack_Theta.push_back(  pandora2Track->Theta() );
+      reco_daughter_allTrack_Phi.push_back(  pandora2Track->Phi() );
+
+      reco_daughter_allTrack_startDirX.push_back(pandora2Track->StartDirection().X());
+      reco_daughter_allTrack_startDirY.push_back(pandora2Track->StartDirection().Y());
+      reco_daughter_allTrack_startDirZ.push_back(pandora2Track->StartDirection().Z());
+
+      reco_daughter_allTrack_len.push_back(    pandora2Track->Length() );
+      reco_daughter_allTrack_startX.push_back( pandora2Track->Trajectory().Start().X() );
+      reco_daughter_allTrack_startY.push_back( pandora2Track->Trajectory().Start().Y() );
+      reco_daughter_allTrack_startZ.push_back( pandora2Track->Trajectory().Start().Z() );
+      reco_daughter_allTrack_endX.push_back(   pandora2Track->Trajectory().End().X() );
+      reco_daughter_allTrack_endY.push_back(   pandora2Track->Trajectory().End().Y() );
+      reco_daughter_allTrack_endZ.push_back(   pandora2Track->Trajectory().End().Z() );
+
+      //Using new michel tagging from Ajib
+      if (!fSkipMVA) {
+        std::pair<double, int> vertex_results =
+            trackUtil.GetVertexMichelScore(
+                *pandora2Track, evt, "pandora2Track", fHitTag,
+                0., -500., 500., 0., 500., 0., false,
+                reco_beam_endX, reco_beam_endY, reco_beam_endZ);
+
+        reco_daughter_allTrack_vertex_michel_score.push_back(
+            vertex_results.first);
+        reco_daughter_allTrack_vertex_nHits.push_back(
+            vertex_results.second);
+      }
+      else {
+        reco_daughter_allTrack_vertex_michel_score.push_back(
+            -999.);
+        reco_daughter_allTrack_vertex_nHits.push_back(
+            -999);
+      }
+
+      if (fVerbose) std::cout << "pandora2Length " << pandora2Track->Length() << std::endl;
+      //Another momentum by range calculation, but using the SCE-uncorrected info
+      reco_daughter_allTrack_momByRange_proton.push_back( track_p_calc.GetTrackMomentum( pandora2Track->Length(), 2212 ) );
+      reco_daughter_allTrack_momByRange_muon.push_back(   track_p_calc.GetTrackMomentum( pandora2Track->Length(), 13  ) );
+
+    }
+    else {
+      reco_daughter_allTrack_ID.push_back( -999 );
+      //////////////////////////////////
+
+      reco_daughter_allTrack_Theta.push_back(-999. );
+      reco_daughter_allTrack_Phi.push_back(-999.);
+      reco_daughter_allTrack_len.push_back( -999. );
+      //reco_daughter_allTrack_alt_len.push_back(-999.);
+      reco_daughter_allTrack_startX.push_back( -999. );
+      reco_daughter_allTrack_startY.push_back( -999. );
+      reco_daughter_allTrack_startZ.push_back( -999. );
+      reco_daughter_allTrack_endX.push_back(   -999. );
+      reco_daughter_allTrack_endY.push_back(   -999. );
+      reco_daughter_allTrack_endZ.push_back(   -999. );
+
+      reco_daughter_allTrack_startDirX.push_back(-999.); 
+      reco_daughter_allTrack_startDirY.push_back(-999.); 
+      reco_daughter_allTrack_startDirZ.push_back(-999.); 
+      reco_daughter_allTrack_momByRange_proton.push_back(-999.);
+      reco_daughter_allTrack_momByRange_muon.push_back(-999.);
+
+      //reco_daughter_allTrack_momByRange_alt_proton.push_back(-999.);
+      //reco_daughter_allTrack_momByRange_alt_muon.push_back(-999.);
+
+      reco_daughter_allTrack_vertex_michel_score.push_back(-999.);
+      reco_daughter_allTrack_vertex_nHits.push_back(-999);
+
+    }
+  
     //If it exists (might not need this check anymore), get the forced shower object from pandora
     try{
       const recob::Shower* pandora2Shower = pfpUtil.GetPFParticleShower( *daughterPFP, evt, fPFParticleTag, "pandora2Shower" );
