@@ -1,0 +1,106 @@
+#
+# ProtoDUNE-HD signal-to-noise measurement.
+#
+# Reads reconstruction from the primary (stage-2) file and raw digits from the
+# secondary (stage-1) file, matched by EventID.
+#
+# Constraints on the secondary-file mechanism, all of which fail silently if
+# ignored (see art_root_io RootInputFileSequence.cc):
+#   * run single-threaded -- do NOT pass -j
+#   * do not set source.noEventSort: true
+#   * the secondaryFileNames "a" key must byte-match the fileNames entry, which
+#     is why the paths are spelled out here rather than passed with -s
+#
+
+#include "services_protodunehd.fcl"
+#include "channelstatus_pdhd.fcl"
+
+process_name: PDHDSigToNoise
+
+# Deliberately built from protodunehd_services rather than
+# protodunehd_data_reco_services: the latter pulls in reco-only services such
+# as RawDigitPrepService, whose plugin an analyzer job does not load, and art
+# fails at configuration time with "does not correspond to any library in
+# CET_PLUGIN_PATH". This job needs only geometry, wire readout, detector
+# properties/clocks and channel status.
+services:
+{
+  TFileService: { fileName: "pdhd_signaltonoise.root" }
+  TimeTracker:  {}
+  MemoryTracker: {}
+  RandomNumberGenerator: {}
+  @table::protodunehd_services
+}
+
+# Stage 2 resamples to 500 ns ticks, so the readout window is 5999 rather than
+# the native 5859. The module sizes every waveform from RawDigit::Samples()
+# regardless, but the services should describe the same detector as the file.
+services.DetectorPropertiesService: @local::protodunehd_detproperties_resampled
+services.ChannelStatusService:      @local::protodunehd_channel_status
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+
+  fileNames: [
+    "root://fndcadoor.fnal.gov/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/1e/4a/np04hd_raw_run027425_2705_dataflow1_datawriter_0_20240626T033312_reco_stage1_reco_stage2_20260729T225053_keepup.root"
+  ]
+
+  secondaryFileNames: [
+    {
+      a: "root://fndcadoor.fnal.gov/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/1e/4a/np04hd_raw_run027425_2705_dataflow1_datawriter_0_20240626T033312_reco_stage1_reco_stage2_20260729T225053_keepup.root"
+      b: [
+        "root://fndcadoor.fnal.gov/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/b0/66/np04hd_raw_run027425_2705_dataflow1_datawriter_0_20240626T033312_reco_stage1.root"
+      ]
+    }
+  ]
+}
+
+physics:
+{
+  analyzers:
+  {
+    sigtonoise:
+    {
+      module_type: PDHDSignalToNoise
+
+      TrackModuleLabel:       "pandoraTrack"
+      CalorimetryModuleLabel: "pandoraGnocchiCalo"
+      WireModuleLabel:        "wclsdatahd:gauss"
+
+      # native  : 5859 ticks of 512 ns, as the detector delivers it
+      # filt    : 5859 -> 5999 resample plus WireCell noise filtering
+      RawDigitLabels:    [ "tpcrawdecoder:daq", "wclsdatahdfilter:raw" ]
+      RawDigitNicknames: [ "native",            "filt" ]
+
+      # Loose pre-cuts only; the final per-plane selection is made in the macro.
+      # This must be the union of the three per-plane acceptances -- a theta_yz
+      # cut here would discard the induction samples.
+      MinTrackLength: 100.
+      MaxThetaDrift:   35.
+      MaxPhiInPlane:   60.
+
+      UseChannelStatus: true
+
+      # anab::Calorimetry::TpIndices() means different things depending on who
+      # filled it: GnocchiCalorimetry stores hit art::Ptr keys (see
+      # GnocchiCalorimetry_module.cc:362-363, where the trajectory-point line is
+      # commented out), while the older Calorimetry module stores trajectory
+      # point indices. Set false if switching to pandoracalo.
+      CaloIndexIsHitKey: true
+
+      Alg:
+      {
+        MinZeroRun:     20    # shortest run of zeros counting as a real gap
+        GuardBand:      20    # ticks trimmed from each end of a free run
+        MinFreeTicks: 1000    # below this a channel's noise is not usable
+        HitHalfWindow:  40    # +/- wire-frame ticks searched around a hit peak
+        FitRangeSigma:   4.0  # Gaussian fit range, in robust sigmas
+      }
+    }
+  }
+
+  ana: [ sigtonoise ]
+  end_paths: [ ana ]
+}
