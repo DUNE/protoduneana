@@ -9,3 +9,9 @@ trackv = 'std::vector<recob::Track>'
 showerv = 'std::vector<recob::Shower>'
 calov = 'std::vector<anab::Calorimetry>'
 tsv = 'std::vector<raw::RDTimeStamp>'
+
+
+ophitv = 'std::vector<recob::OpHit>'
+opdetwfv = 'std::vector<raw::OpDetWaveform>'
+opwfv = 'std::vector<recob::OpWaveform>'
+opflashv = 'std::vector<recob::OpFlash>'
