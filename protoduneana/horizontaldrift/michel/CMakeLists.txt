@@ -13,6 +13,12 @@ art_make(BASENAME_ONLY
   cetlib_except::cetlib_except
   larreco::Calorimetry
   lardataobj::RecoBase
+
+  # Required by the updated peakBackTrack module
+  lardataobj::Simulation
+  dunecore::DuneObj
+  larcore::Geometry_Geometry_service
+
   lardataalg::DetectorInfo
   lardata::Utilities
   lardata::ArtDataHelper
@@ -33,6 +39,4 @@ art_make(BASENAME_ONLY
 install_headers()
 install_fhicl()
 install_source()
-
-
 
