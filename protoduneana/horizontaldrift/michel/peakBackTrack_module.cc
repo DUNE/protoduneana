@@ -17,6 +17,9 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "dunecore/DuneObj/OpDetDivRec.h"
+#include "larcore/Geometry/WireReadout.h"
+
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RecoBase/OpWaveform.h"
 #include "lardataobj/AnalysisBase/T0.h"
@@ -44,6 +47,8 @@
 #include <limits>
 #include <optional>
 #include <algorithm>
+#include <sstream>
+#include <unordered_set>
 #include <iomanip>
 
 
@@ -77,10 +82,13 @@ private:
   // FHiCL configuration
   // -----------------------
   art::InputTag opWfTag_;
+  art::InputTag opDetDivRecTag_;
   int selectChannel_; 
   double selectWfTimeStamp_;
   int windowStartTick_;
   int windowEndTick_;
+  double samplePeriodUs_;
+  double recoToDivRecOffsetNs_;
 
   // -----------------------
   // Helper: construct a fake OpHit from (channel, tick-window)
@@ -97,10 +105,13 @@ private:
 michelPDHD::peakBackTrack::peakBackTrack(fhicl::ParameterSet const& p)
   :EDAnalyzer{p},
    opWfTag_(p.get<art::InputTag>("OpWaveformTag", "opdec::Reco")),
+   opDetDivRecTag_(p.get<art::InputTag>("OpDetDivRecTag", "opdigi::Detsim")),
    selectChannel_(p.get<int>("SelectChannel", 37)),         // REQUIRED, default value to avoid breakdown
    selectWfTimeStamp_(p.get<double>("SelectWfTimeStamp")),
    windowStartTick_(p.get<int>("WindowStartTick", 115)),     // REQUIRED
-   windowEndTick_(p.get<int>("WindowEndTick", 120))         // REQUIRED
+   windowEndTick_(p.get<int>("WindowEndTick", 120)),         // REQUIRED
+   samplePeriodUs_(p.get<double>("SamplePeriodUs", 0.016)),
+   recoToDivRecOffsetNs_(p.get<double>("RecoToDivRecOffsetNs", 0.0))
   { }
 
 
@@ -112,14 +123,14 @@ recob::OpHit michelPDHD::peakBackTrack::makeFakeOpHit_(int channel,
                                                       int endTick) const
 {
     // Absolute tick positions for the interval edges
-    double const startTime = wfTimeStamp + (static_cast<double>(startTick)) * 16 * 1e-3; //us
-    double const endTime = wfTimeStamp + (static_cast<double>(endTick)) * 16 * 1e-3;
+    double const startTime = wfTimeStamp + static_cast<double>(startTick) * samplePeriodUs_;
+    double const endTime = wfTimeStamp + static_cast<double>(endTick) * samplePeriodUs_;
 
     // Peak time in us
     double const peakTimeUs = (startTime + endTime) / 2.0;
 
-    // Width in us
-    double const widthUs = (static_cast<double>(endTick - startTick)) * 16 * 1e-3;
+    // PhotonBackTracker interprets OpHit::Width() as a half-width.
+    double const widthUs = 0.5 * (endTime - startTime);
 
     // In this OpHit definition, we don't have explicit "start time".
     // PhotonBackTracker uses (channel, peakTime, width) as the time interval descriptor.
@@ -174,7 +185,7 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
   // Fetch inputs
   auto wfListHandle = e.getHandle<std::vector<recob::OpWaveform>>(opWfTag_);
 
-  if (wfListHandle->empty()) {
+  if (!wfListHandle || wfListHandle->empty()) {
     mf::LogWarning("peakBackTrack") << "opdec::Reco wvf collection is empty; skip event.";
     return;
   }
@@ -208,6 +219,12 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
     // Sanity: to confirm the current wvf is the one we want
     std::cout << "\n[double check] Selected waveform with opch: " << wf.Channel()
               <<", and shifted timestamp: " << pdt0_us << "us\n" << std::endl;
+
+    std::cout << "[time check] PhotonBackTracker delay = "
+              << pbt->GetDelay() << " ns"
+              << "; requested tick window = [" << windowStartTick_
+              << ", " << windowEndTick_ << ")"
+              << std::endl;
 
 
     // Build a fake OpHit using only channel + time interval (derived from timestamps + ticks)
@@ -244,7 +261,8 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
     }
 
     // print detailed info of mu^+/mu^-----------
-    std::cout << "\nInfo of muons:" << std::endl;
+    std::cout << "\n[Legacy PhotonBackTracker] Info of directly contributing muons:"
+              << std::endl;
 
     for (int const tid : trackIds) {
 
@@ -385,6 +403,204 @@ void michelPDHD::peakBackTrack::analyze(art::Event const& e)
 
       if (++nPrint >= 20) break;
     }
+
+    // ------------------------------------------------------------------------
+    // Independent final-channel cross-check using the truth record produced by
+    // opdigi after PDE and hardware-channel assignment.  Keep the legacy
+    // PhotonBackTracker output above for comparison.
+    // ------------------------------------------------------------------------
+    auto divRecHandle =
+      e.getHandle<std::vector<sim::OpDetDivRec>>(opDetDivRecTag_);
+
+    if (!divRecHandle) {
+      mf::LogWarning("peakBackTrack")
+        << "Cannot read OpDetDivRec product " << opDetDivRecTag_.encode()
+        << "; skip the final-channel truth cross-check.";
+    }
+    else {
+      auto const& wireReadout =
+        art::ServiceHandle<geo::WireReadout const>()->Get();
+      unsigned int const opDet =
+        wireReadout.OpDetFromOpChannel(static_cast<unsigned int>(selectChannel_));
+
+      double const selectedStartNs =
+        (pdt0_us + windowStartTick_ * samplePeriodUs_) * 1000.0
+        + recoToDivRecOffsetNs_;
+      double const selectedEndNs =
+        (pdt0_us + windowEndTick_ * samplePeriodUs_) * 1000.0
+        + recoToDivRecOffsetNs_;
+
+      std::unordered_map<int, double> photonsPerTrack;
+      for (auto const& divRec : *divRecHandle) {
+        if (divRec.OpDetNum() != static_cast<int>(opDet)) continue;
+
+        for (auto const& timeEntry : divRec.GetTimeChans()) {
+          if (timeEntry.time < selectedStartNs ||
+              timeEntry.time >= selectedEndNs) continue;
+
+          for (auto const& photon : timeEntry.phots) {
+            if (photon.opChan != selectChannel_) continue;
+            photonsPerTrack[std::abs(photon.trackID)] += photon.phot;
+          }
+        }
+      }
+
+      auto ancestryString = [&](int initialTrackID) {
+        std::ostringstream result;
+        std::unordered_set<int> visited;
+        int tid = std::abs(initialTrackID);
+
+        for (unsigned int depth = 0; tid != 0 && depth < 50; ++depth) {
+          if (!visited.insert(tid).second) {
+            result << " <- [cycle at " << tid << "]";
+            break;
+          }
+
+          simb::MCParticle const* particle = pi->TrackIdToParticle_P(tid);
+          if (!particle) {
+            if (depth != 0) result << " <- ";
+            result << tid << ":UNKNOWN";
+            break;
+          }
+
+          if (depth != 0) result << " <- ";
+          result << tid << ":" << pdgName_(particle->PdgCode())
+                 << "[" << particle->Process() << "]";
+          tid = std::abs(particle->Mother());
+        }
+        return result.str();
+      };
+
+      auto isMichelDescendant = [&](int initialTrackID) {
+        std::unordered_set<int> visited;
+        int tid = std::abs(initialTrackID);
+
+        for (unsigned int depth = 0; tid != 0 && depth < 50; ++depth) {
+          if (!visited.insert(tid).second) break;
+          simb::MCParticle const* particle = pi->TrackIdToParticle_P(tid);
+          if (!particle) break;
+
+          int const motherID = std::abs(particle->Mother());
+          if (std::abs(particle->PdgCode()) == 11 && motherID != 0) {
+            simb::MCParticle const* mother = pi->TrackIdToParticle_P(motherID);
+            if (mother && std::abs(mother->PdgCode()) == 13 &&
+                mother->EndProcess() == "Decay") return true;
+          }
+          tid = motherID;
+        }
+        return false;
+      };
+
+      std::vector<std::pair<int, double>> photonRanked(
+        photonsPerTrack.begin(), photonsPerTrack.end());
+      std::sort(photonRanked.begin(), photonRanked.end(),
+                [](auto const& a, auto const& b) {
+                  return a.second > b.second;
+                });
+
+      double totalDetectedPhotons = 0.0;
+      for (auto const& item : photonRanked)
+        totalDetectedPhotons += item.second;
+
+      // Find every muon that either contributes photons directly or appears
+      // in the ancestry of a final-channel photon contributor. The value is
+      // the number of detected photons associated with that muon family.
+      std::unordered_map<int, double> photonsPerMuonFamily;
+      for (auto const& [contributorID, photons] : photonRanked) {
+        std::unordered_set<int> visited;
+        int tid = std::abs(contributorID);
+
+        for (unsigned int depth = 0; tid != 0 && depth < 50; ++depth) {
+          if (!visited.insert(tid).second) break;
+
+          simb::MCParticle const* particle = pi->TrackIdToParticle_P(tid);
+          if (!particle) break;
+
+          if (std::abs(particle->PdgCode()) == 13)
+            photonsPerMuonFamily[tid] += photons;
+
+          tid = std::abs(particle->Mother());
+        }
+      }
+
+      std::vector<std::pair<int, double>> muonRanked(
+        photonsPerMuonFamily.begin(), photonsPerMuonFamily.end());
+      std::sort(muonRanked.begin(), muonRanked.end(),
+                [](auto const& a, auto const& b) {
+                  return a.second > b.second;
+                });
+
+      std::cout
+        << "\nInfo of muons "
+        << "(all final-channel contributors and their ancestors): n="
+        << muonRanked.size() << std::endl;
+
+      for (auto const& [muonID, familyPhotons] : muonRanked) {
+        simb::MCParticle const* muon = pi->TrackIdToParticle_P(muonID);
+        if (!muon) continue;
+
+        TLorentzVector const& end = muon->EndPosition();
+        double const directPhotons =
+          photonsPerTrack.count(muonID) ? photonsPerTrack.at(muonID) : 0.0;
+
+        std::cout
+          << "---------------------\n"
+          << "TrackID = " << muonID
+          << ";  PDG = " << muon->PdgCode()
+          << " (" << pdgName_(muon->PdgCode()) << ")"
+          << ";  motherID = " << muon->Mother()
+          << "\nstartProcess = " << muon->Process()
+          << ";  start(x,y,z,t) = ("
+          << muon->Vx() << ", "
+          << muon->Vy() << ", "
+          << muon->Vz() << ", "
+          << muon->T() << ")"
+          << ";  start E = " << muon->E() * 1000.0 << " MeV"
+          << "\nEndProcess = " << muon->EndProcess()
+          << ";  end(x,y,z,t) = ("
+          << end.X() << ", "
+          << end.Y() << ", "
+          << end.Z() << ", "
+          << end.T() << ")"
+          << ";  end E = " << muon->EndE() * 1000.0 << " MeV"
+          << "\ndirectDetectedPhotons = " << directPhotons
+          << ";  familyDetectedPhotons = " << familyPhotons
+          << "\n"
+          << std::endl;
+      }
+
+      if (muonRanked.empty()) {
+        std::cout << "  No muon occurs in the ancestry of the selected "
+                  << "final-channel photons." << std::endl;
+      }
+
+      std::cout << "\n[OpDetDivRec final-channel truth]"
+                << " tag=" << opDetDivRecTag_.encode()
+                << " opDet=" << opDet
+                << " ch=" << selectChannel_
+                << " timeNs=[" << selectedStartNs << ","
+                << selectedEndNs << ")"
+                << " nTracks=" << photonRanked.size()
+                << " nDetectedPhotons=" << totalDetectedPhotons
+                << std::endl;
+
+      for (auto const& [tid, photons] : photonRanked) {
+        simb::MCParticle const* particle = pi->TrackIdToParticle_P(tid);
+        int const pdg = particle ? particle->PdgCode() : 0;
+        std::cout << "  trackID=" << tid
+                  << " PDG=" << pdg << " (" << pdgName_(pdg) << ")"
+                  << " detectedPhotons=" << photons
+                  << " MichelDescendant="
+                  << (isMichelDescendant(tid) ? "YES" : "NO")
+                  << "\n    ancestry: " << ancestryString(tid)
+                  << std::endl;
+      }
+
+      if (photonRanked.empty()) {
+        std::cout << "  No truth photon was assigned to this final channel "
+                  << "inside the selected interval." << std::endl;
+      }
+    }
     std::cout << "\n" << std::endl;
 
 
@@ -408,9 +624,12 @@ void michelPDHD::peakBackTrack::beginJob()
     << "peakBackTrack beginJob\n"
     << "[Input of the module]\n"
     << "  SelectChannel           = " << selectChannel_ << "\n"
-     << "  SelectWfTimeStamp       = " << selectWfTimeStamp_ << "\n"
+    << "  SelectWfTimeStamp       = " << selectWfTimeStamp_ << "\n"
     << "  WindowStartTick         = " << windowStartTick_ << "\n"
-    << "  WindowEndTick           = " << windowEndTick_;
+    << "  WindowEndTick           = " << windowEndTick_ << "\n"
+    << "  OpDetDivRecTag          = " << opDetDivRecTag_.encode() << "\n"
+    << "  SamplePeriodUs          = " << samplePeriodUs_ << "\n"
+    << "  RecoToDivRecOffsetNs    = " << recoToDivRecOffsetNs_;
    
 }
 

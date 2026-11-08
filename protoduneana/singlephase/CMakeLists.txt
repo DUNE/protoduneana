@@ -15,8 +15,10 @@ add_subdirectory(PhotonDetectors)
 add_subdirectory(diffusion)
 add_subdirectory(efficiencystudy)
 add_subdirectory(SCEAna)
-add_subdirectory(PDCNN)
-add_subdirectory(pduneslice)
-
+# these libraries link to larrecodnn::ImagePatternAlgs_Keras which depends on tensorflow
+if(DEFINED ENV{TENSORFLOW_DIR})
+  add_subdirectory(PDCNN)
+  add_subdirectory(pduneslice)
+endif()
 #install(PROGRAMS evd3apa.py DESTINATION ${product}/${version}/python)
 install_scripts()
