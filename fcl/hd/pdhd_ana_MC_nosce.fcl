@@ -199,7 +199,7 @@ physics.producers.pandoracalipid.CalorimetryModuleLabel:        "pandoracali"
 physics.producers.pandoracalipid.TrackModuleLabel:              "pandoraTrack"
 
 # Use channel map service for data
-services.ExptGeoHelperInterface.ChannelMapClass: "DuneApaChannelMapAlg"
+#services.ExptGeoHelperInterface.ChannelMapClass: "DuneApaChannelMapAlg"
 #Forcing Pandora to create either all tracks or all showers on each PFParticle object
 physics.producers.pandora2Track.PFParticleLabel:             "pandora"
 physics.producers.pandora2Track.UseAllParticles:             true

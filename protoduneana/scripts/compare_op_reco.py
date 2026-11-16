@@ -27,6 +27,15 @@ class Geom:
         self.streaming_size=streaming_size
         self.streaming_apas=streaming_apas
 
+def pad(arr, pad_to=None):
+  if pad_to is not None and len(arr) < pad_to:
+    npad = pad_to - len(arr)
+    return np.append(arr, [0]*npad)
+    print('Padded')
+  else:
+    return arr
+  
+
 if __name__ == '__main__':
     parser = ap()
     parser.add_argument('-i', type=str, required=True)
@@ -34,6 +43,7 @@ if __name__ == '__main__':
     parser.add_argument('--digits', type=str, default=None)
     parser.add_argument('--deco', type=str, default=None)
     parser.add_argument('--hits', type=str, default=None)
+    parser.add_argument('--pad-to-expected', type=int, default=None)
     parser.add_argument('--flashes', type=str, default=None)
     parser.add_argument('-o', type=str, default='dump_op_reco.h5')
     # parser.add_argument('--plot', action='store_true')
@@ -63,23 +73,33 @@ if __name__ == '__main__':
                     output_wfs[chan] = []
                     output_tss[chan] = []
                 output_wfs[chan].append(
-                    np.frombuffer(
+                    pad(np.frombuffer(
                                     adcs.data(), dtype=np.int16, count=adcs.size()
-                                ).copy()
+                                ).copy(),
+                        args.pad_to_expected
+                    )
                 )
+                
                 output_tss[chan].append(
                     opdetwf.TimeStamp()
                 )
+                print(adcs.size(), opdetwf.TimeStamp())
 
                     
                 print(f'{n}/{len(opdetwfs.product())}', end='\r')
             print()
 
             for chan, wfs in output_wfs.items():
+                #print('Writing', chan, len(output_wfs[chan]))
+                #shape = len(output_wfs[chan][0])
+                #nwfs = len(output_wfs[chan])
+                #for i, wf in enumerate(output_wfs[chan][::-1]):
+                #  if len(wf) != shape:
+                #    print('Dropping', i)
+                #    del output_wfs[chan][nwfs-1-i]
                 chan_group = odwf_group.create_group(str(chan))
                 chan_group.create_dataset('timestamps', data=output_tss[chan])
                 chan_group.create_dataset('waveforms', data=output_wfs[chan])
-                # print('Wrote', chan, len(output_wfs[chan]))
             del output_wfs
             del output_tss
 
@@ -99,9 +119,11 @@ if __name__ == '__main__':
                     output_wfs[chan] = []
                     output_tss[chan] = []
                 output_wfs[chan].append(
-                    np.frombuffer(
+                    pad(np.frombuffer(
                                     vals.data(), dtype=np.float32, count=vals.size()
-                                ).copy()
+                                ).copy(),
+                        args.pad_to_expected
+                    )
                 )
                 output_tss[chan].append(
                     opwf.TimeStamp()
@@ -130,6 +152,7 @@ if __name__ == '__main__':
                 if chan not in output:
                     output[chan] = []
 
+                print(hit.PeakTime(), hit.StartTime())
                 output[chan].append(
                     [hit.PeakTime(), hit.StartTime(), hit.Width(), hit.Amplitude(), hit.Area(), hit.PE()]
                 )

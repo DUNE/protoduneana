@@ -5,6 +5,8 @@ from ROOT.gallery import Event
 from ROOT.art import InputTag
 from argparse import ArgumentParser as ap
 import numpy as np
+import cppyy
+
 
 
 if __name__ == '__main__':
@@ -23,24 +25,26 @@ if __name__ == '__main__':
     ev.goToEntry(args.e)
     get_calos = ev.getValidHandle[calov]
 
-    calos = get_calos(InputTag(args.tag))
-
-    print(len(calos.product()), 'calos')
-
     calo_out = []
-    for i, calo in enumerate(calos.product()):
-        xyz = calo.XYZ()
-        dedx = calo.dEdx()
-        rr = calo.ResidualRange()
-        for j in range(len(xyz)):
-            xyzj = xyz[j]
-            calo_out.append([
-                xyzj.X(), xyzj.Y(), xyzj.Z(), dedx[j], rr[j],
-                calo.PlaneID().Plane, calo.PlaneID().TPC,
-            ])
+    try:
+        calos = get_calos(InputTag(args.tag))
 
-    # track_pts = []
-    # for i, track in enumerate(tracks.product()):
+        print(len(calos.product()), 'calos')
+
+        for i, calo in enumerate(calos.product()):
+            xyz = calo.XYZ()
+            dedx = calo.dEdx()
+            rr = calo.ResidualRange()
+            for j in range(len(xyz)):
+                xyzj = xyz[j]
+                calo_out.append([
+                    xyzj.X(), xyzj.Y(), xyzj.Z(), dedx[j], rr[j],
+                    calo.PlaneID().Plane, calo.PlaneID().TPC,
+                ])
+    except cppyy.gbl.std.exception:
+        print('Probably could not get the calos from event')
+        # track_pts = []
+        # for i, track in enumerate(tracks.product()):
 
 
     np.save(args.o, calo_out)

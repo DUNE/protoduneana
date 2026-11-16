@@ -7,6 +7,7 @@ wirev = 'std::vector<recob::Wire>'
 beamv = 'std::vector<beam::ProtoDUNEBeamEvent>'
 trackv = 'std::vector<recob::Track>'
 showerv = 'std::vector<recob::Shower>'
+spv = 'std::vector<recob::SpacePoint>'
 calov = 'std::vector<anab::Calorimetry>'
 tsv = 'std::vector<raw::RDTimeStamp>'
 

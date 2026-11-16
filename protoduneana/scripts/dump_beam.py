@@ -28,6 +28,9 @@ if __name__ == '__main__':
     output = {}
     for n, beam in enumerate(beams.product()):
         # print(f'{n}/{len(beams.product())}', end='\r')
+        timing_trigger = beam.GetTimingTrigger()
+        print(timing_trigger)
+        if timing_trigger != 12: continue #MC?
         track = beam.GetBeamTrack(0)
         for p in range(track.NumberTrajectoryPoints()):
             pos = track.TrajectoryPoint(p).position

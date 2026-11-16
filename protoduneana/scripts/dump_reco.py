@@ -5,7 +5,7 @@ from ROOT.gallery import Event
 from ROOT.art import InputTag
 from argparse import ArgumentParser as ap
 import numpy as np
-
+import cppyy
 
 if __name__ == '__main__':
     parser = ap()
@@ -25,22 +25,30 @@ if __name__ == '__main__':
     get_showers = ev.getValidHandle[showerv]
     get_tracks = ev.getValidHandle[trackv]
 
-    tracks = get_tracks(InputTag(args.track_tag))
-    showers = get_showers(InputTag(args.shower_tag))
 
     track_pts = []
-    for i, track in enumerate(tracks.product()):
-        # print(f'{n}/{len(beams.product())}', end='\r')
-        for j in range(track.NumberTrajectoryPoints()):
-            pt = track.TrajectoryPoint(j).position
-            track_pts.append([pt.X(), pt.Y(), pt.Z()])
+    try:
+        tracks = get_tracks(InputTag(args.track_tag))
+        for i, track in enumerate(tracks.product()):
+            # print(f'{n}/{len(beams.product())}', end='\r')
+            for j in range(track.NumberTrajectoryPoints()):
+                pt = track.TrajectoryPoint(j).position
+                track_pts.append([pt.X(), pt.Y(), pt.Z()])
+    except cppyy.gbl.std.exception:
+        print('Probably could not get the tracks from event')
+        
 
     shower_infos = []
-    for i, shower in enumerate(showers.product()):
+    try:
+        showers = get_showers(InputTag(args.shower_tag))
+        for i, shower in enumerate(showers.product()):
 
-        shower_infos.append([
-            shower.ShowerStart().X(), shower.ShowerStart().Y(), shower.ShowerStart().Z(),
-            shower.Direction().X(), shower.Direction().Y(), shower.Direction().Z(),
-             shower.Length(), shower.OpenAngle(),
-        ])
+            shower_infos.append([
+                shower.ShowerStart().X(), shower.ShowerStart().Y(), shower.ShowerStart().Z(),
+                shower.Direction().X(), shower.Direction().Y(), shower.Direction().Z(),
+                shower.Length(), shower.OpenAngle(),
+            ] + [e for e in shower.Energy()])
+            print(shower_infos[-1][8:])
+    except cppyy.gbl.std.exception:
+            print('Probably could not get the showers from event')
     np.savez(args.o, tracks=track_pts, showers=shower_infos)

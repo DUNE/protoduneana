@@ -1,0 +1,399 @@
+## Need to specify --config input=<file> on CLI
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+from pypdf import PdfWriter
+os.environ["MPLBACKEND"] = "Agg"
+
+default_config = {
+    'nevents':1,
+    'tracks':['pandoraTrack'],
+    'showers':['pandoraShower'],
+    'wires':['wclsdatahd:gauss'],
+    'spacepoints': ['cluster3d'],
+    'calos':['pandoraGnocchiCalo'],
+    'op_det_reco': {
+        'digits': 'pdhddaphne:daq',
+        'deco': 'opdec',
+        'hits': 'ophitspe',
+    }
+}
+wildcard_constraints:
+    input_name=r"[^/]+",
+    event=r"\d+",
+    tag=r"[^/]+",
+    tracktag=r"[^/]+",
+    showertag=r"[^/]+",
+    apa=r"[1-4]",
+
+from snakemake.utils import update_config
+update_config(default_config, config)
+config = default_config
+
+def strip_input(name):
+    return name.split('/')[-1]
+inputs = {strip_input(i):i for i in config['inputs']}
+# print(inputs)
+
+rule tracks:
+    params:
+        tag_str=lambda w: f"--track-tag {w.tracktag}",
+        input_str=lambda w: inputs[w.input_name]
+    output:
+        temp(f'{{input_name}}/tracks/event-{{event}}/tracks-{{tracktag}}.npz')
+    shell:
+        """
+        python -m dump_reco \
+            -e {wildcards.event} {params.tag_str} -o {output} \
+            -i {params.input_str}
+        """
+
+use rule tracks as showers with:
+    params:
+        tag_str= lambda w: f"--shower-tag {w.showertag}",
+        input_str=lambda w: inputs[w.input_name]
+    output:
+        temp(f'{{input_name}}/showers/event-{{event}}/showers-{{showertag}}.npz')
+rule sps:
+    params:
+        input_str=lambda w: inputs[w.input_name]
+    output:
+        temp(f'{{input_name}}/sps/event-{{event}}/sps-{{tag}}.npz')
+    shell:
+        """
+        python -m dump_spacepoints \
+            -e {wildcards.event} --tag {wildcards.tag} -o {output} \
+            -i {params.input_str}
+        """
+rule wires:
+    params:
+        input_str=lambda w: inputs[w.input_name],
+    output:
+        temp(f'{{input_name}}/wires/event-{{event}}/wires-{{tag}}.npy')
+    shell:
+        """
+        python -m dump_wires \
+            -e {wildcards.event} --tag {wildcards.tag} -o {output} \
+            -i {params.input_str}
+        """
+rule calos:
+    params:
+        input_str=lambda w: inputs[w.input_name],
+    output:
+        temp(f'{{input_name}}/calos/event-{{event}}/calos-{{tag}}.npy')
+    shell:
+        """
+        python -m dump_calo \
+            -e {wildcards.event} --tag {wildcards.tag} -o {output} \
+            -i {params.input_str}
+        """
+
+rule all_tracks:
+    input:
+        expand(
+            '{input_name}/tracks/event-{event}/tracks-{tags}.npz',
+            event=[i for i in range(config['nevents'])],
+            tags=config['tracks'],
+            input_name=inputs,
+        )
+rule all_showers:
+    input:
+        expand(
+            '{input_name}/showers/event-{event}/showers-{tags}.npz',
+            event=[i for i in range(config['nevents'])],
+            tags=config['showers'],
+            input_name=inputs,
+        )
+rule all_wires:
+    input:
+        expand(
+            '{input_name}/wires/event-{event}/wires-{tags}.npy',
+            event=[i for i in range(config['nevents'])],
+            tags=config['wires'],
+            input_name=inputs,
+        )
+
+def op_string(key):
+    if config['op_det_reco'][key]:
+        return f'--{key} {config["op_det_reco"][key]}'
+    else:
+        return ''
+
+rule op_det_reco:
+    params:
+        input_str=lambda w: inputs[w.input_name],
+    output:
+        f'{{input_name}}/opdetreco/event-{{event}}/opdetreco.h5'
+    shell:
+        f"""
+        python -m compare_op_reco \
+            -e {{wildcards.event}} -o {{output}} \
+            -i {{params.input_str}} \
+            {op_string('digits')} \
+            {op_string('deco')} \
+            {op_string('hits')}
+        """
+
+rule plot_wires_collection:
+    input:
+        f'{{input_name}}/wires/event-{{event}}/wires-{{tag}}.npy',
+    output:
+        f'{{input_name}}/wires/event-{{event}}/collection-wires-{{tag}}.pdf'
+    run:
+        fig = plt.figure(figsize=(8, 6))
+        gs = fig.add_gridspec(2, 1)
+
+        # Row 0: two subplots
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[1, 0])
+
+        w = np.load(input[0])
+        apa34 = np.vstack(
+            [w[2560*1 + 1600:2560*1 + 1600 + 480], w[2560*3+1600:2560*3+1600+480]]
+        )
+        ax1.imshow(apa34.T, aspect='auto', origin='lower', vmax=20)
+        apa12 = np.vstack(
+            [w[2560*0 + 1600 + 480:2560*1], w[2560*2+1600+480:2560*3]]
+        )
+        ax2.imshow(apa12.T, aspect='auto', origin='lower', vmax=20)
+        fig.suptitle(f'Event {wildcards.event} - Collection wires - {wildcards.tag}\n{wildcards.input_name}')
+        plt.tight_layout()
+
+        plt.savefig(output[0])
+rule plot_wires_apas:
+    input:
+        f'{{input_name}}/wires/event-{{event}}/wires-{{tag}}.npy',
+    output:
+        f'{{input_name}}/wires/event-{{event}}/apa-{{apa}}-wires-{{tag}}.pdf'
+    run:
+        apa_to_index = {
+            '1':0,
+            '2':2,
+            '3':1,
+            '4':3
+        }
+        # fig = plt.figure(figsize=(8, 6))
+        start = 2560*apa_to_index[wildcards.apa]
+        end = start+2560
+        w = np.load(input[0])
+        plt.imshow(w[start:end].T, aspect='auto', vmax=10, origin='lower')
+        plt.colorbar()
+        plt.xlabel('Channel')
+        plt.ylabel('Tick')
+        plt.suptitle(f'event {wildcards.event} -- APA {wildcards.apa} -- {wildcards.tag}\n{wildcards.input_name}')
+        plt.tight_layout()
+
+        plt.savefig(output[0])
+
+rule plot_showers:
+    input:
+        f'{{input_name}}/showers/event-{{event}}/showers-{{tag}}.npz'
+    output:
+        f'{{input_name}}/showers/event-{{event}}/showers-{{tag}}.pdf'
+    params:
+        key='showers'
+    run:
+        t = np.load(input[0])
+        fig = plt.figure(figsize=(8, 6))
+        gs = fig.add_gridspec(2, 2)
+
+        # Row 0: two subplots
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+
+
+        ax3 = fig.add_subplot(gs[1, 0])
+        if params.key is not None:
+            s = t[params.key]
+        else:
+            s = t
+        if len(s):
+            good = s[np.where(np.any(s[:,:3]  != -999., axis=1))]
+            ax1.scatter(good[:,2], good[:,0], s=1.)
+            ax1.set_xlabel('Z [cm]')
+            ax1.set_ylabel('X [cm]')
+            ax2.scatter(good[:,1], good[:,0], s=1.)
+            ax2.set_xlabel('Y [cm]')
+            ax2.set_ylabel('X [cm]')
+            ax3.scatter(good[:,2], good[:,1], s=1.)
+            ax3.set_xlabel('Z [cm]')
+            ax3.set_ylabel('Y [cm]')
+        fig.suptitle(f'Event {wildcards.event} -- {wildcards.tag}\n{wildcards.input_name}')
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig(output[0])
+use rule plot_showers as plot_tracks with:
+    params:
+        key='tracks'
+    input:
+        f'{{input_name}}/tracks/event-{{event}}/tracks-{{tag}}.npz'
+    output:
+        f'{{input_name}}/tracks/event-{{event}}/tracks-{{tag}}.pdf'
+use rule plot_showers as plot_sps with:
+    params:
+        key='sps'
+    input:
+        f'{{input_name}}/sps/event-{{event}}/sps-{{tag}}.npz'
+    output:
+        f'{{input_name}}/sps/event-{{event}}/sps-{{tag}}.pdf'
+
+use rule plot_showers as plot_calos with:
+    params:
+        key=None,
+    input:
+        f'{{input_name}}/calos/event-{{event}}/calos-{{tag}}.npy'
+    output:
+        f'{{input_name}}/calos/event-{{event}}/calos-{{tag}}.pdf'
+
+rule plot_calos_dedx:
+    input:
+        f'{{input_name}}/calos/event-{{event}}/calos-{{tag}}.npy'
+    output:
+        f'{{input_name}}/calos/event-{{event}}/xyz-dedx-calos-{{tag}}-plane-{{plane}}.pdf'
+    run:
+        fig = plt.figure(figsize=(8, 6))
+        gs = fig.add_gridspec(2, 2)
+
+        # Row 0: two subplots
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+
+
+        ax3 = fig.add_subplot(gs[1, 0])
+        s = np.load(input[0])
+        if len(s):        
+            good = s[np.where(
+                (np.any(s[:,:3]  != -999., axis=1) &
+                (s[:,-2] == int(wildcards.plane))
+            ))]
+            im1 = ax1.scatter(good[:,2], good[:,0], c=good[:,-4], s=1., vmax=5.)
+            fig.colorbar(im1, ax=ax1, label="dE/dx [MeV/cm]")
+            ax1.set_xlabel('Z [cm]')
+            ax1.set_ylabel('X [cm]')
+            im2 = ax2.scatter(good[:,1], good[:,0], c=good[:,-4], s=1., vmax=5.)
+            fig.colorbar(im2, ax=ax2, label="dE/dx [MeV/cm]")
+            ax2.set_xlabel('Y [cm]')
+            ax2.set_ylabel('X [cm]')
+            im3 = ax3.scatter(good[:,2], good[:,1], c=good[:,-4], s=1., vmax=5.)
+            fig.colorbar(im3, ax=ax3, label="dE/dx [MeV/cm]")
+            ax3.set_xlabel('Z [cm]')
+            ax3.set_ylabel('Y [cm]')
+        plt.suptitle(f'ev:{wildcards.event}, plane:{wildcards.plane}, tag:{wildcards.tag}\n{wildcards.input_name}')
+        plt.tight_layout()
+        plt.savefig(output[0])
+rule calos_dedx:
+    input:
+        f'{{input_name}}/calos/event-{{event}}/calos-{{tag}}.npy'
+    output:
+        f'{{input_name}}/calos/event-{{event}}/dedx-calos-{{tag}}.pdf'
+    run:
+        t = np.load(input[0])
+        if len(t):
+            u = np.where(t[:,-2] == 0)
+            v = np.where(t[:,-2] == 1)
+            w = np.where(t[:,-2] == 2)
+            plt.hist(t[:, -4], bins=np.arange(0,10,.1), histtype='step', label='all')
+            plt.hist(t[u][:, -4], bins=np.arange(0,10,.1), histtype='step', label='u')
+            plt.hist(t[v][:, -4], bins=np.arange(0,10,.1), histtype='step', label='v')
+            plt.hist(t[w][:, -4], bins=np.arange(0,10,.1), histtype='step', label='w')
+            plt.legend()
+            plt.xlabel('dE/dX [MeV/cm]')
+            plt.ylabel('Hits')
+        plt.suptitle(f'ev:{wildcards.event}, tag:{wildcards.tag}\n{wildcards.input_name}')
+        plt.tight_layout()
+        plt.savefig(output[0])
+rule all_shower_plots:
+    input:
+        expand(
+            '{input_name}/showers/event-{event}/showers-{tags}.pdf',
+            event=[i for i in range(config['nevents'])],
+            tags=config['showers'],
+            input_name=inputs,
+        )
+rule all_track_plots:
+    input:
+        expand(
+            '{input_name}/tracks/event-{event}/tracks-{tags}.pdf',
+            event=[i for i in range(config['nevents'])],
+            tags=config['tracks'],
+            input_name=inputs,
+        )
+
+rule merge_plots:
+    input:
+        tracks=expand(
+            '{{input_name}}/tracks/event-{{event}}/tracks-{tags}.pdf',
+            tags=config['tracks'],
+        ),
+        showers=expand(
+            '{{input_name}}/showers/event-{{event}}/showers-{tags}.pdf',
+            tags=config['showers'],
+        ),
+        sps=expand(
+            '{{input_name}}/sps/event-{{event}}/sps-{tags}.pdf',
+            tags=config['spacepoints'],
+        ),
+        apas=expand(
+            '{{input_name}}/wires/event-{{event}}/apa-{apa}-wires-{tag}.pdf',
+            tag=config['wires'],
+            apa=[i for i in range(1,5)],
+        ),
+        colls=expand(
+            '{{input_name}}/wires/event-{{event}}/collection-wires-{tag}.pdf',
+            tag=config['wires'],
+        ),
+        calos=expand(
+            '{{input_name}}/calos/event-{{event}}/calos-{tag}.pdf',
+            tag=config['calos'],
+        ),
+        dedx_calos=expand(
+            '{{input_name}}/calos/event-{{event}}/dedx-calos-{tag}.pdf',
+            tag=config['calos'],
+        ),
+        xyz_dedx_calos=expand(
+            '{{input_name}}/calos/event-{{event}}/xyz-dedx-calos-{tag}-plane-{plane}.pdf',
+            tag=config['calos'],
+            plane=[0,1,2],
+        )
+        # shell:
+        #     """
+        #     convert {input.tracks} {input.showers} {output}
+        #     """
+    output:
+        f'{{input_name}}/event-{{event}}.pdf'
+
+    run:
+        merger = PdfWriter()
+
+        for input_list in input:
+            
+            # print(input_list)
+            merger.append(input_list)
+        merger.write(output[0])
+        merger.close()
+
+rule all_merged_plots:
+    input:
+        expand(
+            '{input_name}/event-{event}.pdf',
+            input_name=inputs,
+            event=[i for i in range(config['nevents'])],
+        )
+
+rule omnibus:
+    input:
+        expand(
+            '{input_name}/event-{event}.pdf',
+            input_name=inputs,
+            event=[i for i in range(config['nevents'])],
+        )
+    output:
+        'omnibus.pdf'
+    run:
+        merger = PdfWriter()
+        for input_list in input:
+            
+            # print(input_list)
+            merger.append(input_list)
+        merger.write(output[0])
+        merger.close()

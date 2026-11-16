@@ -27,5 +27,5 @@ if __name__ == '__main__':
 
     output = {}
     for n, ts in enumerate(tss.product()):
-        print(ts.GetTimeStamp()*16e-9, ts.GetTimeStamp_Low(), ts.GetTimeStamp_High())
+        print(ts.GetTimeStamp(), ts.GetTimeStamp()*16e-9, ts.GetTimeStamp_Low(), ts.GetTimeStamp_High())
     print()
