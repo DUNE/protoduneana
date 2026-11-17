@@ -94,8 +94,8 @@ outputs: {}
 physics.filters.fTruth.PDG: [211, -13, 2212, 321]
 physics.filters.fTruth.IsVerbose: true
 physics.analyzers.pduneana.SelectEvents: ["fpath"]
-physics.analyzers.pduneana.CalorimetryTagSCE: "pandoracalo"
-physics.analyzers.pduneana.CalorimetryTagNoSCE: "pandoracalonosce" ##For no-SCE sample
+physics.analyzers.pduneana.CalorimetryTagSCE: "pandoraGnocchiCalo"
+physics.analyzers.pduneana.CalorimetryTagNoSCE: "pandoraGnocchiCalonosce" ##For no-SCE sample ## Replaced from pandoracalonosce
 physics.analyzers.pduneana.Pandora2CaloSCE: "pandora2GnocchiCalonosce"     #Replaced from pandora2calo/pandora2calonosce
 #physics.analyzers.pduneana.Pandora2CaloNoSCE: "pandora2GnocchiCalonosce"  #Replaced from pandora2calonosce
 physics.analyzers.pduneana.Verbose: false 

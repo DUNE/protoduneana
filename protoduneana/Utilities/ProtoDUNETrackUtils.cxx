@@ -657,13 +657,13 @@ std::pair<double, int> protoana::ProtoDUNETrackUtils::GetVertexMichelScore(
     double max_x, double min_y, double max_y, double min_z, bool check_wire,
     double check_x, double check_y, double check_z) {
 
-  std::cout << "Inside GetVertexMichelScore to confirm the inputs: "
-          << " min_x: " << min_x
-          << " max_x: " << max_x
-          << " min_y: " << min_y
-          << " max_y: " << max_y
-          << " min_z: " << min_z
-          << std::endl;
+  // std::cout << "Inside GetVertexMichelScore to confirm the inputs: "
+  //         << " min_x: " << min_x
+  //         << " max_x: " << max_x
+  //         << " min_y: " << min_y
+  //         << " max_y: " << max_y
+  //         << " min_z: " << min_z
+  //         << std::endl;
 
   auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
   anab::MVAReader<recob::Hit, 4> hitResults(evt, "emtrkmichelid:emtrkmichel");

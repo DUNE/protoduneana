@@ -1145,7 +1145,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
   dEdX_template_name(p.get<std::string>("dEdX_template_name")),
   //dEdX_template_file( dEdX_template_name.c_str(), "OPEN" ),
   fVerbose(p.get<bool>("Verbose")),
-  fSaveHits( p.get<bool>( "SaveHits" ) ),
+  fSaveHits( p.get<bool>("SaveHits", true) ),
   fSaveHitIDEInfo(p.get<bool>( "SaveHitIDEInfo", false)),
   fSaveRecoBeamAllTrack(p.get<bool>("SaveRecoBeamAllTrack", false)),
   fSkipMVA( p.get<bool>( "SkipMVA" ) ),

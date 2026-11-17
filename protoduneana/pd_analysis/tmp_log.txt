@@ -1,0 +1,405 @@
+The following module label is either not assigned to any path,
+or it has been assigned to ignored path(s):
+  fTruth
+DuneDeconvolutionService::ctor: DuneDeconvolutionService:
+DuneDeconvolutionService::ctor:                LogLevel: 1
+DuneRoiBuildingService::ctor: DuneRoiBuildingService:
+DuneRoiBuildingService::ctor:     LogLevel: 1
+DuneRoiBuildingService::ctor:  NSigmaStart: 3
+DuneRoiBuildingService::ctor:    NSigmaEnd: 1
+DuneRoiBuildingService::ctor:       PadLow: 50
+DuneRoiBuildingService::ctor:      PadHigh: 50
+StandardAdcWireBuildingService::ctor: StandardAdcWireBuildingService:
+StandardAdcWireBuildingService::ctor:     LogLevel: 1
+Info in <TGeoManager::Import>: Reading geometry from file: /cvmfs/dune.opensciencegrid.org/products/dune/dunecore/v10_10_04d01/gdml/protodunehd_v6_refactored.gdml
+Info in <TGeoManager::TGeoManager>: Geometry GDMLImport, Geometry imported from GDML created
+Info in <TGeoManager::SetTopVolume>: Top volume is volWorld. Master volume is volWorld
+Info in <TGeoNavigator::BuildCache>: --- Maximum geometry depth set to 100
+Info in <TGeoManager::CheckGeometry>: Fixing runtime shapes...
+Info in <TGeoManager::CheckGeometry>: ...Nothing to fix
+Info in <TGeoManager::CloseGeometry>: Counting nodes...
+Info in <TGeoManager::Voxelize>: Voxelizing...
+Info in <TGeoManager::CloseGeometry>: Building cache...
+Info in <TGeoManager::CountLevels>: max level = 5, max placements = 1148
+Info in <TGeoManager::CloseGeometry>: 25610 nodes/ 5537 volume UID's in Geometry imported from GDML
+Info in <TGeoManager::CloseGeometry>: ----------------modeler ready----------------
+GeoApaChannelGroupService::ctor: Group 0 (apa0) has 2560 channels from 4/4 readout planes.
+GeoApaChannelGroupService::ctor: Group 1 (apa1) has 2560 channels from 4/4 readout planes.
+GeoApaChannelGroupService::ctor: Group 2 (apa2) has 2560 channels from 4/4 readout planes.
+GeoApaChannelGroupService::ctor: Group 3 (apa3) has 2560 channels from 4/4 readout planes.
+PDSP Channel Map: Building RCE TPC wiremap from file protoDUNETPCChannelMap_RCE_v4.txt
+PDSP Channel Map: Building FELIX TPC wiremap from file protoDUNETPCChannelMap_RCE_v4.txt
+PDSP Channel Map: Building SSP channel map from file protoDUNESSPChannelMap_v1.txt
+DuneToolManager::fclFilename: Taking fcl name from command line: lar -c pdhd_ana_MC_nosce_noreco.fcl -s root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root -n -1
+AcdDigitReader::ctor:     LogLevel: 1
+DuneToolManager::getPrivate: ERROR: Tool name is blank
+StandardRawDigitExtractService::ctor: Retrieved digit read tool digitReader
+StandardRawDigitExtractService::ctor: StandardRawDigitExtractService:
+StandardRawDigitExtractService::ctor:         LogLevel: 1
+StandardRawDigitExtractService::ctor:    DigitReadTool: digitReader
+StandardRawDigitExtractService::ctor:   PedestalOption: 1
+StandardRawDigitExtractService::ctor:     FlagStuckOff: 0
+StandardRawDigitExtractService::ctor:      FlagStuckOn: 0
+ToolBasedRawDigitPrepService::ctor:      Fetching digitReader
+AcdDigitReader::ctor:     LogLevel: 1
+ToolBasedRawDigitPrepService::ctor:     Found tool digitReader @ 0xe91e1a0
+ToolBasedRawDigitPrepService::ctor:      Fetching adcSampleFiller
+AdcSampleFiller::ctor: Configuration parameters:
+AdcSampleFiller::ctor:       LogLevel: 1
+AdcSampleFiller::ctor:   AdcUnderflow: 0
+AdcSampleFiller::ctor:    AdcOverflow: 4095
+ToolBasedRawDigitPrepService::ctor:     Found tool adcSampleFiller @ 0xd4a7850
+ToolBasedRawDigitPrepService::ctor:      Fetching adcScaleAdcToKe
+AdcSampleScaler::ctor: Parameters:
+AdcSampleScaler::ctor:          LogLevel: 1
+AdcSampleScaler::ctor:       ScaleFactor: 0.02401
+AdcSampleScaler::ctor:        OutputUnit: ke/tick
+AdcSampleScaler::ctor:         InputUnit: ADC count
+ToolBasedRawDigitPrepService::ctor:     Found tool adcScaleAdcToKe @ 0xdddfe90
+ToolBasedRawDigitPrepService::ctor:      Fetching pdspTailPedRemovalZKe
+AdcThresholdSignalFinder::ctor: Configuration parameters:
+AdcThresholdSignalFinder::ctor:       LogLevel: 1
+AdcThresholdSignalFinder::ctor:      Threshold: 5e-1
+AdcThresholdSignalFinder::ctor:     BinsBefore: 10
+AdcThresholdSignalFinder::ctor:      BinsAfter: 20
+AdcThresholdSignalFinder::ctor:   FlagPositive: true
+AdcThresholdSignalFinder::ctor:   FlagNegative: true
+ExpTailPedRemover::ctor: Parameters:
+ExpTailPedRemover::ctor:               LogLevel: 1
+ExpTailPedRemover::ctor:             SignalFlag: 3
+ExpTailPedRemover::ctor:   SignalIterationLimit: 10
+ExpTailPedRemover::ctor:             SignalTool: adcTailSignalFinderKe
+ExpTailPedRemover::ctor:              DecayTime: 2200
+ExpTailPedRemover::ctor:                MaxTick: 21000
+ExpTailPedRemover::ctor:              PedDegree: 0
+ExpTailPedRemover::ctor:               PedTick0: 3000
+ExpTailPedRemover::ctor:               PedFreqs: []
+ExpTailPedRemover::ctor:   IncludeChannelRanges: [apa1z, apa2z, apa3z, apa4z, apa5z, apa6z, apa1c, apa2c, apa3c, apa4c, apa5c, apa6c]
+ExpTailPedRemover::ctor:   NoWarnStatuses: [1]
+ExpTailPedRemover::ctor:   ExcludeChannelRanges: []
+ExpTailPedRemover::ctor: Channel checking enabled for 5760 channels.
+ToolBasedRawDigitPrepService::ctor:     Found tool pdspTailPedRemovalZKe @ 0xd794ed0
+ToolBasedRawDigitPrepService::ctor: Fetching wire building service.
+ToolBasedRawDigitPrepService::ctor:   Wire building service: @0x51f1ad0
+ToolBasedRawDigitPrepService::ctor: ToolBasedRawDigitPrepService:
+ToolBasedRawDigitPrepService::ctor:                     LogLevel: 3
+ToolBasedRawDigitPrepService::ctor:                      DoWires: 1
+ToolBasedRawDigitPrepService::ctor:      ADC channel tools:
+ToolBasedRawDigitPrepService::ctor:            digitReader
+ToolBasedRawDigitPrepService::ctor:            adcSampleFiller
+ToolBasedRawDigitPrepService::ctor:            adcScaleAdcToKe
+ToolBasedRawDigitPrepService::ctor:            pdspTailPedRemovalZKe
+Warning in <TFile::Append>: Replacing existing TH1: FieldResponse_U (Potential memory leak).
+Warning in <TFile::Append>: Replacing existing TH1: FieldResponse_V (Potential memory leak).
+Warning in <TFile::Append>: Replacing existing TH1: FieldResponse_Y (Potential memory leak).
+VPlaneAsCollector: 1
+03-Sep-2026 04:41:23 CDT  Initiating request to open input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root"
+03-Sep-2026 04:41:23 CDT  Initiating request to open input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root"
+03-Sep-2026 04:41:25 CDT  Opened input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root"
+03-Sep-2026 04:41:25 CDT  Opened input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root"
+Setting applicationFamily: "art"
+Setting process_name: "PDHDAna"
+db: runtime0
+Scale HitLimit based on readout window size 6000
+HitLimit = 20000
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:41:29 CDT  run: 20250614 subRun: 1 event: 220
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.220
+We found no beam particles for this event... moving on
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:41:44 CDT  run: 20250614 subRun: 1 event: 221
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.221
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -67.6009 397.678 1.81348
+Track end: -67.358 400.343 2.02341
+pandoracalo: dEdX[0..4] = 0.446117 0.408898 0.263145  | Range = 1.5509
+gnocchiCalo: dEdX[0..4] = 0.446987 0.596533 0.325871  | Range = 1.5509
+Calo product 'pandora2GnocchiCalonosce' valid: 1, size: 711
+pandora2Track vector size: 237, this track ID: 17
+Assns<Track,Calorimetry> 'pandora2GnocchiCalonosce' valid: 1, size: 711
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 216
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalonosce, instance: , size: 711
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 216
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalo, instance: , size: 711
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 216
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 216
+Found 3 calo objects for track 17
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 2 1 0 
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -500 max_x: 500 min_y: 0 max_y: 500 min_z: 0
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:41:48 CDT  run: 20250614 subRun: 1 event: 222
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.222
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -64.6864 306.627 11.7704
+Track end: -68.3876 438.801 66.474
+pandoracalo: dEdX[0..4] = 2.71366 3.38765 1.00213 2.755 0.90421  | Range = 180.768
+gnocchiCalo: dEdX[0..4] = 2.71865 14.8395 1.04519 0.908784 0.642694  | Range = 874.51
+62
+1
+1
+1
+0
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002590 TO DIAGONAL.
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.003022 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 2.76074e+14 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.2547e+06  1.0000e+00  1.0017e+00  1.2547e+06
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1255999.183490 TO DIAGONAL.
+Getting reco beam calo
+Calo product 'pandora2GnocchiCalonosce' valid: 1, size: 1545
+pandora2Track vector size: 515, this track ID: 49
+Assns<Track,Calorimetry> 'pandora2GnocchiCalonosce' valid: 1, size: 1545
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 411
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalonosce, instance: , size: 1545
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 411
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalo, instance: , size: 1545
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 411
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 411
+Found 3 calo objects for track 49
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 2 1 0 
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -500 max_x: 500 min_y: 0 max_y: 500 min_z: 0
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:03 CDT  run: 20250614 subRun: 1 event: 223
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.223
+Calo product 'pandora2GnocchiCalonosce' valid: 1, size: 1017
+pandora2Track vector size: 339, this track ID: 13
+Assns<Track,Calorimetry> 'pandora2GnocchiCalonosce' valid: 1, size: 1017
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 324
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalonosce, instance: , size: 1017
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 324
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalo, instance: , size: 1017
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 324
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 324
+Found 3 calo objects for track 13
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 2 1 0 
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -500 max_x: 500 min_y: 0 max_y: 500 min_z: 0
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:17 CDT  run: 20250614 subRun: 1 event: 224
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.224
+We found no beam particles for this event... moving on
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:25 CDT  run: 20250614 subRun: 1 event: 225
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.225
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -62.5633 331.352 1.0025
+Track end: -134.784 420.6 46.3006
+pandoracalo: dEdX[0..4] = 0.359623 0.9579 1.20865 0.890544 0.969313  | Range = 99.9618
+gnocchiCalo: dEdX[0..4] = 1.05624 1.89353 5.32942 0.437175 0.884049  | Range = 100.549
+189
+1
+1
+1
+0
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.003505 TO DIAGONAL.
+Getting reco beam calo
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:30 CDT  run: 20250614 subRun: 1 event: 226
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.226
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -58.4828 399.848 1.43678
+Track end: -58.2788 402.437 2.06756
+pandoracalo: dEdX[0..4] = 1.4122 1.34646 0.531518 0.448391  | Range = 1.52101
+gnocchiCalo: dEdX[0..4] = 1.39965 1.36071 0.537148 0.451363  | Range = 1.52101
+Calo product 'pandora2GnocchiCalonosce' valid: 1, size: 603
+pandora2Track vector size: 201, this track ID: 26
+Assns<Track,Calorimetry> 'pandora2GnocchiCalonosce' valid: 1, size: 603
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 201
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalonosce, instance: , size: 603
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 201
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalo, instance: , size: 603
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 201
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 201
+Found 3 calo objects for track 26
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 2 1 0 
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -500 max_x: 500 min_y: 0 max_y: 500 min_z: 0
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:34 CDT  run: 20250614 subRun: 1 event: 227
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.227
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -70.3372 404.32 -0.0679843
+Track end: -77.7065 397.746 29.5068
+pandoracalo: dEdX[0..4] = 7.11097 8.9192 7.20809 8.04982 10.3888  | Range = 7.63632
+gnocchiCalo: dEdX[0..4] = 10.6257 9.13742 7.20609 7.98976 19.0042  | Range = 7.63632
+23
+1
+1
+1
+0
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 5.64306 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.2750e+00  1.1510e+00  1.5023e+00  3.6216e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 2.278608 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -5.3545e-05  1.0734e-06  1.3497e+00  2.6503e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002704 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 5.81082 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.2534e+00  1.0810e+00  1.3163e+00  2.8560e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1.256217 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 2350.59 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.2328e+01  1.0001e+00  1.0026e+00  1.4325e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 12.342056 TO DIAGONAL.
+Getting reco beam calo
+Calo product 'pandora2GnocchiCalonosce' valid: 1, size: 678
+pandora2Track vector size: 226, this track ID: 163
+Assns<Track,Calorimetry> 'pandora2GnocchiCalonosce' valid: 1, size: 678
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 276
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalonosce, instance: , size: 678
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 276
+Assns<Track,Calorimetry> found under label: pandora2GnocchiCalo, instance: , size: 678
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 276
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 276
+Found 3 calo objects for track 163
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 2 1 0 
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -500 max_x: 500 min_y: 0 max_y: 500 min_z: 0
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:38 CDT  run: 20250614 subRun: 1 event: 228
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.228
+We found no beam particles for this event... moving on
+%MSG-w PhotonBackTrackerService:  ProcessEvent 03-Sep-2026 04:42:47 CDT  run: 20250614 subRun: 1 event: 229
+Rebuild failed to get the OpDetBTRs. This is expected when running on a generation or simulation step.
+%MSG
+########## EvtNo.229
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+03-Sep-2026 04:42:52 CDT  Closed input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root"
+03-Sep-2026 04:42:52 CDT  Closed input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root"
+
+================================================================================================================================
+TimeTracker printout (sec)                        Min           Avg           Max         Median          RMS         nEvts   
+================================================================================================================================
+Full event                                     0.686065       5.67251       11.9149       5.43482       4.38158        10     
+--------------------------------------------------------------------------------------------------------------------------------
+source:RootInput(read)                        0.000410414   0.00403352     0.0201134    0.000882094   0.00659156       10     
+fpath:fnhits:NumberOfHitsFilter                0.0196291     0.0566681     0.169938      0.0444381     0.0399485       10     
+[art]:TriggerResults:TriggerResultInserter    2.3445e-05    3.55266e-05   8.1315e-05    3.05425e-05   1.60976e-05      10     
+end_path:pduneana:PDSPAnalyzer                 0.642967       5.61159       11.8614       5.40522       4.36041        10     
+================================================================================================================================
+
+================================================================================================================================
+TimeTracker printout (sec)                        Min           Avg           Max         Median          RMS         nEvts   
+================================================================================================================================
+Full event                                     0.686065       5.67251       11.9149       5.43482       4.38158        10     
+--------------------------------------------------------------------------------------------------------------------------------
+source:RootInput(read)                        0.000410414   0.00403352     0.0201134    0.000882094   0.00659156       10     
+fpath:fnhits:NumberOfHitsFilter                0.0196291     0.0566681     0.169938      0.0444381     0.0399485       10     
+[art]:TriggerResults:TriggerResultInserter    2.3445e-05    3.55266e-05   8.1315e-05    3.05425e-05   1.60976e-05      10     
+end_path:pduneana:PDSPAnalyzer                 0.642967       5.61159       11.8614       5.40522       4.36041        10     
+================================================================================================================================
+
+====================================================================================================
+MemoryTracker summary (base-10 MB units used)
+
+  Peak virtual memory usage (VmPeak)  : 4224.87 MB
+  Peak resident set size usage (VmHWM): 2748.9 MB
+====================================================================================================
+
+====================================================================================================
+MemoryTracker summary (base-10 MB units used)
+
+  Peak virtual memory usage (VmPeak)  : 4224.87 MB
+  Peak resident set size usage (VmHWM): 2748.9 MB
+====================================================================================================
+
+TrigReport ---------- Event summary -------------
+TrigReport Events total = 10 passed = 10 failed = 0
+
+TrigReport ---------- Modules in End-path ----------
+TrigReport        Run    Success      Error Name
+TrigReport         10         10          0 pduneana
+
+TimeReport ---------- Time summary [sec] -------
+TimeReport CPU = 80.573217 Real = 86.103232
+
+MemReport  ---------- Memory summary [base-10 MB] ------
+MemReport  VmPeak = 4224.87 VmHWM = 2748.9
+
+ToolBasedRawDigitPrepService:dtor: Event count: 0
+ToolBasedRawDigitPrepService:dtor:  Call count: 0
+ToolBasedRawDigitPrepService:dtor: Time report for 4 tools.
+ToolBasedRawDigitPrepService:dtor:                    digitReader:   0.00 sec
+ToolBasedRawDigitPrepService:dtor:                adcSampleFiller:   0.00 sec
+ToolBasedRawDigitPrepService:dtor:                adcScaleAdcToKe:   0.00 sec
+ToolBasedRawDigitPrepService:dtor:          pdspTailPedRemovalZKe:   0.00 sec
+Art has completed and will exit with status 0.

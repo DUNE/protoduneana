@@ -1,0 +1,15 @@
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/89/c6/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266463_7_1_20251211T023321Z_detsim_reco1.root
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/6d/8c/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266753_154_1_20251211T180913Z_detsim_reco1.root                                  
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/0b/ca/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_258205_74_1_20251206T004738Z_detsim_reco1.root                                   
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/2b/57/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266475_163_1_20251211T120456Z_detsim_reco1.root
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/32/ee/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266916_52_1_20251212T015427Z_detsim_reco1.root  
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/37/6e/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_260962_1_1_20251211T140646Z_detsim_reco1.root 
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/d5/ad/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_267207_147_1_20251212T111206Z_detsim_reco1.root      
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/f7/52/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_261146_83_1_20251211T220350Z_detsim_reco1.root                                    
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/aa/8f/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266468_190_1_20251211T074745Z_detsim_reco1.root                                  
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/b0/a1/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266992_40_1_20251212T055345Z_detsim_reco1.root                                    
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/01/85/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_261056_52_1_20251211T162150Z_detsim_reco1.root                                    
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/c7/dd/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_267257_88_1_20251212T114256Z_detsim_reco1.root                                   
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/18/57/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_266478_175_1_20251211T130211Z_detsim_reco1.root                                  
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/41/b8/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_258562_25_1_20251206T192934Z_detsim_reco1.root                                    
+root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune/a1/7c/pdhd_prod_beam__gen_g4_IonScintPDExt_PDInt_261017_30_1_20251211T150526Z_detsim_reco1.root                                    

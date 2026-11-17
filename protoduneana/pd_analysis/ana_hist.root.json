@@ -1,0 +1,28 @@
+{
+  "application": {
+    "family": "art",
+    "name": "PDHDAna",
+    "version": "development"
+  },
+  "data_tier": "root-tuple-virtual",
+  "event_count": 30,
+  "file_format": "root",
+  "file_type": "data",
+  "first_event": 43415,
+  "group": "dune",
+  "last_event": 43679,
+  "parents": [
+    {
+     "file_name": "np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+    }
+  ],
+  "runs": [
+    [
+     28548,
+     1,
+     "physics"
+    ]
+  ],
+"start_time": "2026-11-10T05:31:04",
+"end_time": "2026-11-10T05:32:37"
+}

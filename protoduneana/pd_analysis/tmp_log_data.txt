@@ -1,0 +1,1805 @@
+DuneDeconvolutionService::ctor: DuneDeconvolutionService:
+DuneDeconvolutionService::ctor:                LogLevel: 1
+DuneRoiBuildingService::ctor: DuneRoiBuildingService:
+DuneRoiBuildingService::ctor:     LogLevel: 1
+DuneRoiBuildingService::ctor:  NSigmaStart: 3
+DuneRoiBuildingService::ctor:    NSigmaEnd: 1
+DuneRoiBuildingService::ctor:       PadLow: 50
+DuneRoiBuildingService::ctor:      PadHigh: 50
+StandardAdcWireBuildingService::ctor: StandardAdcWireBuildingService:
+StandardAdcWireBuildingService::ctor:     LogLevel: 1
+Info in <TGeoManager::Import>: Reading geometry from file: /cvmfs/dune.opensciencegrid.org/products/dune/dunecore/v10_10_04d01/gdml/protodunehd_v8_refactored.gdml
+Info in <TGeoManager::TGeoManager>: Geometry GDMLImport, Geometry imported from GDML created
+Info in <TGeoManager::SetTopVolume>: Top volume is volWorld. Master volume is volWorld
+Info in <TGeoNavigator::BuildCache>: --- Maximum geometry depth set to 100
+Info in <TGeoManager::CheckGeometry>: Fixing runtime shapes...
+Info in <TGeoManager::CheckGeometry>: ...Nothing to fix
+Info in <TGeoManager::CloseGeometry>: Counting nodes...
+Info in <TGeoManager::Voxelize>: Voxelizing...
+Info in <TGeoManager::CloseGeometry>: Building cache...
+Info in <TGeoManager::CountLevels>: max level = 5, max placements = 1148
+Info in <TGeoManager::CloseGeometry>: 25608 nodes/ 5537 volume UID's in Geometry imported from GDML
+Info in <TGeoManager::CloseGeometry>: ----------------modeler ready----------------
+GeoApaChannelGroupService::ctor: Group 0 (apa0) has 2560 channels from 4/4 readout planes.
+GeoApaChannelGroupService::ctor: Group 1 (apa1) has 2560 channels from 4/4 readout planes.
+GeoApaChannelGroupService::ctor: Group 2 (apa2) has 2560 channels from 4/4 readout planes.
+GeoApaChannelGroupService::ctor: Group 3 (apa3) has 2560 channels from 4/4 readout planes.
+DuneToolManager::fclFilename: Taking fcl name from command line: lar -c pdhd_ana_data.fcl -s root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root -n -1
+AcdDigitReader::ctor:     LogLevel: 1
+DuneToolManager::getPrivate: ERROR: Tool name is blank
+StandardRawDigitExtractService::ctor: Retrieved digit read tool digitReader
+StandardRawDigitExtractService::ctor: StandardRawDigitExtractService:
+StandardRawDigitExtractService::ctor:         LogLevel: 1
+StandardRawDigitExtractService::ctor:    DigitReadTool: digitReader
+StandardRawDigitExtractService::ctor:   PedestalOption: 1
+StandardRawDigitExtractService::ctor:     FlagStuckOff: 0
+StandardRawDigitExtractService::ctor:      FlagStuckOn: 0
+StandardRawDigitPrepService::ctor: Fetching extract service.
+StandardRawDigitPrepService::ctor: Fetching channel status provider.
+StandardRawDigitPrepService::ctor:   Channel status provider: @0xa597370
+StandardRawDigitPrepService::ctor:   Extract service: @0xa4c72a0
+StandardRawDigitPrepService::ctor: Fetching deconvolution service.
+StandardRawDigitPrepService::ctor:   Deconvolution service: @0x51f1940
+StandardRawDigitPrepService::ctor: Fetching ROI building service.
+StandardRawDigitPrepService::ctor:   ROI building service: @0x51f3420
+StandardRawDigitPrepService::ctor: Fetching wire building service.
+StandardRawDigitPrepService::ctor:   Wire building service: @0x51f35a0
+StandardRawDigitPrepService::ctor: StandardRawDigitPrepService:
+StandardRawDigitPrepService::ctor:              LogLevel: 1
+StandardRawDigitPrepService::ctor:               SkipBad: 1
+StandardRawDigitPrepService::ctor:             SkipNoisy: 0
+StandardRawDigitPrepService::ctor:   ChannelStatusOnline: 0
+StandardRawDigitPrepService::ctor:          DoMitigation: 0
+StandardRawDigitPrepService::ctor:  DoEarlySignalFinding: 0
+StandardRawDigitPrepService::ctor:        DoNoiseRemoval: 0
+StandardRawDigitPrepService::ctor:       DoDeconvolution: 1
+StandardRawDigitPrepService::ctor:  DoPedestalAdjustment: 0
+StandardRawDigitPrepService::ctor:                 DoROI: 1
+StandardRawDigitPrepService::ctor:               DoWires: 1
+StandardRawDigitPrepService::ctor:                DoDump: 0
+StandardRawDigitPrepService::ctor:  DoIntermediateStates: 0
+StandardRawDigitPrepService::ctor: No display tools.
+Warning in <TFile::Append>: Replacing existing TH1: FieldResponse_U (Potential memory leak).
+Warning in <TFile::Append>: Replacing existing TH1: FieldResponse_V (Potential memory leak).
+Warning in <TFile::Append>: Replacing existing TH1: FieldResponse_Y (Potential memory leak).
+VPlaneAsCollector: 1
+10-Nov-2026 05:31:02 CST  Initiating request to open input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+10-Nov-2026 05:31:02 CST  Initiating request to open input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+10-Nov-2026 05:31:04 CST  Opened input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+10-Nov-2026 05:31:04 CST  Opened input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+Setting applicationFamily: "art"
+Setting process_name: "PDHDAna"
+Scale HitLimit based on readout window size 6000
+HitLimit = 20000
+########## EvtNo.43415
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 465, this track ID: 26
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1395
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1395
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 435
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 435
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 435
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 435
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 26
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 465, this track ID: 157
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1395
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1395
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 435
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 435
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 435
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 435
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 157
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43455
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -66.7485 403.658 5.92982
+Track end: -72.8173 396.064 39.521
+pandoracalo: dEdX[0..4] = 1.48435 2.24173 2.4722 0.701688 6.16814  | Range = 32.6298
+gnocchiCalo: dEdX[0..4] = 1.52397 3.57318 15.0247 0.730766 107.461  | Range = 32.4684
+50
+1
+0
+1
+0
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -8.9435e-04  1.5323e-05  1.3437e+00  2.6571e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.003551 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.1874e-06  3.1296e-06  1.3961e+00  2.6039e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002605 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.5822e-03  3.4731e-05  1.3444e+00  2.6571e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.004239 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 5444.12 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.3447e+01  1.0000e+00  1.0013e+00  1.5446e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 13.462658 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.4138e-05  5.6565e-06  1.3805e+00  2.6195e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002664 TO DIAGONAL.
+Getting reco beam calo
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 398, this track ID: 22
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1194
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1194
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 423
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 423
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 423
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 423
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 22
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 398, this track ID: 53
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1194
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1194
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 423
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 423
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 423
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 423
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 53
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43463
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43471
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 363, this track ID: 43
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1089
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1089
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 303
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 303
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 303
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 303
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 43
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43487
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Matched? 0
+0
+%MSG-w PDSPAnalyzer:  PDSPAnalyzer:pduneana@BeginModule  10-Nov-2026 05:31:23 CST run: 28548 subRun: 1 event: 43487 PDSPAnalyzer_module.cc:4250
+Failed beam quality check
+%MSG
+We found no beam particles for this event... moving on
+########## EvtNo.43495
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -57.4663 401.91 8.08807
+Track end: -57.6263 401.596 9.71613
+gnocchiCalo: dEdX[0..4] =  | Range = -999
+2
+1
+0
+1
+0
+Getting reco beam calo
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 477, this track ID: 5
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1431
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1431
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 351
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 5
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 477, this track ID: 125
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1431
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1431
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 351
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 125
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 477, this track ID: 140
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1431
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1431
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 351
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 351
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 140
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43503
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Has no valid hit: 22
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Has no valid hit: 22
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -55.4068 412.309 10.3901
+Track end: -61.5018 407.991 38.7843
+pandoracalo: dEdX[0..4] = 5.81134 1.59894 3.01796 8.74736 2.87462  | Range = 33.9789
+gnocchiCalo: dEdX[0..4] = 5.83652 1.68079 4.34648 8.65899 4.0046  | Range = 33.8394
+36
+1
+0
+1
+0
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -8.7958e-06  2.2914e-05  1.4052e+00  2.5948e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002604 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 68204.9 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.3976e+01  1.0001e+00  1.0073e+00  3.5968e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 34.011535 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 3.46628e+07 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.1960e+02  1.0000e+00  1.0000e+00  4.2160e+02
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 420.023438 TO DIAGONAL.
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.003933 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 17102.8 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.7140e+01  1.0000e+00  1.0013e+00  1.9139e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 17.159226 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.0308e-05  3.2279e-06  1.4053e+00  2.5947e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002625 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 18954.3 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.7434e+01  1.0001e+00  1.0072e+00  1.9426e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 17.453185 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 6003.72 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -9.4521e+00  1.0000e+00  1.0014e+00  1.1451e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 9.463534 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 11885.9 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -6.2002e+00  9.9828e-01  1.0026e+00  8.1993e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 6.208434 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 7961.14 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.5137e+01  1.0000e+00  1.0014e+00  3.7135e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 35.173706 TO DIAGONAL.
+Getting reco beam calo
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 336, this track ID: 60
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1008
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1008
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 342
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 342
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 342
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 342
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 60
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+Has no valid hit: 22
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43511
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -56.5714 394.071 9.11174
+Track end: -68.2243 377.883 68.6207
+pandoracalo: dEdX[0..4] = 0.450137 6.12455 27.554 22.7024 29.0825  | Range = 69.1942
+gnocchiCalo: dEdX[0..4] = 0.471741 6.07855 27.245 22.3457 126.631  | Range = 68.8757
+83
+1
+0
+1
+0
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 422.52 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.1932e+01  1.0036e+00  1.0200e+00  1.3909e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 11.946131 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.9822e-06 -4.3132e-07  1.4846e+00  2.5154e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002518 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 219.359 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -8.0630e+00  1.0032e+00  1.0183e+00  1.0041e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 8.073029 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 10875.3 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.0064e+02  1.0055e+00  1.0202e+00  1.0261e+02
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 100.738708 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.7081e-03  1.4354e-03  1.9230e+00  2.0782e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.004786 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 12551.8 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.1003e+01  1.0000e+00  1.0004e+00  2.3003e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 21.026086 TO DIAGONAL.
+Getting reco beam calo
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43519
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -53.0866 406.992 9.61526
+Track end: -62.9071 395.296 74.839
+pandoracalo: dEdX[0..4] = 541.006 61.0642 6.83228 20.8311 7.62554  | Range = 74.8489
+gnocchiCalo: dEdX[0..4] = 1149.54 84.7458 8.24907 42.0276 7.55486  | Range = 74.5729
+50
+1
+0
+1
+0
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.7255e-04  2.4399e-06  1.4116e+00  2.5887e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002961 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.6938e-07  6.7904e-07  1.5238e+00  2.4762e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002477 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -7.0792e-04  9.7086e-06  1.4120e+00  2.5887e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.003297 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 17373.1 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.7968e+01  1.0000e+00  1.0004e+00  2.9968e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 27.998231 TO DIAGONAL.
+Getting reco beam calo
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43527
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43535
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 368, this track ID: 35
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1104
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1104
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 297
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 297
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 297
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 297
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 35
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43543
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43567
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43575
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Matched? 0
+0
+%MSG-w PDSPAnalyzer:  PDSPAnalyzer:pduneana@BeginModule  10-Nov-2026 05:31:59 CST run: 28548 subRun: 1 event: 43575 PDSPAnalyzer_module.cc:4250
+Failed beam quality check
+%MSG
+We found no beam particles for this event... moving on
+########## EvtNo.43583
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43591
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43599
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+TOF invalid
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -56.833 396.349 12.5413
+Track end: -71.3072 390.106 18.5962
+pandoracalo: dEdX[0..4] = 0.307603 0.659084 0.906954 1.09204 0.881002  | Range = 6.8446
+gnocchiCalo: dEdX[0..4] = 0.31525 2.81879 2.83518 3.38644 0.370841  | Range = 9.27777
+7
+1
+0
+1
+0
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 96.4963 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.6625e+00  1.0018e+00  1.0106e+00  6.6502e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 4.669199 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 1.05768e+14 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.4045e+06  1.0001e+00  1.0074e+00  1.4045e+06
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1405929.049890 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.4466e-07  1.0560e-06  1.5840e-06  4.0000e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.004000 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.0953e-07  1.0072e-06  1.6235e-06  4.0000e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.004000 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 88.2234 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.6513e+00  1.0003e+00  1.0058e+00  3.6451e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1.654922 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 29.4118 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.7129e+00  1.0013e+00  1.0094e+00  3.7022e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1.716635 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 5.2171e+13 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.5569e+06  1.0003e+00  1.0083e+00  1.5569e+06
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1558504.867044 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.4170e-07  9.6803e-07  1.5382e-06  4.0000e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.004000 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -4.1277e-07  9.1684e-07  1.5412e-06  4.0000e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.004000 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 30.4768 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -6.5266e-01  1.0004e+00  1.0060e+00  2.6463e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.655308 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 1063.57 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -5.3608e+00  1.0002e+00  1.0059e+00  7.3548e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 5.368191 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.4499e-02  1.5143e-03  1.9906e+00  2.0224e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.016521 TO DIAGONAL.
+Getting reco beam calo
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 365, this track ID: 19
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1095
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1095
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 366
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 366
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 366
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 366
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 19
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 365, this track ID: 29
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1095
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1095
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 366
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 366
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 366
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 366
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 29
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43607
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43615
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43623
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Calo product 'pandora2calo' valid: 0, size: 0
+pandora2Track vector size: 498, this track ID: 4
+Assns<Track,Calorimetry> 'pandora2calo' valid: 0, size: 0
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalonosce, instance: , size: 1494
+Assns<Track,Calorimetry> found under label: pandora2Gnocchicalo, instance: , size: 1494
+Assns<Track,Calorimetry> found under label: pandoracalo, instance: , size: 453
+Assns<Track,Calorimetry> found under label: pandoracalonosce, instance: , size: 453
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalo, instance: , size: 453
+Assns<Track,Calorimetry> found under label: pandoraGnocchiCalonosce, instance: , size: 453
+No track calorimetry object found... returning empty vector
+Found 0 calo objects for track 4
+fVPlaneAsCollector = 1
+PlaneID of calo objects: 
+No shower calorimetry object found... returning empty vector
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+########## EvtNo.43655
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Matched? 0
+0
+%MSG-w PDSPAnalyzer:  PDSPAnalyzer:pduneana@BeginModule  10-Nov-2026 05:32:27 CST run: 28548 subRun: 1 event: 43655 PDSPAnalyzer_module.cc:4250
+Failed beam quality check
+%MSG
+We found no beam particles for this event... moving on
+########## EvtNo.43663
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+We found no beam particles for this event... moving on
+########## EvtNo.43671
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+GetVertexMichelScore params for Beam tracks:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -999 max_x: 999 min_y: -999 max_y: 999 min_z: -275
+Track vertex: -57.1329 395.71 11.7536
+Track end: -61.114 371 147.912
+pandoracalo: dEdX[0..4] = 0.889628 0.86189 1.40656 0.375547 0.29197  | Range = 92.1115
+gnocchiCalo: dEdX[0..4] = 1.61093 0.86765 1.42216 19.1405 0.881421  | Range = 92.1687
+84
+1
+0
+1
+0
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 1047.03 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -9.4438e+00  1.0008e+00  1.0116e+00  1.1431e+01
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 9.455269 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.1448e-07  4.7391e-06  1.7320e+00  2.2680e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002268 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 1.70213e+14 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.3188e+06  1.0000e+00  1.0001e+00  1.3188e+06
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1320090.965470 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 732.054 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -7.6610e+00  1.0007e+00  1.0112e+00  9.6491e+00
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 7.670684 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 23532.9 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.3936e+02  1.0049e+00  1.0152e+00  2.4134e+02
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 239.600966 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -3.1395e-04  7.9406e-04  1.9142e+00  2.0853e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002399 TO DIAGONAL.
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -2.3922e-07  4.3995e-06  1.7319e+00  2.2681e+00
+ MINUIT WARNING IN HESSE   
+ ============== MATRIX FORCED POS-DEF BY ADDING 0.002268 TO DIAGONAL.
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 1 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 2 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 3 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== Negative diagonal element 4 in Error Matrix
+ MINUIT WARNING IN MIGRAD  
+ ============== 1.06696e+14 added to diagonal of error matrix
+ EIGENVALUES OF SECOND-DERIVATIVE MATRIX:
+        -1.0441e+06  1.0000e+00  1.0001e+00  1.0441e+06
+ MINUIT WARNING IN MIGRAD  
+ ============== MATRIX FORCED POS-DEF BY ADDING 1045096.594386 TO DIAGONAL.
+Getting reco beam calo
+Inside GetVertexMichelScore to confirm the inputs:  min_x: -200 max_x: 0 min_y: 200 max_y: 500 min_z: 25
+No track calorimetry object found... returning empty vector
+10-Nov-2026 05:32:37 CST  Closed input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+10-Nov-2026 05:32:37 CST  Closed input file "root://fndcadoor.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/staging/hd-protodune-det-reco/c9/bd/np04hd_raw_run028548_0181_dataflow7_datawriter_0_20240803T231053_reco_stage1_reco_stage2_20261004T052620_keepup.root"
+
+======================================================================================================================================
+TimeTracker printout (sec)                              Min           Avg           Max         Median          RMS         nEvts   
+======================================================================================================================================
+Full event                                           0.0266845      3.10957       6.22885       3.32053       2.03826        30     
+--------------------------------------------------------------------------------------------------------------------------------------
+source:RootInput(read)                              0.000153192   0.00336419     0.0221278    0.00033249    0.00628833       30     
+reco:pandora2Track:LArPandoraTrackCreation          6.6327e-05      1.84999       3.84988       1.98626       1.2545         30     
+reco:pandora2Shower:LArPandoraShowerCreation         4.687e-05     0.868973       1.79943      0.950927      0.589935        30     
+reco:pandora2Gnocchicalo:GnocchiCalorimetry         5.5977e-05     0.086071      0.183135       0.09744      0.0526365       30     
+reco:pandora2Gnocchicalonosce:GnocchiCalorimetry    4.2721e-05     0.033175      0.0630856     0.0386141     0.0199339       30     
+fpath:fnhits:NumberOfHitsFilter                      0.0235562     0.0524913     0.0965719     0.0516291     0.0169563       30     
+[art]:TriggerResults:TriggerResultInserter          1.2523e-05    2.91526e-05   9.0823e-05    2.5459e-05    1.59784e-05      30     
+end_path:pduneana:PDSPAnalyzer                       7.884e-06     0.215114      0.490461      0.217148      0.154615        30     
+======================================================================================================================================
+
+======================================================================================================================================
+TimeTracker printout (sec)                              Min           Avg           Max         Median          RMS         nEvts   
+======================================================================================================================================
+Full event                                           0.0266845      3.10957       6.22885       3.32053       2.03826        30     
+--------------------------------------------------------------------------------------------------------------------------------------
+source:RootInput(read)                              0.000153192   0.00336419     0.0221278    0.00033249    0.00628833       30     
+reco:pandora2Track:LArPandoraTrackCreation          6.6327e-05      1.84999       3.84988       1.98626       1.2545         30     
+reco:pandora2Shower:LArPandoraShowerCreation         4.687e-05     0.868973       1.79943      0.950927      0.589935        30     
+reco:pandora2Gnocchicalo:GnocchiCalorimetry         5.5977e-05     0.086071      0.183135       0.09744      0.0526365       30     
+reco:pandora2Gnocchicalonosce:GnocchiCalorimetry    4.2721e-05     0.033175      0.0630856     0.0386141     0.0199339       30     
+fpath:fnhits:NumberOfHitsFilter                      0.0235562     0.0524913     0.0965719     0.0516291     0.0169563       30     
+[art]:TriggerResults:TriggerResultInserter          1.2523e-05    2.91526e-05   9.0823e-05    2.5459e-05    1.59784e-05      30     
+end_path:pduneana:PDSPAnalyzer                       7.884e-06     0.215114      0.490461      0.217148      0.154615        30     
+======================================================================================================================================
+
+====================================================================================================
+MemoryTracker summary (base-10 MB units used)
+
+  Peak virtual memory usage (VmPeak)  : 3262.63 MB
+  Peak resident set size usage (VmHWM): 1219.94 MB
+====================================================================================================
+
+====================================================================================================
+MemoryTracker summary (base-10 MB units used)
+
+  Peak virtual memory usage (VmPeak)  : 3262.63 MB
+  Peak resident set size usage (VmHWM): 1219.94 MB
+====================================================================================================
+
+TrigReport ---------- Event summary -------------
+TrigReport Events total = 30 passed = 30 failed = 0
+
+TrigReport ---------- Modules in End-path ----------
+TrigReport        Run    Success      Error Name
+TrigReport         23         23          0 pduneana
+
+TimeReport ---------- Time summary [sec] -------
+TimeReport CPU = 88.385982 Real = 93.405595
+
+MemReport  ---------- Memory summary [base-10 MB] ------
+MemReport  VmPeak = 3262.63 VmHWM = 1219.94
+
+Art has completed and will exit with status 0.

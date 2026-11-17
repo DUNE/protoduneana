@@ -1,0 +1,171 @@
+diff --git a/protoduneana/singlephase/Analysis/PDSPAnalyzer_module.cc b/protoduneana/pd_analysis/PDSPAnalyzer_module.cc
+index 7d56708..5866e1b 100644
+--- a/protoduneana/singlephase/Analysis/PDSPAnalyzer_module.cc
++++ b/protoduneana/pd_analysis/PDSPAnalyzer_module.cc
+@@ -120,9 +120,6 @@ namespace pduneana {
+     return;
+   }
+ 
+-
+-
+-
+   // Use the association between space points and hits to return a charge
+   std::map<unsigned int, float> GetSpacePointChargeMap(
+     std::vector<art::Ptr<recob::SpacePoint>> const& spacePoints,
+@@ -163,9 +160,6 @@ namespace pduneana {
+ 
+   } // function GetSpacePointChargeMap
+ 
+-
+-
+-
+   // Get the two nearest neighbours to use for calcuation of angles between them and the node in question
+   
+ 
+@@ -237,9 +231,6 @@ namespace pduneana {
+ 
+ */
+ 
+-
+-
+-
+   std::vector<std::map<int,unsigned int>> GetNeighboursForRadii(art::Event const &evt,
+     const std::vector<float>& rangeCuts, const std::vector<float>& chargeRangeCuts, const std::vector<const recob::SpacePoint*> &sps) {
+     std::vector<std::map<int,unsigned int>> result;
+@@ -1040,9 +1031,6 @@ private:
+   std::vector< std::vector< double > > sparsenet_features_charge_distance_10;
+   std::vector< std::vector< double > > sparsenet_features_charge_distance_30;
+   
+-
+-
+-
+   ////New section -- mechanical class members
+   std::map< int, TProfile* > templates;
+ 
+@@ -1138,7 +1126,7 @@ pduneana::PDSPAnalyzer::PDSPAnalyzer(fhicl::ParameterSet const& p)
+   fSaveHitIDEInfo(p.get<bool>( "SaveHitIDEInfo", false)),
+   fSaveRecoBeamAllTrack(p.get<bool>("SaveRecoBeamAllTrack", false)),
+   fSkipMVA( p.get<bool>( "SkipMVA" ) ),
+-  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", false)),
++  fVPlaneAsCollector(p.get<bool>("VPlaneAsCollector", true)),
+   fTrueToReco( p.get<bool>( "TrueToReco" ) ),
+   fDoReweight(p.get<bool>("DoReweight")),
+   fSaveG4RWWeights(p.get<bool>("SaveG4RWWeights", true)),
+@@ -3354,10 +3342,13 @@ void pduneana::PDSPAnalyzer::BeamTrackInfo(
+   auto calo_NoSCE = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt,
+                                                       fTrackerTag,
+                                                       fCalorimetryTagNoSCE);
++                                                                                                          
+   found_calo = false;
+   index = 0;
+   for (index = 0; index < calo_NoSCE.size(); ++index) {
+-    if (calo_NoSCE[index].PlaneID().Plane == 2) {
++    auto this_plane = calo_NoSCE[index].PlaneID().Plane;
++    if ((this_plane == 2 && !fVPlaneAsCollector) ||
++        (this_plane == 1 && fVPlaneAsCollector)) {
+       found_calo = true;
+       break; 
+     }
+@@ -3440,14 +3431,19 @@ void pduneana::PDSPAnalyzer::BeamShowerInfo(const art::Event & evt, const recob:
+ 
+   auto allHits = evt.getValidHandle<std::vector<recob::Hit> >(fHitTag);
+   auto calo = showerUtil.GetRecoShowerCalorimetry(*thisShower, evt, fShowerTag, "pandoraShowercalo");
++
+   bool found_calo = false;
+   size_t index = 0;
+-  for ( index = 0; index < calo.size(); ++index) {
+-    if (calo[index].PlaneID().Plane == 2) {
++
++  for (index = 0; index < calo.size(); ++index) {
++    auto this_plane = calo[index].PlaneID().Plane;
++    if ((this_plane == 2 && !fVPlaneAsCollector) ||
++        (this_plane == 1 && fVPlaneAsCollector)) {
+       found_calo = true;
+       break; 
+     }
+   }
++  
+   if (found_calo) {
+     auto TpIndices = calo[index].TpIndices();
+     for( size_t i = 0; i < TpIndices.size(); ++i ){
+@@ -4438,8 +4434,11 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
+                 *pandora2Track, evt, "pandora2Track", fPandora2CaloSCE);
+         bool found_calo = false;
+         size_t index = 0;
++
+         for ( index = 0; index < dummy_caloSCE.size(); ++index) {
+-          if (dummy_caloSCE[index].PlaneID().Plane == 2) {
++          auto this_plane = dummy_caloSCE[index].PlaneID().Plane;
++          if ((this_plane == 2 && !fVPlaneAsCollector) ||
++              (this_plane == 1 && fVPlaneAsCollector)) {
+             found_calo = true;
+             break; 
+           }
+@@ -4531,8 +4530,11 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
+         //Calorimetry + chi2 for planes 0 and 1
+         size_t plane0_index = 0;
+         bool found_plane0 = false;
+-        for ( plane0_index = 0; plane0_index < dummy_caloSCE.size(); ++plane0_index) {
+-          if (dummy_caloSCE[plane0_index].PlaneID().Plane == 0) {
++        for (plane0_index = 0; plane0_index < dummy_caloSCE.size(); ++plane0_index) {
++
++          auto this_plane = dummy_caloSCE[plane0_index].PlaneID().Plane;
++
++          if (this_plane == 0) {
+             found_plane0 = true;
+             break; 
+           }
+@@ -4540,7 +4542,8 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
+         size_t plane1_index = 0;
+         bool found_plane1 = false;
+         for ( plane1_index = 0; plane1_index < dummy_caloSCE.size(); ++plane1_index) {
+-          if (dummy_caloSCE[plane1_index].PlaneID().Plane == 1) {
++          auto this_plane = dummy_caloSCE[plane1_index].PlaneID().Plane;
++          if (this_plane == 1) {
+             found_plane1 = true;
+             break; 
+           }
+@@ -4794,11 +4797,13 @@ void pduneana::PDSPAnalyzer::DaughterPFPInfo(
+         //if (fGetCalibratedShowerEnergy) {
+           //std::cout << "Getting calibrated shower energy" << std::endl;
+           auto calo = showerUtil.GetRecoShowerCalorimetry(
+-              *pandora2Shower, evt, "pandora2Shower", "pandora2cali"); // TODO -- Rename this
++              *pandora2Shower, evt, "pandora2Shower", "pandora2Showercalo"); // TODO -- Rename this
+           bool found_calo = false;
+           size_t index = 0;
+           for (index = 0; index < calo.size(); ++index) {
+-            if (calo[index].PlaneID().Plane == 2) {
++            auto this_plane = calo[index].PlaneID().Plane;
++            if ((this_plane == 2 && !fVPlaneAsCollector) ||
++                (this_plane == 1 && fVPlaneAsCollector)) {
+               found_calo = true;
+               break; 
+             }
+@@ -5115,7 +5120,10 @@ void pduneana::PDSPAnalyzer::BeamForcedTrackInfo(
+       size_t index = 0;
+       bool found_plane = false;
+       for (index = 0; index < calo.size(); ++index) {
+-        if (calo[index].PlaneID().Plane == 2) {
++
++        auto this_plane = calo[index].PlaneID().Plane;
++        if ((this_plane == 2 && !fVPlaneAsCollector) ||
++            (this_plane == 1 && fVPlaneAsCollector)) {
+           found_plane = true;
+           break; 
+         }
+@@ -5389,8 +5397,6 @@ double pduneana::PDSPAnalyzer::GetG4RWExpCoeffs(std::vector<double> & weights, s
+   return result->Chi2();
+ }
+ 
+-
+-
+ std::vector<int> pduneana::PDSPAnalyzer::PrimaryHierarchy(
+         int ID, const sim::ParticleList & plist, bool verbose) {
+ 
+@@ -5417,4 +5423,4 @@ std::vector<int> pduneana::PDSPAnalyzer::PrimaryHierarchy(
+ 
+   return results;
+ }
+-DEFINE_ART_MODULE(pduneana::PDSPAnalyzer)
++DEFINE_ART_MODULE(pduneana::PDSPAnalyzer)
+\ No newline at end of file
