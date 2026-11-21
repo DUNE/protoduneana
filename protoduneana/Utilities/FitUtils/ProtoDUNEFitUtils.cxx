@@ -24,6 +24,7 @@
 
 #include <RooStats/HistFactory/PiecewiseInterpolation.h>
 #include <RooStats/ModelConfig.h>
+#include "RooFitLegacy/RooCatTypeLegacy.h"
 
 //********************************************************************
 double GetArgonNumberDensity(double argon_density, double argon_molecularmass){
