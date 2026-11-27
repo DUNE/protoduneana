@@ -30,6 +30,7 @@
 #include "RooStats/ProfileLikelihoodTestStat.h"
 #include "RooStats/ToyMCSampler.h"
 #include "RooStats/HistFactory/Measurement.h"
+#include "RooFitLegacy/RooCatTypeLegacy.h"
 
 //********************************************************************
 protoana::MCToyGenerationAndFit::MCToyGenerationAndFit(){

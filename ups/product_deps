@@ -87,7 +87,7 @@
 #>  define_pythonpath
 ####################################
 parent		protoduneana
-defaultqual	e26
+defaultqual	e28
 ####################################
 
 ####################################
@@ -344,7 +344,7 @@ table_fragment_end
 product          version
 duneprototypes   v10_32_00d01
 cetmodules	 v3_27_04	-	only_for_build
-geant4reweight   v01_21_04
+geant4reweight   v01_24_01
 end_product_list
 
 
@@ -352,10 +352,8 @@ end_product_list
 # Make a table by adding columns before "notes".
 # e15  - with gcc 6.4.0 and -std=c++14
 qualifier	duneprototypes          geant4reweight          notes
-c14:debug	c14:debug               c14:debug:s131           -nq-
-c14:prof	c14:prof                c14:prof:s131            -nq-
-e26:debug	e26:debug               e26:debug:s131           -nq-
-e26:prof	e26:prof                e26:prof:s131            -nq-
+e28:debug	e28:debug               e28:debug:s133           -nq-
+e28:prof	e28:prof                e28:prof:s133            -nq-
 end_qualifier_list
 
 
